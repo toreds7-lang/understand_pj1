@@ -1,0 +1,200 @@
+{
+  "toc-0": {
+    "anchor": "toc-0",
+    "title": "Introduction",
+    "level": 1,
+    "page_start": 1,
+    "page_end": 1,
+    "summary": "The introduction of the Transformer model explains a new method for sequence tasks like translation, moving away from traditional recurrent neural networks. Recurrent models usually process data step-by-step, meaning they can't parallelize, which slows down training. In contrast, the Transformer uses attention mechanisms to analyze entire sequences at once, allowing faster computation and better handling of long sequences. Previous models like Extended Neural GPU and ByteNet needed more operations for distant parts of sequences; the Transformer keeps these operations constant. Self-attention is key in the Transformer, linking parts of a sequence to form a representation, and is used without traditional RNNs or convolutions. This model enables quicker learning and reaching state-of-the-art quality with less training time.",
+    "done_at": "2026-05-22T17:41:05"
+  },
+  "toc-10": {
+    "anchor": "toc-10",
+    "title": "Positional Encoding",
+    "level": 2,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "The paper section explains the importance of \"positional encoding\" in models without recurrence or convolution. Positional encoding helps the model understand the order of sequence elements by adding position information to input embeddings. This is done using sine and cosine functions, which are chosen because they help the model learn relative positions effectively.\n\nThe section also covers the advantages of \"self-attention\" layers compared to recurrent and convolutional layers for processing sequences. Self-attention layers require fewer sequential operations and can connect all positions directly, enabling them to handle long-range dependencies efficiently. The table provided compares these layers based on complexity, sequential operations, and maximum path length.",
+    "done_at": "2026-05-22T17:41:17"
+  },
+  "toc-11": {
+    "anchor": "toc-11",
+    "title": "Why Self-Attention",
+    "level": 1,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "The purpose of this section is to explain the importance of positional encoding in models that use self-attention without recurrence or convolution. Positional encodings help the model understand the order of tokens in a sequence. The authors use sine and cosine functions for the positional encodings. These functions help the model learn the relative positions easily. They tried both fixed and learned encodings and found similar performance. They prefer sinusoidal encoding as it may help with sequences longer than those used in training.\n\nThe section also describes why self-attention layers are used over recurrent or convolutional layers. Self-attention layers have lower computational complexity and allow for more parallel processing. They also have shorter path lengths for connecting distant parts of a sequence, which helps in learning long-range dependencies.",
+    "done_at": "2026-05-22T17:42:46"
+  },
+  "toc-13": {
+    "anchor": "toc-13",
+    "title": "Training Data and Batching",
+    "level": 2,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section explains how the models were trained. The models used a dataset with sentence pairs to learn translations, using 4.5 million English-German and 36 million English-French sentences. Sentences were encoded into tokens for processing. The training involved using powerful GPUs, with each step taking a fraction of a second. Different models had varied training durations, with the bigger models taking longer. The Adam optimizer was used to adjust the model's learning, starting with an increasing learning rate that later decreased. During training, three types of regularization were applied to improve model performance.",
+    "done_at": "2026-05-22T17:43:32"
+  },
+  "toc-1": {
+    "anchor": "toc-1",
+    "title": "Background",
+    "level": 1,
+    "page_start": 1,
+    "page_end": 1,
+    "summary": "The introduction explains the problems with recurrent neural networks (RNNs) and how they have been widely used for tasks like language modeling and translation. RNNs work sequentially, which makes them slow and hard to parallelize when processing long sequences. \n\nThe paper introduces the Transformer as a new model that uses an attention mechanism instead of recurrence. This allows the model to process sequences in parallel, significantly speeding up training and improving performance in tasks like translation. \n\nThe background section mentions related models that reduce sequential computation by using convolutional neural networks. However, these models struggle with learning dependencies between distant positions. The Transformer addresses this with a constant number of operations using self-attention, a method to relate different parts of the same sequence. \n\nThe Transformer is highlighted as the first model to completely depend on self-attention without using RNNs or convolutions, making it unique for building representations of input/output sequences.",
+    "done_at": "2026-05-22T17:43:45"
+  },
+  "toc-3": {
+    "anchor": "toc-3",
+    "title": "Encoder and Decoder Stacks",
+    "level": 2,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "This section explains the structure of the Transformer model, which is made of an encoder and a decoder. Both the encoder and decoder have 6 layers. Each layer in the encoder has two parts: multi-head self-attention and a feed-forward network. The decoder adds a third part that looks at the encoder's output. The model uses residual connections and layer normalization to help with training. Another important feature of the decoder is masking, which ensures predictions use only previous information. Attention, a key concept here, helps in mapping inputs to outputs using weighted sums.",
+    "done_at": "2026-05-22T17:43:47"
+  },
+  "toc-5": {
+    "anchor": "toc-5",
+    "title": "Scaled Dot-Product Attention",
+    "level": 3,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "This section explains a method called \"Scaled Dot-Product Attention.\" It involves using queries, keys, and values to compute attention. The dot products of queries and keys are calculated, scaled by the square root of the dimension of the keys (_dk_), and then a softmax function is applied to get weights. This method is faster and uses less space than another method called additive attention because it works well with optimized matrix multiplication. For larger dimensions, scaling is important to prevent the softmax function from having very small gradients, which could limit learning.",
+    "done_at": "2026-05-22T17:43:49"
+  },
+  "toc-6": {
+    "anchor": "toc-6",
+    "title": "Multi-Head Attention",
+    "level": 3,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "This section explains \"Scaled Dot-Product Attention,\" a method to assign importance to different input data. The method uses dot products between 'queries' and 'keys' (both having size _dk_) and scales these by dividing by the square root of _dk_ to address large magnitude problems. A 'softmax function' then computes the weights for the 'values' (size _dv_). The method is faster and more efficient than an alternative called 'additive attention.' When using small _dk_, the difference in performance is minor, but for larger _dk_, scaling helps maintain effectiveness. The next part discusses 'Multi-Head Attention,' which involves running several attention operations in parallel with projections of queries, keys, and values.",
+    "done_at": "2026-05-22T17:43:51"
+  },
+  "toc-7": {
+    "anchor": "toc-7",
+    "title": "Applications of Attention in our Model",
+    "level": 3,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This section explains some specific techniques used in the Transformer model. It covers multi-head attention, which helps the model focus on different parts of the data simultaneously, using multiple \"heads\" to process parts of the input. Each attention head works with reduced dimensions to keep the computational cost similar to using only one big head. The section also describes three types of attention in the Transformer: encoder-decoder attention, self-attention in the encoder, and self-attention in the decoder. Next, it details position-wise feed-forward networks, which are simple computations applied independently at each position in the input. Finally, it talks about embeddings and softmax, which convert words into numbers the model can use and calculate the probability of the next word.",
+    "done_at": "2026-05-22T17:43:53"
+  },
+  "toc-4": {
+    "anchor": "toc-4",
+    "title": "Attention",
+    "level": 2,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "The \"Attention\" section explains how Transformers use attention mechanisms. It describes the main structure of the model, which includes encoder and decoder stacks with attention layers. The encoder has two sub-layers per layer—a multi-head attention layer and a feed-forward network—while the decoder adds a third sub-layer for attention to encoder outputs. Attention works by mapping a query and key-value pairs to an output. The \"Scaled Dot-Product Attention\" is a method to compute this efficiently, and \"Multi-Head Attention\" runs several attention operations in parallel to process different parts of the data. Finally, the section discusses attention applications in the Transformer, such as encoder-decoder and self-attentions, which help improve how the model understands and generates text.",
+    "done_at": "2026-05-22T17:43:55"
+  },
+  "toc-8": {
+    "anchor": "toc-8",
+    "title": "Position-wise Feed-Forward Networks",
+    "level": 2,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This section explains how attention is used in the Transformer model. Multi-head attention uses multiple \"heads\" to focus on different parts of the data at the same time, which helps the model understand more details than a single attention head. The Transformer uses attention in the encoder-decoder attention layers, and self-attention layers are present in both encoder and decoder. \n\nIn the encoder-decoder attention, queries come from the decoder while keys and values come from the encoder. In self-attention, each position can attend to other positions within the same layer. Position-wise feed-forward networks are also included in each layer, performing linear transformations to each position with a ReLU activation in between. \n\nFinally, embeddings convert tokens into vector form, and transformation with softmax produces output probabilities. The weights are shared between input and output embeddings.",
+    "done_at": "2026-05-22T17:43:56"
+  },
+  "toc-9": {
+    "anchor": "toc-9",
+    "title": "Embeddings and Softmax",
+    "level": 2,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This section describes how attention mechanisms are used in the model, particularly focusing on multi-head attention. Multi-head attention allows the model to focus on different parts of the input at the same time, using 8 parallel attention heads. This is computationally efficient and doesn't cost more than using just one attention head with full dimensions. \n\nThe model uses attention in three main ways:\n1. **Encoder-decoder attention:** Involves the decoder attending to all input positions, typical in models that convert sequences from one form to another.\n2. **Self-attention in the encoder:** Each position in the encoder layer considers all positions from the previous layer.\n3. **Self-attention in the decoder:** Similar to the encoder, but limited to positions up to a certain point to maintain a sequence's logical order.\n\nEach encoder and decoder layer also includes a feed-forward network that processes each position in the input independently with two linear transformations. Additionally, the model uses embeddings to turn input and output tokens into vectors, and a shared weight matrix is used to predict the next token.",
+    "done_at": "2026-05-22T17:43:59"
+  },
+  "toc-2": {
+    "anchor": "toc-2",
+    "title": "Model Architecture",
+    "level": 1,
+    "page_start": 1,
+    "page_end": 1,
+    "summary": "The Model Architecture section discusses the Transformer, a state-of-the-art sequence transduction model that uses attention mechanisms instead of recurrence. The Transformer consists of an encoder-decoder architecture, each with multiple layers that include self-attention and feed-forward networks. Attention mechanisms are central, with encoder-decoder and self-attentions helping the model to map inputs to outputs efficiently. Multi-head attention allows the model to focus on different information simultaneously, improving detail comprehension. Positional encoding is used to maintain the order of sequences, important for models without recurrent or convolutional structures. Overall, the Transformer architecture enables significant parallelization, improving efficiency and performance in tasks like language translation.",
+    "done_at": "2026-05-22T17:44:01"
+  },
+  "toc-14": {
+    "anchor": "toc-14",
+    "title": "Hardware and Schedule",
+    "level": 2,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section describes how the authors trained their models using large datasets for English-German and English-French translations. They use byte-pair and word-piece encoding to manage vocabulary sizes of 37,000 and 32,000 tokens. The training involves batching sentence pairs based on sequence length, managing 25,000 tokens each for source and target per batch. The models were trained on a machine with 8 GPUs, reaching specific training times for base (12 hours) and big models (3.5 days). The Adam optimizer was used with specific settings for parameters and a learning rate that changes during training. Regularization techniques are employed to improve model training.",
+    "done_at": "2026-05-22T17:44:02"
+  },
+  "toc-15": {
+    "anchor": "toc-15",
+    "title": "Optimizer",
+    "level": 2,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "The paper discusses how they train their models for machine translation tasks. They use two large datasets: one for English-German translation and a larger one for English-French translation. The text explains how data is prepared and batched for efficient training. Training happens on a machine with 8 NVIDIA GPUs, with separate settings for base and big models, telling the duration and steps needed. An optimizer called Adam is used, with specific settings for parameters that adjust the learning rate throughout training. They plan to investigate self-attention approaches further for better performance with long sequences in the future.",
+    "done_at": "2026-05-22T17:44:04"
+  },
+  "toc-16": {
+    "anchor": "toc-16",
+    "title": "Regularization",
+    "level": 2,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section explains how the models were trained. The English-German data had about 4.5 million sentence pairs, and the English-French data had 36 million. Sentences were encoded using byte-pair encoding or word-piece encoding to create tokens. Training batches had about 25,000 source and target tokens each. The models were trained using 8 NVIDIA P100 GPUs, and base models took 0.4 seconds per training step, while bigger models took 1.0 second per step. Training used the Adam optimizer with specific settings, adjusting the learning rate during training by increasing it initially and then decreasing it after a set number of steps.",
+    "done_at": "2026-05-22T17:44:06"
+  },
+  "toc-12": {
+    "anchor": "toc-12",
+    "title": "Training",
+    "level": 1,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "The Training section covers how the models are trained for machine translation of English-German and English-French sentences using large datasets. Sentence pairs are turned into tokens and processed using either byte-pair or word-piece encoding to manage vocabulary size. Training uses batches of about 25,000 tokens each on 8 GPUs, with bigger models taking longer to train. The Adam optimizer, with an adaptive learning rate, aids in model training, and regularization techniques are applied to improve performance. Overall, efficient batching and proper scheduling are key to managing the training process effectively.",
+    "done_at": "2026-05-22T17:44:08"
+  },
+  "toc-18": {
+    "anchor": "toc-18",
+    "title": "Machine Translation",
+    "level": 2,
+    "page_start": 7,
+    "page_end": 7,
+    "summary": "This section shows how the Transformer model performs in machine translation tasks, specifically English-to-German and English-to-French tests. The Transformer (big model) achieves a very high BLEU score, which measures translation quality, outperforming previous models by a significant margin. It also does this using less training time and computational resources than earlier models. The base model of the Transformer also performs better than earlier models and ensembles, while using fewer resources. The section explains some technical settings like \"Residual Dropout\" and \"Label Smoothing,\" which help improve model performance. The translation experiments use specific hyperparameters chosen for best results, like beam size and length penalty, during translation predictions.",
+    "done_at": "2026-05-22T17:44:09"
+  },
+  "toc-19": {
+    "anchor": "toc-19",
+    "title": "Model Variations",
+    "level": 2,
+    "page_start": 7,
+    "page_end": 7,
+    "summary": "This section discusses the results of using the Transformer model for machine translation tasks between English and German, and English and French. The Transformer (big) model achieved a new record BLEU score of 28.4 for English-to-German and 41.0 for English-to-French, doing so with much less training cost than previous models. BLEU is a score for measuring the quality of machine-translated text. The models were trained on powerful GPUs, and different settings like dropout rates and label smoothing were used to improve accuracy. The method of averaging model checkpoints and using beam search improved translation performance. Comparisons showed that the Transformer is both more effective and efficient than other competing models.",
+    "done_at": "2026-05-22T17:44:11"
+  },
+  "toc-20": {
+    "anchor": "toc-20",
+    "title": "English Constituency Parsing",
+    "level": 2,
+    "page_start": 8,
+    "page_end": 8,
+    "summary": "This section presents experiments with a different task called English constituency parsing. This task is challenging because it involves producing long outputs with specific structures. Traditional models struggled with this when using small datasets. The researchers trained a 4-layer Transformer model on a well-known dataset called the Wall Street Journal (WSJ) from the Penn Treebank, containing about 40,000 sentences. They also tried a semi-supervised approach using a much larger set of 17 million sentences. The experiments aimed to find the best settings for dropout, learning rate, and beam size, while other settings followed those used for English-to-German translation.",
+    "done_at": "2026-05-22T17:44:13"
+  },
+  "toc-17": {
+    "anchor": "toc-17",
+    "title": "Results",
+    "level": 1,
+    "page_start": 7,
+    "page_end": 7,
+    "summary": "The \"Results\" section discusses the performance and efficiency of the Transformer model on various tasks. In \"Machine Translation,\" the Transformer outperforms earlier models on English-to-German and English-to-French translations, achieving high BLEU scores with less computational effort. \"Model Variations\" further explores these translation tasks, confirming the superior performance and cost-efficiency of the Transformer, aided by settings like dropout rates and label smoothing. In \"English Constituency Parsing,\" the Transformer shows its capability in handling complex tasks involving structure, using both a widely-used dataset and a semi-supervised approach. Overall, the section highlights the Transformer model's effectiveness and resource efficiency across different applications.",
+    "done_at": "2026-05-22T17:44:14"
+  },
+  "toc-21": {
+    "anchor": "toc-21",
+    "title": "Conclusion",
+    "level": 1,
+    "page_start": 9,
+    "page_end": 14,
+    "summary": "The section discusses the performance of the Transformer model in English constituency parsing, specifically on a part of the Wall Street Journal dataset. It shows that the Transformer model performs very well, even without specific adjustments for the task, and does better than most other models, except one called Recurrent Neural Network Grammar. Compared to other models like RNN sequence-to-sequence models, the Transformer is also better in some cases, like when using a specific training set of 40,000 sentences. This suggests that the Transformer is strong at handling these language tasks.",
+    "done_at": "2026-05-22T17:44:16"
+  }
+}

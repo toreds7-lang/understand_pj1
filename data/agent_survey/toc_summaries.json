@@ -1,0 +1,524 @@
+{
+  "toc-0": {
+    "anchor": "toc-0",
+    "title": "Introduction",
+    "level": 1,
+    "page_start": 0,
+    "page_end": 0,
+    "summary": "This paper discusses Large Language Model (LLM) agents, which are smart systems that can understand environments, think, and take actions. These agents are more advanced than old AI systems because they can learn continuously and adapt. They can do complex tasks that usually need human skills, like research and computer operations, while also meeting user needs. The paper shows how LLM agents have improved because of better reasoning, new tools, and memory systems that help them remember experiences. The authors present a way to understand these agents by looking at how they are created, how they work together, and how they develop over time. This helps researchers see the big picture and potential future changes in this fast-growing area.",
+    "done_at": "2026-05-23T06:33:46"
+  },
+  "toc-3": {
+    "anchor": "toc-3",
+    "title": "Profile Definition",
+    "level": 3,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "The section explains how to build agents using large language models (LLMs). It highlights four main components: defining the agent’s profile, setting up memory mechanisms, planning capabilities, and action execution. These components work together to help the agent learn and improve over time. Profile definition is the first step, where an agent's behavior and attributes are set. This can be done through human-curated static profiles or batch-generated dynamic profiles. Each approach controls how the agent makes decisions and interacts while ensuring it meets its goals.",
+    "done_at": "2026-05-23T06:37:29"
+  },
+  "toc-4": {
+    "anchor": "toc-4",
+    "title": "Memory Mechanism",
+    "level": 3,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "This section discusses how different agent systems use memory and planning capabilities to improve performance. Agents can follow predefined roles for tasks or use varied profiles to act more like humans. Memory is divided into short-term and long-term. Short-term memory helps agents remember recent information for current tasks but doesn't last. Long-term memory saves important knowledge for future tasks, which can improve reasoning. Agents also use external knowledge sources to expand their understanding and enhance memory. Planning abilities allow agents to break tasks into smaller parts, making complex problems easier to solve.",
+    "done_at": "2026-05-23T06:37:31"
+  },
+  "toc-5": {
+    "anchor": "toc-5",
+    "title": "Planning Capability",
+    "level": 3,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "This section explains how agents and systems can use predefined rules and dynamic profiles for better performance. Systems like Camel and AutoGen use set roles (like user and assistant) for structured communication, helping with tasks that need clear rules and compliance. Another method, creating dynamic profiles, adds diversity by varying traits, helping agents act more like humans in group interactions.\n\nMemory mechanisms are methods that let agents store and recall information. Short-term memory keeps information needed for immediate tasks but doesn't last long. Long-term memory saves more detailed knowledge for future use and can combine new tools from past experiences, enhancing the agent’s abilities over time.\n\nAgents can also retrieve external knowledge, expanding what they know. This can involve pulling data from text, graphs, or interactive queries, allowing them to gain more information than what they were directly trained on.\n\nPlanning capability is also vital for agents, where they break down complex tasks into smaller parts to solve easier steps before combining them back into a complete solution.",
+    "done_at": "2026-05-23T06:37:36"
+  },
+  "toc-6": {
+    "anchor": "toc-6",
+    "title": "Action Execution",
+    "level": 3,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This section explains two main ways to break down tasks for agents: single-path chaining and multi-path tree expansion. In single-path chaining, the agent makes a plan and follows it step by step, but this can lead to errors building up. Some methods let the agent change its plan based on feedback, making it more flexible and accurate. Multi-path tree expansion uses a tree structure for planning, allowing the agent to backtrack and fix mistakes, which works well for complex tasks. Feedback is important for improving agent performance, and it can come from the environment, humans, the agent itself, or teamwork with other agents. Finally, agent collaboration is key for better problem-solving, using different methods to work together and learn from each other.",
+    "done_at": "2026-05-23T06:37:38"
+  },
+  "toc-2": {
+    "anchor": "toc-2",
+    "title": "Agent Construction",
+    "level": 2,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "The section on Agent Construction explains how to create agents using large language models. It starts with defining an agent's profile, which sets the basic behavior and attributes, either through preset profiles or dynamically generated ones. Next, memory mechanisms are discussed, showing how they help agents remember and use information smartly, using short-term for quick needs and long-term for lasting knowledge. Planning is another key component, helping agents handle complex tasks by breaking them into smaller steps. Finally, action execution is described, teaching how agents carry out tasks and adjust based on feedback, using methods like chaining or tree structures for flexibility. Together, these elements help agents learn, adapt, and improve over time.",
+    "done_at": "2026-05-23T06:37:41"
+  },
+  "toc-8": {
+    "anchor": "toc-8",
+    "title": "Centralized Control",
+    "level": 3,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "This paper section talks about three main types of structures used in organizing how different agents (or parts of a system) work together: centralized control, decentralized collaboration, and hybrid architecture. \n\n**Centralized Control** uses a central point (controller) to manage tasks and decisions. Two strategies are explained: *explicit controller systems*, where a dedicated coordinator assigns tasks (such as in Coscientist and MetaGPT), and *differentiation-based systems*, where a main agent takes different roles (like in AutoAct).\n\n**Decentralized Collaboration** allows agents to directly interact with each other. This structure avoids a central controller and is split into *revision-based systems*, where agents repeatedly revise shared outputs, and *communication-based systems*, where agents talk directly with each other to make decisions.\n\n**Hybrid Architecture** combines the above two approaches. It uses both fixed *static systems* and adaptable *dynamic systems* to balance control and flexibility, adjusting how agents work together based on different task needs.",
+    "done_at": "2026-05-23T06:37:43"
+  },
+  "toc-9": {
+    "anchor": "toc-9",
+    "title": "Decentralized Collaboration",
+    "level": 3,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "This section discusses three main types of architecture used in systems: centralized control, decentralized collaboration, and hybrid architectures. Each type has unique ways of making decisions, communicating, and handling tasks, being useful for different applications.\n\nCentralized control uses a hierarchy with a central controller that directs other agents (sub-agents). This is useful in situations needing strict coordination like industrial work. It has two kinds: explicit controller systems, where a main agent organizes everything, and differentiation-based systems, where tasks are divided using prompts.\n\nDecentralized collaboration allows agents to interact directly without a single central leader, avoiding bottlenecks. This can be split into revision-based systems, where agents improve tasks by editing, and communication-based systems, which use dialogue among agents.\n\nHybrid architectures mix centralized and decentralized methods for balancing control and flexibility. They might have fixed teamwork rules (static systems) or changeable structures that adapt based on feedback (dynamic systems).",
+    "done_at": "2026-05-23T06:37:46"
+  },
+  "toc-10": {
+    "anchor": "toc-10",
+    "title": "Hybrid Architecture",
+    "level": 3,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "This section explains different ways to organize multi-agent systems: centralized control, decentralized collaboration, and hybrid architectures. In **centralized control**, one main controller manages everything and tells other agents what to do, useful for tasks needing strict control, like industrial work. For example, Coscientist uses a human as a central controller to run scientific experiments. **Decentralized collaboration** allows agents to work together without a single leader, using either shared revisions or direct communication to coordinate. MedAgents and ReConcile show how agents can improve decisions by modifying them over time or discussing reasons with each other. Lastly, **hybrid architectures** mix both strategies, offering flexibility and efficiency. These can be either static (fixed rules) or dynamic (changing with feedback) in their approach to organizing agent communication and task coordination.",
+    "done_at": "2026-05-23T06:37:49"
+  },
+  "toc-7": {
+    "anchor": "toc-7",
+    "title": "Agent Collaboration",
+    "level": 2,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "Agent collaboration involves different methods for agents to work together and enhance their problem-solving capabilities. There are three main ways to structure how agents collaborate: centralized control, decentralized collaboration, and hybrid architecture. In centralized control, a main controller manages tasks and decisions, as seen in systems like MetaGPT and AutoAct. Decentralized collaboration allows agents to directly interact, either by revising shared outputs or by engaging in direct communication, which helps avoid bottlenecks. Hybrid architectures combine both centralized and decentralized elements to balance control and flexibility, adapting to different tasks and feedback. These collaborative structures enable agents to leverage collective intelligence for improved performance.",
+    "done_at": "2026-05-23T06:37:50"
+  },
+  "toc-12": {
+    "anchor": "toc-12",
+    "title": "Autonomous Optimization and Self-Learning",
+    "level": 3,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section explains how LLM (Large Language Model) agents are improving on their own. Agent evolution has three main parts: self-learning, multi-agent interactions, and using resources outside the model. Autonomous optimization helps models learn without much supervision, including methods like self-supervised learning and self-correction. Multi-agent co-evolution involves LLMs learning through cooperation or competition with other agents, which enhances decision-making. The different strategies described, like self-rewarding and reinforcement learning, all aim to help the models get smarter and solve more complex problems.",
+    "done_at": "2026-05-23T06:37:52"
+  },
+  "toc-13": {
+    "anchor": "toc-13",
+    "title": "Multi-Agent Co-Evolution",
+    "level": 3,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "There are different methods to help AI models, known as LLMs (Large Language Models), improve themselves. They can learn on their own through self-supervised learning, which uses unlabeled data to enhance learning efficiency. Techniques like adaptive token masking and evolutionary optimization help in this process. \n\nLLMs can also improve by self-reflecting and self-correcting, where they refine their outputs by recognizing and fixing errors. Methods like SELF-REFINE and STaR allow them to verify and enhance their problem-solving abilities without needing much external data.\n\nSelf-rewarding and reinforcement learning methods help LLMs improve performance by using their own generated feedback. These approaches help ensure that models continually learn and adapt effectively.\n\nLLMs can evolve by interacting with other agents in multi-agent settings. They can learn cooperatively or engage in competitive interactions, which allows them to share information and improve strategies. This multi-agent approach enhances adaptability and decision-making skills.",
+    "done_at": "2026-05-23T06:37:54"
+  },
+  "toc-14": {
+    "anchor": "toc-14",
+    "title": "Evolution via External Resources",
+    "level": 3,
+    "page_start": 7,
+    "page_end": 7,
+    "summary": "This section examines the tools and benchmarks (tests) that help understand and improve LLM (Large Language Model) agents. It discusses different ways to evaluate or judge how well these agents work. The evaluations include general tests, tests for specific tasks, and tests looking at how well agents work together. It also talks about using external knowledge and feedback to make agents smarter and better at reasoning. The section explains the importance of creating advanced evaluation systems to measure agents' skills in more detailed ways, not just by simple success rates.",
+    "done_at": "2026-05-23T06:37:56"
+  },
+  "toc-11": {
+    "anchor": "toc-11",
+    "title": "Agent Evolution",
+    "level": 2,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section is about how Large Language Model (LLM) agents are becoming smarter and more advanced. It covers three main ideas: self-learning, interacting with other agents, and using tools outside the model. Self-learning allows LLMs to improve through methods like self-supervised learning and self-correction. By working together or competing in multi-agent setups, LLMs can enhance their decision-making skills. Using external resources, such as tests and feedback, helps LLMs get better at tasks by measuring their abilities beyond just success rates. Overall, these methods help LLMs evolve and tackle more complex problems.",
+    "done_at": "2026-05-23T06:38:00"
+  },
+  "toc-1": {
+    "anchor": "toc-1",
+    "title": "Agent Methodology",
+    "level": 1,
+    "page_start": 1,
+    "page_end": 1,
+    "summary": "The \"Agent Methodology\" section explains how Large Language Model (LLM) agents are built, work together, and grow smarter. It begins with \"Agent Construction,\" which describes creating agents by defining their profiles, memory, planning capabilities, and execution methods, so they can learn and improve. Next, \"Agent Collaboration\" explores how agents can enhance their problem-solving through centralized, decentralized, or hybrid collaboration methods. Finally, \"Agent Evolution\" discusses how agents advance by self-learning, interacting with others, and using outside tools, allowing them to handle complex tasks better. Overall, this section provides a comprehensive framework for understanding the lifecycle of modern LLM agents.",
+    "done_at": "2026-05-23T06:38:04"
+  },
+  "toc-17": {
+    "anchor": "toc-17",
+    "title": "General Assessment Frameworks",
+    "level": 3,
+    "page_start": 7,
+    "page_end": 7,
+    "summary": "This paper section examines the tools and benchmarks used to develop, assess, and deploy Language Learning Model (LLM) agents. It discusses how evaluation frameworks address general assessments, domain-specific scenarios, and collaborative evaluations. It explains that LLMs can improve by using external knowledge and feedback, enhancing their reasoning and decision-making. The section also describes how modern benchmarks assess LLM capabilities in different reasoning, planning, and problem-solving areas using real-world scenarios. These advancements help LLMs adapt and perform more reliably in complex environments.",
+    "done_at": "2026-05-23T06:38:06"
+  },
+  "toc-18": {
+    "anchor": "toc-18",
+    "title": "Domain-Specific Evaluation System",
+    "level": 3,
+    "page_start": 8,
+    "page_end": 8,
+    "summary": "This section talks about evaluation systems made for specific fields to test how well AI agents perform in specialized situations. The tests are designed to see how good agents are at specific tasks, such as healthcare and autonomous driving, using unique scenarios and environments. These tests aim to find areas where AI needs to improve compared to general tests. Some tests also simulate real-life settings to better understand how AI behaves in dynamic situations. This helps to ensure AI agents work well in practical applications and can handle real-world challenges.",
+    "done_at": "2026-05-23T06:38:08"
+  },
+  "toc-19": {
+    "anchor": "toc-19",
+    "title": "Collaborative Evaluation of Complex Systems",
+    "level": 3,
+    "page_start": 8,
+    "page_end": 8,
+    "summary": "This section explains how specialized evaluations are necessary for assessing agent applications in different domains. Researchers develop evaluation systems that combine testing in professional scenarios with real-world simulations. In healthcare, benchmarks like MedAgentBench and AI Hospital are used to test clinical applications. For autonomous driving, LaMPilot evaluates code generation related to driving systems. Benchmarks for data science, security, travel planning, and ML engineering help assess agents' specific capabilities. Real-world simulations, like OSWorld and EgoLife, enable testing in interactive environments. Evaluations of complex systems focus on multi-agent coordination and collaborative intelligence, with tools such as TheAgentCompany and MLE-Bench assessing cooperation and problem-solving with multiple agents.",
+    "done_at": "2026-05-23T06:38:10"
+  },
+  "toc-16": {
+    "anchor": "toc-16",
+    "title": "Evaluation Benchmarks and Datasets",
+    "level": 2,
+    "page_start": 7,
+    "page_end": 7,
+    "summary": "This section looks at how to evaluate AI models, focusing on different tools and benchmarks. First, it discusses general assessments, showing how they help AI improve by using real-world scenarios to enhance reasoning and decision-making. Then, it addresses specialized tests meant for particular fields like healthcare and autonomous driving, which help AI perform better in specific tasks. Finally, it covers collaborative evaluations, where complex systems are tested in real-life simulations to assess teamwork and adaptability in multi-agent settings. Overall, these benchmarks ensure AI can handle practical tasks and work well in various environments.",
+    "done_at": "2026-05-23T06:38:11"
+  },
+  "toc-21": {
+    "anchor": "toc-21",
+    "title": "Tools used by LLM agents",
+    "level": 3,
+    "page_start": 8,
+    "page_end": 8,
+    "summary": "This section discusses how to evaluate specialized agent systems in certain fields, ensuring they are suited to specific domains and environments. It introduces various tools and benchmarks for different applications, like healthcare and autonomous driving, to test these systems' real-world capabilities. Domain-specific evaluation systems are tailored to assess how well agents perform in particular areas, such as healthcare or data science. Additionally, some benchmarks aim to replicate real-world environments to evaluate how agents function in practical settings. The section also highlights the importance of collaborative evaluation frameworks that focus on the collective performance of multiple agents working together. Lastly, it mentions the significance of tools used by language model agents to enhance their task performance, especially for tasks needing real-time information or accurate calculations.",
+    "done_at": "2026-05-23T06:38:14"
+  },
+  "toc-22": {
+    "anchor": "toc-22",
+    "title": "Tools created by LLM agents",
+    "level": 3,
+    "page_start": 9,
+    "page_end": 9,
+    "summary": "This section is about using tools with LLM (Large Language Model) agents. It discusses three main areas: creating tools by LLMs, deploying LLM agents, and issues in real-world use. LLMs can create their tools to solve specific problems, as shown by methods like CRAFRT and Toolink. For deployment, various tools help in building, operating, and maintaining LLM applications effectively. AutoGen and LangChain are examples of frameworks that make it easy to create and customize LLM applications. Finally, as LLMs are used more, they face challenges like security risks, privacy concerns, and social impacts.",
+    "done_at": "2026-05-23T06:38:16"
+  },
+  "toc-23": {
+    "anchor": "toc-23",
+    "title": "Tools for deploying LLM agents",
+    "level": 3,
+    "page_start": 9,
+    "page_end": 9,
+    "summary": "This section talks about tools that LLM (Large Language Model) agents can create, deploy, and use. It explains that LLM agents are trying to become better at making their tools because regular tools have limits. Some new methods, like CRAFRT and Toolink, help LLMs create and use tool sets for specific tasks. There are also tools for deploying LLMs, like AutoGen and LangChain, which help developers build LLM applications easily. The section also mentions a protocol called MCP that standardizes how LLMs connect with other services, making them more secure and effective. Overall, the section highlights that these tools and methods can help LLMs perform tasks more efficiently.",
+    "done_at": "2026-05-23T06:38:18"
+  },
+  "toc-20": {
+    "anchor": "toc-20",
+    "title": "Tools",
+    "level": 2,
+    "page_start": 8,
+    "page_end": 8,
+    "summary": "This section \"Tools\" discusses the evaluation and creation of tools related to LLM (Large Language Model) agents and their deployment. It outlines how specialized tools and benchmarks test LLM agents' abilities in various fields, such as healthcare and autonomous driving, to ensure they can handle practical tasks. Tools like CRAFRT and Toolink show how LLMs can create solutions for specific problems, while frameworks like AutoGen and LangChain support the easy building and customizing of LLM applications. The section also emphasizes the importance of improved security and interoperability for LLMs, as highlighted by protocols like MCP. Overall, using and creating the right tools helps LLM agents perform better and tackle real-world challenges.",
+    "done_at": "2026-05-23T06:38:20"
+  },
+  "toc-15": {
+    "anchor": "toc-15",
+    "title": "Evaluation and Tools",
+    "level": 1,
+    "page_start": 7,
+    "page_end": 7,
+    "summary": "The \"Evaluation and Tools\" section discusses how AI models and LLM (Large Language Model) agents are evaluated and improved for practical tasks. It explains different evaluation benchmarks that check how well AI performs in general scenarios and specialized fields like healthcare and autonomous driving. Collaborative evaluations test complex systems for teamwork and adaptability. The section also highlights tools that help create and evaluate LLM agents, like CRAFRT, Toolink, AutoGen, and LangChain, which make it easier to develop customized applications. Ensuring security and working together smoothly are emphasized as crucial for better performance in real-world situations. Together, the evaluations and tools are essential for enhancing AI capabilities and ensuring they can address various practical challenges.",
+    "done_at": "2026-05-23T06:38:24"
+  },
+  "toc-26": {
+    "anchor": "toc-26",
+    "title": "Adversarial Attacks and Defense",
+    "level": 3,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "This section talks about securing large language model (LLM) agents from various attacks. The goal is to protect these agents from damage, misuse, and privacy violations. They explain four types of attacks: adversarial, jailbreaking, backdoor, and model collaboration. For each attack, the text discusses methods attackers use and how defenses can be applied. Some key terms include \"adversarial attacks,\" which aim to disrupt agent tasks, \"jailbreaking attacks,\" which bypass model protections, and \"backdoor attacks,\" which hide triggers in models to cause errors. Researchers use different methods to defend against these attacks, like improving input purification or using multiple agents for better security.",
+    "done_at": "2026-05-23T06:38:26"
+  },
+  "toc-27": {
+    "anchor": "toc-27",
+    "title": "Jailbreaking Attacks and Defense",
+    "level": 3,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "This section discusses security concerns related to Large Language Model (LLM) agents, focusing on defending them from different types of attacks.\n\n1. **Agent-centric Security**: This security approach protects agents against attacks that attempt to manipulate or steal information from the agents' components, like weights and architectures. Attacks can reduce performance, cause harmful outputs, and leak private data.\n\n2. **Adversarial Attacks**: These attacks aim to impair the reliability of agents. Several studies and tools have been developed to understand and defend against these attacks, using methods like evaluating AI agents' robustness and multi-agent debate strategies.\n\n3. **Jailbreaking Attacks**: Such attacks bypass model protections to access unauthorized information or functions. Methods to combat these include multi-agent frameworks and simulations that detect and counteract such breaches.\n\n4. **Backdoor Attacks**: These attacks insert triggers in the model to produce incorrect outputs when activated. Techniques have been developed to implant and detect these backdoors, with the aim of avoiding unwanted manipulations.\n\n5. **Model Collaboration Attacks**: This type of attack disrupts the interactions between multiple models working together. Defense methods involve identifying the impact on multi-agent networks and detecting anomalies through graph neural networks.",
+    "done_at": "2026-05-23T06:38:29"
+  },
+  "toc-28": {
+    "anchor": "toc-28",
+    "title": "Backdoor Attacks and Defense",
+    "level": 3,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "This section discusses security risks specifically related to LLM (large language model) agents. It focuses on the different types of attacks that can weaken or exploit these agents. Attacks can lead to problems like wrong outputs, stolen information, and system vulnerabilities.\n\n1. **Adversarial Attacks** aim to make agents unreliable. They trick the agent into making mistakes by altering inputs. Some systems test agents' resistance to these attacks, and methods like CheatAgent and GIGA introduce new ways to create these adversarial conditions. Defense strategies include purifying inputs before the agent processes them and using multi-agent debates to strengthen resistance.\n\n2. **Jailbreaking Attacks** allow unauthorized access or functionality. Techniques like RLTA and Atlas manipulate models to produce unauthorized results, while defenses such as AutoDefense and Guardians work to detect and block these breaches.\n\n3. **Backdoor Attacks** implant hidden triggers that cause the model to make specific errors. These attacks hide malicious changes within normal tasks. Methods like DemonAgent and BadAgent show how these backdoors can be used, while DarkMind exploits reasoning chains without visible triggers.\n\n4. **Model Collaboration Attacks** disrupt systems where multiple models work together by targeting their interactions. Defense strategies utilize network safety properties and graph neural networks to detect and protect against these vulnerabilities.",
+    "done_at": "2026-05-23T06:38:33"
+  },
+  "toc-29": {
+    "anchor": "toc-29",
+    "title": "Model Collaboration Attacks and Defense",
+    "level": 3,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "This section discusses the security of agent models and the different types of attacks they may face. These attacks aim to manipulate, damage, or steal parts of the models, which can lead to poor performance or privacy issues. The section covers four main types of attacks and defenses against them.\n\n1. **Adversarial Attacks** aim to make agents perform poorly. Defense methods include cleaning adversarial inputs and using multiple agents to resist attacks.\n   \n2. **Jailbreaking Attacks** try to bypass model protections to access unauthorized functions. Defense strategies involve filtering harmful outputs and detecting rogue agents.\n\n3. **Backdoor Attacks** insert hidden triggers to cause errors. Attack examples include implanting multiple backdoors or altering decision processes invisibly.\n\n4. **Model Collaboration Attacks** involve disrupting the interactions between multiple models. Defense methods focus on identifying harmful interactions and detecting anomalies using network analysis.",
+    "done_at": "2026-05-23T06:38:36"
+  },
+  "toc-25": {
+    "anchor": "toc-25",
+    "title": "Agent-centric Security",
+    "level": 2,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "The text covers the security of large language model (LLM) agents, exploring various threats and defenses. It discusses four main types of attacks: adversarial, jailbreaking, backdoor, and model collaboration. Each type of attack has its specific methods and challenges, but techniques are being developed to defend against them. Adversarial attacks trick agents to make mistakes, while jailbreaking attacks bypass protections for unauthorized access. Backdoor attacks silently trigger incorrect actions, and model collaboration attacks interfere with multiple models working together. The overall aim is to safeguard LLM agents from manipulation, errors, and privacy issues by enhancing their security systems.",
+    "done_at": "2026-05-23T06:38:38"
+  },
+  "toc-31": {
+    "anchor": "toc-31",
+    "title": "External Data Attack and Defense",
+    "level": 3,
+    "page_start": 11,
+    "page_end": 11,
+    "summary": "This section talks about security issues in AI systems with multiple agents. Data-centric attacks aim to mess up the data that AI agents use, leading to strange or harmful actions. These attacks focus on changing the data input without modifying the system itself. The section classifies these attacks into two types: external data attacks and interactions with other agents or users. For each attack type, the authors describe various methods attackers use and some defenses developed to counter these attacks, such as the \"Input Firewall\" that changes inputs into a safer format and psychological assessments by \"doctor agents\" to prevent harmful behavior. Such defenses ensure that the AI follows its intended instructions and remains safe.",
+    "done_at": "2026-05-23T06:38:39"
+  },
+  "toc-32": {
+    "anchor": "toc-32",
+    "title": "Interaction Attack and Defense",
+    "level": 3,
+    "page_start": 11,
+    "page_end": 11,
+    "summary": "This section discusses various ways of attacking and defending AI language models (LLM) by focusing on data and interactions. It explains that data-centric attacks target input data to cause problems like incorrect outputs or resource waste. These attacks are divided into external data attacks and execution data attacks. \n\nOne common method is \"User Input Falsifying,\" where attackers change user inputs to produce harmful results, but defense systems like input firewalls can protect against this. Another method is \"Dark Psychological Guidance,\" using negative terms to influence AI behavior, protected against using doctor and police agents to maintain psychological safety.\n\nMoreover, \"External Source Poisoning\" involves placing harmful data in outside sources to mislead AI agents, but defenses include using expert agents to verify information. The section also describes attacks that exploit interactions between agents or between users and agents, such as extracting information from stored user-agent interactions, where each can be countered with specific security measures.",
+    "done_at": "2026-05-23T06:38:42"
+  },
+  "toc-30": {
+    "anchor": "toc-30",
+    "title": "Data-centric Security",
+    "level": 2,
+    "page_start": 11,
+    "page_end": 11,
+    "summary": "The \"Data-centric Security\" section focuses on protecting AI systems from threats related to the data they use. There are two main types of attacks discussed: external data attacks and interaction attacks. External data attacks involve tampering with the data that AI systems use, leading to unwanted or dangerous actions. Interaction attacks focus on how AI language models (LLMs) interact with data and users to cause problems like incorrect outcomes or wasting resources.\n\nBoth subsections describe defense mechanisms against these attacks. For example, \"Input Firewalls\" convert harmful inputs into safe formats, and \"doctor agents\" conduct psychological assessments to prevent harmful AI behavior. Another defense is using \"expert agents\" to verify data from external sources. These strategies help keep AI systems secure and functioning as intended.",
+    "done_at": "2026-05-23T06:38:44"
+  },
+  "toc-34": {
+    "anchor": "toc-34",
+    "title": "LLM Memorization Vulnerabilities",
+    "level": 3,
+    "page_start": 12,
+    "page_end": 12,
+    "summary": "This section discusses the privacy concerns in Large Language Model (LLM) agents due to their memory capabilities. LLMs can remember and leak sensitive training data, creating security risks. **Data Extraction Attacks** exploit LLM memory to pull out private details, like names and emails. **Member Inference Attacks** check if data was part of the training set, while **Attribute Inference Attacks** try to guess features of the data. Protective measures include removing sensitive data from training sets, adding noise for privacy, and using techniques to transfer knowledge safely. These strategies aim to reduce the risks of unauthorized data access and leakage.",
+    "done_at": "2026-05-23T06:38:46"
+  },
+  "toc-35": {
+    "anchor": "toc-35",
+    "title": "LM Intellectual Property Exploitation",
+    "level": 3,
+    "page_start": 13,
+    "page_end": 13,
+    "summary": "This section discusses privacy threats related to Large Language Models (LLMs) focusing on the risks tied to intellectual property (IP). It highlights two main types of attacks: model stealing, where attackers try to extract model information by querying it, and prompt stealing, which involves deducing original prompts from generated content. These attacks threaten individuals and organizations by exploiting the economic value of LLMs. The paper explains that defenses like model watermarking and blockchain-based IP authentication can help protect against these attacks. The section underscores that as LLMs develop, it's important to create strong privacy protection technologies to minimize these risks.",
+    "done_at": "2026-05-23T06:38:49"
+  },
+  "toc-33": {
+    "anchor": "toc-33",
+    "title": "Privacy",
+    "level": 2,
+    "page_start": 12,
+    "page_end": 12,
+    "summary": "The section on privacy highlights concerns with Large Language Models (LLMs) due to their abilities to memorize data. These abilities can lead to security risks, such as leaking sensitive training data. There are various types of attacks, including **Data Extraction Attacks**, which target sensitive information, and **Model Stealing**, which aims to extract model details. The paper suggests defensive strategies such as removing sensitive data, adding noise, and using watermarking and blockchain for IP protection. Both subsections emphasize the need for strong privacy measures as LLMs grow more advanced.",
+    "done_at": "2026-05-23T06:38:51"
+  },
+  "toc-37": {
+    "anchor": "toc-37",
+    "title": "Benefits to Sociaty",
+    "level": 3,
+    "page_start": 13,
+    "page_end": 13,
+    "summary": "This section talks about how Large Language Models (LLMs) can be used to steal intellectual property (IP), like stealing model details and input prompts. **Model stealing attacks** involve taking model details by questioning it and analyzing its responses. These attacks can extract important information without seeing original training data. For protection, methods like model watermarking and using blockchain are suggested. **Prompt stealing attacks** try to find original input hints from generated content, which might have business value. To prevent this, some propose using adversarial samples, which are designed to confuse potential attackers. Overall, it's important to create strong privacy protection methods for LLMs, especially as they are more used in various systems.",
+    "done_at": "2026-05-23T06:38:54"
+  },
+  "toc-38": {
+    "anchor": "toc-38",
+    "title": "Ethical Concerns",
+    "level": 3,
+    "page_start": 13,
+    "page_end": 13,
+    "summary": "This section talks about two main privacy risks related to LLM (Large Language Model) agents: \"Model Stealing\" and \"Prompt Stealing.\" \n\nIn **Model Stealing**, attackers try to extract information about the model by asking it questions. They can learn details like model parameters and algorithm types. Defenses for this include adding watermarks to models and using blockchain for verifying IP (Intellectual Property).\n\nFor **Prompt Stealing**, attackers aim to discover the initial prompts used for generating valuable content. They do this by analyzing the generated output. One method to prevent this is by using adversarial samples, which are tricky data that confuse the attacker.\n\nOverall, protecting LLM agents from privacy invasions is complex and requires strong security measures as these models continue to develop and be used more widely.",
+    "done_at": "2026-05-23T06:38:58"
+  },
+  "toc-36": {
+    "anchor": "toc-36",
+    "title": "Social Impact and Ethical Concerns",
+    "level": 2,
+    "page_start": 13,
+    "page_end": 13,
+    "summary": "This section discusses the social impact and ethical concerns related to Large Language Models (LLMs). It highlights how LLMs can face privacy risks, such as \"Model Stealing\" and \"Prompt Stealing.\" In \"Model Stealing,\" attackers try to learn the model's details by questioning it, and protections like watermarking and blockchain are suggested. \"Prompt Stealing\" involves finding initial prompts from the generated output, with defenses such as adversarial samples being recommended. Overall, it stresses the importance of strong privacy protection methods as LLMs become more common in various applications.",
+    "done_at": "2026-05-23T06:39:00"
+  },
+  "toc-24": {
+    "anchor": "toc-24",
+    "title": "Real-World Issues",
+    "level": 1,
+    "page_start": 9,
+    "page_end": 9,
+    "summary": "The section \"Real-World Issues\" examines important challenges related to Large Language Model (LLM) agents in security, privacy, and social impact. The security part explores various threats against LLMs, such as adversarial and backdoor attacks and strategies to defend against them. Data-centric security concentrates on safeguarding AI systems from data-based threats, with solutions like \"Input Firewalls\" and \"expert agents.\" Privacy concerns focus on LLMs' potential to leak sensitive information and suggest methods like noise addition and blockchain for protection. The social impact section reviews ethical concerns and privacy risks like model and prompt stealing, advocating for advanced privacy measures as LLMs become more integrated into society. Overall, addressing these challenges is crucial for the responsible use of LLMs.",
+    "done_at": "2026-05-23T06:39:03"
+  },
+  "toc-41": {
+    "anchor": "toc-41",
+    "title": "Agentic AI Across Scientific Disciplines",
+    "level": 3,
+    "page_start": 14,
+    "page_end": 14,
+    "summary": "This section discusses the challenges and efforts related to bias, accountability, and copyright in Large Language Model (LLM) agents. LLMs can have bias because they learn from biased data, and this can perpetuate stereotypes. Researchers are working on ways to reduce these biases for fairer and more ethical AI. Accountability is a problem because it is hard to track data sources, highlighting the need for better dataset documentation and governance. Copyright issues arise because LLMs use large amounts of data, sometimes without permission, which can harm original creators and lead to legal issues. Other concerns include privacy, environmental impact, and the limited understanding LLMs have of context.",
+    "done_at": "2026-05-23T06:39:04"
+  },
+  "toc-42": {
+    "anchor": "toc-42",
+    "title": "Agentic AI in Chemistry, Materials Science and Astronomy",
+    "level": 3,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "This section discusses how Agentic AI, which uses artificial intelligence agents, is being used in different scientific fields. In chemistry, tools like ChemCrow use AI to connect different study areas in chemistry, enabling automatic chemical synthesis. In materials science, systems like AtomAgents use AI to plan and verify steps in designing new materials. Astronomy is using AI agents to manage observatory data.\n\nIn biology, AI agents help suggest experiments and analyze genetic data. Systems like BioDiscoveryAgent and GeneAgent check their ideas against known information to reduce errors. In dataset construction, AI agents like those in PathGen-1.6M work together to create and refine scientific datasets.\n\nIn the medical field, AI agents simulate clinical environments, helping in diagnosis and treatment planning. They also assist in reading and interpreting medical images, like chest X-rays, to form precise medical reports. These systems aim to improve routine processes so human experts can focus on more complex tasks.",
+    "done_at": "2026-05-23T06:39:08"
+  },
+  "toc-43": {
+    "anchor": "toc-43",
+    "title": "Agentic AI in Biology",
+    "level": 3,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "In the fields of chemistry, materials science, and astronomy, Agentic AI, which is AI with autonomous decision-making capabilities, is being used to manage and execute tasks autonomously. Examples include ChemCrow in chemistry, which combines large language models (LLMs) with specialized tools to perform chemical tasks. In materials science, the AtomAgents framework, which uses a system of agents to solve complex design problems, shows promise. Similarly, in astronomy, AI agents are managing telescope configurations and analyzing data.\n\nIn biology, these multi-agent systems are helping by suggesting experiments and analyzing biological data. Examples include the BioDiscoveryAgent, which designs genetic experiments, and systems like RiGPS, which improve the identification of biomarkers using self-verification amongst agents.\n\nFor scientific datasets, systems like PathGen-1.6M use multiple AI agents to generate and refine large collections of data, such as pathology images. Other systems, such as GeneSUM, automate the updating of gene function databases by reading and summarizing new research.\n\nIn medicine, Agentic AI is creating virtual clinical environments, like AgentHospital, with simulated doctors and patients interacting to mimic real hospital procedures. Systems such as CXR-Agent utilize AI to interpret medical images and generate reports, showing how AI can enhance medical diagnostics and patient care with multi-agent collaboration.",
+    "done_at": "2026-05-23T06:39:12"
+  },
+  "toc-44": {
+    "anchor": "toc-44",
+    "title": "Agentic AI in Scientific Dataset Construction",
+    "level": 3,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "This part of the paper discusses the use of agentic AI (AI systems that act with some degree of autonomy) in various scientific fields. In chemistry and materials science, systems like ChemCrow and AtomAgents use large language models (LLMs) and other tools to help plan experiments and design materials. In biology, AI agents help propose experiments and analyze genetic data, with systems like BioDiscoveryAgent and GeneAgent exemplifying this approach. Scientific dataset construction is enhanced by AI systems like PathGen-1.6M, which create datasets by utilizing multiple agents to evaluate and refine data. In the medical field, agentic AI is used in systems like AgentHospital to simulate clinical environments, improving processes from diagnosis to treatment. These examples suggest that agentic AI can automate routine tasks, allowing human experts to concentrate on higher-level decision-making and innovation.",
+    "done_at": "2026-05-23T06:39:15"
+  },
+  "toc-45": {
+    "anchor": "toc-45",
+    "title": "Agentic AI in Medical",
+    "level": 3,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "This paper section discusses the use of agentic AI, which involves large language models (LLMs), in different scientific fields. In chemistry, materials science, and astronomy, AI systems like ChemCrow and AtomAgents help automate scientific tasks by integrating tools and agents to plan and execute experiments or designs. In biology, AI agents such as BioDiscoveryAgent and GeneAgent assist with experiment design and gene association discovery by analyzing literature and databases. \n\nFor scientific dataset construction, multi-agent systems like PathGen-1.6M and KALIN use AI to generate datasets and refine them for accuracy. These systems allow AI to both utilize and create new scientific data, which can help improve future AI models. \n\nIn medicine, agentic AI, such as AgentHospital and ClinicalLab, simulate clinical environments and support medical diagnostics. They offer potential for enhancing medical services by modeling interactions between virtual doctors, patients, and medical systems. These systems highlight AI's potential to automate decision-making and support scientific and healthcare advancements efficiently.",
+    "done_at": "2026-05-23T06:39:19"
+  },
+  "toc-40": {
+    "anchor": "toc-40",
+    "title": "Scientific Discovery",
+    "level": 2,
+    "page_start": 14,
+    "page_end": 14,
+    "summary": "This section talks about the use of advanced AI technology, called agentic AI, across various scientific fields. Agentic AI refers to AI that can independently make decisions and solve problems. In chemistry, materials science, and astronomy, AI tools help design experiments and analyze complex data. In biology, AI agents suggest experiments and analyze genetic information, while in medicine, they simulate clinical environments and assist with diagnostics. They also help build and refine scientific datasets, making data collection more efficient. Overall, agentic AI helps automate routine tasks so that experts can focus on more complex issues.",
+    "done_at": "2026-05-23T06:39:20"
+  },
+  "toc-46": {
+    "anchor": "toc-46",
+    "title": "Gaming",
+    "level": 2,
+    "page_start": 16,
+    "page_end": 16,
+    "summary": "This section gives an overview of how Large Language Model (LLM) agents are used in different fields, including gaming, social sciences, and more. In gaming, LLM agents can play roles in games and generate game content, making games more interactive. For example, ReAct uses reasoning in game environments, while GLAM uses reinforcement learning to guide actions. For creating games, GameGPT uses agents to automate game development.\n\nIn social sciences, LLM agents help understand complex human behaviors. In economics, these agents simulate financial activities and decision-making. In psychology, LLMs model human behaviors and enhance mental health support. Social simulations use these agents to study human-like behaviors in society. These applications show how LLMs can provide insights and simulate real-world processes.",
+    "done_at": "2026-05-23T06:39:22"
+  },
+  "toc-47": {
+    "anchor": "toc-47",
+    "title": "Social Science",
+    "level": 2,
+    "page_start": 16,
+    "page_end": 16,
+    "summary": "This section gives an overview of using large language models (LLMs) as agents in various applications such as gaming and social sciences. In gaming, LLM agents can play games by acting like characters or creating new game content. For example, ChessGPT evaluates chess moves, while GameGPT helps develop games with better storytelling. In social sciences, LLMs simulate economic activities and human behaviors, helping researchers to understand and predict complex social interactions. These agents help simulate financial decisions, psychological behaviors, and social dynamics in virtual environments, assisting in testing theories about human behavior and interactions.",
+    "done_at": "2026-05-23T06:39:24"
+  },
+  "toc-48": {
+    "anchor": "toc-48",
+    "title": "Productivity Tools",
+    "level": 2,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "This section discusses how large language model (LLM) agents are used as productivity tools in fields like software development and recommender systems. In software development, LLM agents help different team members collaborate, streamline processes, and enhance code generation. Examples include systems like SDM, ChatDev, and MetaGPT, which guide LLM agents in helping teams work together more efficiently. In recommender systems, LLM agents simulate user behavior and improve recommendations to users, with examples like Agent4Rec and AgentCF that personalize these interactions. Overall, the section highlights the important role LLM agents play in improving work efficiency and task management in different domains.",
+    "done_at": "2026-05-23T06:39:25"
+  },
+  "toc-39": {
+    "anchor": "toc-39",
+    "title": "Applications",
+    "level": 1,
+    "page_start": 14,
+    "page_end": 14,
+    "summary": "This section explores how advanced AI technologies are applied across various fields. In scientific discovery, agentic AI helps automate tasks and analyze data in areas like chemistry, biology, and medicine, allowing experts to tackle complex problems more effectively. In gaming and social sciences, large language model (LLM) agents enhance interactivity by playing roles and generating content, and they also simulate human behavior in economic and psychological contexts. In productivity, LLM agents facilitate collaboration in software development and improve recommendation systems, boosting efficiency and personalization. Overall, AI technologies significantly enhance capabilities and productivity in scientific, entertainment, and occupational fields.",
+    "done_at": "2026-05-23T06:39:28"
+  },
+  "toc-50": {
+    "anchor": "toc-50",
+    "title": "Scalability and Coordination",
+    "level": 2,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "This section discusses how Large Language Model (LLM) agents are used to improve productivity in tasks like software development and recommender systems. In software development, LLM agents help different team members work better together and create software more efficiently. Tools like SDM, ChatDev, and MetaGPT improve communication and coordination among these agents. \n\nIn recommender systems, LLM agents mimic user behaviors to improve recommendations. Agent4Rec, AgentCF, and RecMind use agents that model users and items to create better suggestions and incorporate external knowledge for personalized recommendations. Overall, these tools show how LLM agents can automate tasks and improve teamwork in different areas, boosting productivity.",
+    "done_at": "2026-05-23T06:39:29"
+  },
+  "toc-51": {
+    "anchor": "toc-51",
+    "title": "Memory Constraints and Long-Term Adaptation.",
+    "level": 2,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "This section explains how Large Language Model (LLM) agents are improving productivity, focusing on software development and recommender systems. In software development, LLM agents help different team members work together more efficiently. They can generate code and support communication, making complex tasks easier. In recommender systems, LLM agents simulate user behaviors to improve recommendations. They model interactions between users and items and use external knowledge for more personalized suggestions. The section shows that LLM agents can make processes in these areas faster and more effective.",
+    "done_at": "2026-05-23T06:39:30"
+  },
+  "toc-52": {
+    "anchor": "toc-52",
+    "title": "Reliability and Scientific Rigor",
+    "level": 2,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "This section talks about how Large Language Model (LLM) agents can help improve productivity in areas like software development and recommender systems. \n\nIn software development, LLM agents work together to make coding tasks easier, using frameworks like SDM, ChatDev, and MetaGPT to improve collaboration and communication among different roles in software teams.\n\nFor recommender systems, LLM agents simulate user behavior to make better recommendations. Solutions like Agent4Rec and AgentCF use agents to understand user preferences and improve interactions between users and items.\n\nThe section highlights how using LLM agents in these fields can streamline processes and boost efficiency through enhanced collaboration and interaction.",
+    "done_at": "2026-05-23T06:39:32"
+  },
+  "toc-53": {
+    "anchor": "toc-53",
+    "title": "Multi-turn, Multi-agent Dynamic Evaluation",
+    "level": 2,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "This section explains how LLM (Large Language Model) agents help improve productivity in areas like software development and recommender systems. \n\n- In software development, LLM agents assist different roles like managers and developers by working together more smoothly. Tools like SDM and ChatDev guide these agents to generate code and communicate better.\n  \n- In recommender systems, LLM agents are used to understand and predict user behavior. They simulate users or items, allowing better recommendations.\n\nOverall, LLM agents help automate tasks, improve teamwork, and make processes more efficient in these fields.",
+    "done_at": "2026-05-23T06:39:34"
+  },
+  "toc-54": {
+    "anchor": "toc-54",
+    "title": "Regulatory Measures for Safe Deployment",
+    "level": 2,
+    "page_start": 18,
+    "page_end": 18,
+    "summary": "This section talks about using AI in role-playing scenarios. It explains that Large Language Models (LLMs) can act as researchers or instructors, but their effectiveness is limited. These limitations are because they mainly learn from the internet and don't fully understand human thinking. They sometimes fail to represent roles well if there isn't enough data online. To improve this, future work should focus on better teamwork among agents and more varied conversations in AI. This will make interactions between humans and AI more realistic and diverse.",
+    "done_at": "2026-05-23T06:39:35"
+  },
+  "toc-55": {
+    "anchor": "toc-55",
+    "title": "Role-playing Scenarios",
+    "level": 2,
+    "page_start": 18,
+    "page_end": 18,
+    "summary": "The section discusses the need for regulation of AI systems to ensure they are safe and fair. It highlights the problem of algorithmic bias in AI, where systems may unfairly discriminate against certain groups of people without the developers realizing it. The paper suggests using standardized methods to find and fix these biases and keeping records of how decisions are made. Future research should connect fairness-aware AI training with legal and ethical rules. It also emphasizes the importance of collaboration between different groups, like policymakers and researchers, to make sure AI systems work safely and fairly.",
+    "done_at": "2026-05-23T06:39:37"
+  },
+  "toc-49": {
+    "anchor": "toc-49",
+    "title": "Challenges and Future Trends",
+    "level": 1,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "The section \"Challenges and Future Trends\" explores how Large Language Model (LLM) agents impact productivity in areas such as software development and recommender systems. The subsections discuss different aspects like scalability, memory constraints, and reliability, showing how LLM agents enhance teamwork and streamline processes. These agents help automate tasks, improve communication, and make personalized recommendations by simulating user behavior. Additionally, the section examines regulatory measures to ensure the safe deployment of AI, addressing issues like algorithmic bias and the need for fair AI practices. Future trends will focus on improving collaboration and implementing fair, safe AI systems.",
+    "done_at": "2026-05-23T06:39:40"
+  },
+  "toc-56": {
+    "anchor": "toc-56",
+    "title": "Conclusion",
+    "level": 1,
+    "page_start": 18,
+    "page_end": 18,
+    "summary": "This section is about how LLM (Large Language Model) agents can pretend to be different roles like a researcher or teacher. These agents often struggle because they are mainly trained using data from the internet, which might not fully represent all types of human roles or conversations. As a result, the agents may not handle these roles well. To improve, future research should try to better mimic real-world behavior through better coordination among agents and ensuring more varied and meaningful dialogue to enhance human-AI interactions.",
+    "done_at": "2026-05-23T06:39:41"
+  },
+  "toc-57": {
+    "anchor": "toc-57",
+    "title": "References",
+    "level": 1,
+    "page_start": 18,
+    "page_end": 25,
+    "summary": "The text discusses the importance of developing regulatory measures for the safe use of AI systems that are becoming more autonomous. A significant challenge is algorithmic bias, where AI systems may unfairly treat people based on characteristics like gender or ethnicity. To address this, there should be standard ways to check for and fix these biases, and it should be possible to trace how AI systems make decisions. Future work could include combining training methods that focus on fairness with legal and ethical rules. It is important for policymakers, researchers, and industries to work together to ensure AI systems work safely and are in line with societal values. Additionally, LLM (Large Language Model) agents can mimic roles like researchers or instructors but have limitations due to training data and understanding of human behavior. Future studies should improve how these agents coordinate and engage in diverse, realistic conversations.",
+    "done_at": "2026-05-23T06:39:43"
+  }
+}

@@ -1,0 +1,7 @@
+**What it shows**: Figure 1 presents the model architecture of the Transformer, illustrating its core components including the encoder and decoder sections.
+
+**Key components**: The figure is divided into two parts. The left side shows the encoder with a stack of layers each containing "Multi-Head Attention," "Add & Norm," and "Feed Forward" components, repeated N times. The right side represents the decoder with similar stacks but includes a "Masked Multi-Head Attention" and an additional "Multi-Head Attention" sub-layer. Arrows indicate the flow of data through embeddings, positional encodings, and finally leading to output probabilities.
+
+**What the paper concludes from it**: The paper explains that the Transformer architecture leverages self-attention and fully connected layers in parallel for both encoding and decoding tasks, which enables efficient computation and handling of sequences [page 3]. The encoder-decoder structure allows the model to process input sequences into continuous representations and then generate output sequences, all enhanced by attention mechanisms [page 2].
+
+**Caveats / limits**: The figure does not provide specifics on the performance or application limitations of the model, which the text addresses by mentioning improvements and potential areas for future exploration, such as handling different input and output modalities [page 10].

@@ -1,0 +1,7 @@
+**What it shows**: Figure 1 presents two panels: (a) displays token consumption across various models for processing an 800 × 800 resolution image, and (b) shows the average performance of these models across seven benchmarks, focusing on counting and spatial reasoning tasks.
+
+**Key components**: In panel (a), the chart compares token efficiency, measured by the number of entries in the KV cache for several models. The models include Ours-284B-A13B, which retains approximately 90 entries, and others like GPT-5.4 and Gemini-3-Flash, which consume significantly more tokens. Panel (b) illustrates the average scores of these models on selected benchmarks, with a higher score indicating better performance. The bar representing Ours-284B-A13B is highlighted to show its 77.2% score.
+
+**What the paper concludes from it**: The paper highlights that their model, Ours-284B-A13B, achieves competitive performance with remarkable token efficiency. By retaining only 90 entries in the KV cache, the model efficiently compresses visual information while delivering strong benchmark results [page 2, 17].
+
+**Caveats / limits**: The authors note that the reported scores in Figure 1 cover a subset of evaluations relevant to their research focus, which may not fully represent the models’ overall capabilities. The benchmarks used exclude in-house ones and mainly address specific reasoning tasks [page 2].

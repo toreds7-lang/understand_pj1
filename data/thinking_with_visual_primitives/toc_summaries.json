@@ -1,0 +1,254 @@
+{
+  "toc-2": {
+    "anchor": "toc-2",
+    "title": "Overview",
+    "level": 2,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "This section describes the architecture and training process of a model that uses both images and text for learning. The model uses a Vision Transformer (ViT) to process images and incorporate visual information with text. It combines the visual and text input into one sequence, which a large language model (LLM) uses to generate answers. The language model, called DeepSeek-V4-Flash, is a type of Mixture-of-Experts model with a large number of parameters. The ViT handles images by breaking them into small parts, or \"patches,\" for detailed analysis. This model aims to improve reasoning about spatial problems and visual question-answer tasks.",
+    "done_at": "2026-05-22T22:49:10"
+  },
+  "toc-3": {
+    "anchor": "toc-3",
+    "title": "Architecture",
+    "level": 2,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "This section introduces a model that uses images and language together to solve tasks. The model architecture is based on a Vision Transformer (ViT) and Large Language Model (LLM). Images are divided into small parts (patches) to create visual tokens, which combine with language instructions. The architecture uses a special part called DeepSeek-V4-Flash, which manages many model experts to process information efficiently. The model aims to improve reasoning by focusing on precise and clear visual and language connections.",
+    "done_at": "2026-05-22T22:49:12"
+  },
+  "toc-5": {
+    "anchor": "toc-5",
+    "title": "Definition of Visual Primitives",
+    "level": 3,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "This section explains the importance of using \"visual primitives\" during the model pretraining phase. Visual primitives are basic outputs in computer vision, such as bounding boxes and points, used for spatial referencing. Bounding boxes are good for finding specific objects, while points are useful for tracking movement or solving spatial problems. The paper argues that larger and more diverse datasets are needed to improve the model's understanding. Bounding boxes are preferred because they are more precise and useful across different tasks compared to points. They provide more detailed information, making models better at reasoning with visual data.",
+    "done_at": "2026-05-22T22:49:14"
+  },
+  "toc-6": {
+    "anchor": "toc-6",
+    "title": "Motivation for Large-Scale Data Curation",
+    "level": 3,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "The section discusses the pretraining part of a model's workflow, focusing on teaching it to understand \"visual primitives,\" such as bounding boxes and points. Bounding boxes are used to locate and size objects, while points are used for tasks like tracking movement. The paper emphasizes using large-scale data with bounding boxes for better training. The reason for emphasizing bounding box data includes its clear annotations, better ability to generalize to other formats, and richer information for complex tasks. Existing datasets lack the scale and diversity needed, so curating new data is essential.",
+    "done_at": "2026-05-22T22:49:16"
+  },
+  "toc-7": {
+    "anchor": "toc-7",
+    "title": "Large-Scale Web Data Construction",
+    "level": 3,
+    "page_start": 3,
+    "page_end": 4,
+    "summary": "In this section of the paper, the authors discuss the pretraining phase of a model designed to output \"visual primitives,\" which are basic elements like bounding boxes and points used in computer vision. Bounding boxes are favored for their precise location and scale capture of objects, while points are useful for more abstract tasks like tracking. The section highlights the need for large-scale, diverse datasets for better generalization, noting the limitations of existing datasets. Large-scale web data is curated to improve this, using a two-step filtering process to ensure semantic accuracy and geometric quality. The process retained 43,141 out of 97,984 initial data sources after rigorous filtering.",
+    "done_at": "2026-05-22T22:49:18"
+  },
+  "toc-8": {
+    "anchor": "toc-8",
+    "title": "Unified Pretraining",
+    "level": 3,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "The section explains how data is checked and prepared for model training. If a dataset has a lot of missing annotations or inaccurate bounding boxes, it is discarded. They aim for high-quality datasets by removing those with issues like severe truncation or oversized bounding boxes that don’t help detect image details. They sampled data from remaining sources, ensuring balanced representation by category, leading to over 40 million samples.\n\nUnified pretraining uses diverse data, primarily from the web, not relying on synthetic methods. They set a standard format for different tasks, like box and point tasks, using prompts to generate responses with special tokens for coordinates. This method uses vast amounts of multimodal data for training.",
+    "done_at": "2026-05-22T22:49:21"
+  },
+  "toc-4": {
+    "anchor": "toc-4",
+    "title": "Pretraining",
+    "level": 2,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "The pretraining section discusses the use of \"visual primitives,\" which are basic components like bounding boxes and points, in model pretraining. It emphasizes the importance of bounding boxes because they provide more precise and rich information, which is crucial for various computer vision tasks. The section underscores the need for large and diverse datasets to improve the model's understanding, as existing datasets are insufficient. By curating large-scale web data and using a rigorous filtering process, a substantial amount of quality data is prepared for training. Unified pretraining ensures that only high-quality, balanced data is used, primarily sourced from the web, to support various task formats with prompts and special tokens.",
+    "done_at": "2026-05-22T22:49:24"
+  },
+  "toc-10": {
+    "anchor": "toc-10",
+    "title": "Counting",
+    "level": 3,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section explains how cold-start data is used in post-training to help the model learn specific tasks like instruction following and reward learning better. Cold-start data includes clear examples (like boxes or points) and checks to reduce errors. The data focuses on tasks involving counting, answering questions about visuals, navigating mazes, and tracing paths.\n\nCounting tasks are discussed in detail because models find counting particularly challenging. Two types of counting are described: Coarse-grained, which involves counting general groups (like \"dogs\"), and Fine-grained, which involves counting based on specific details (like \"white dogs\").\n\nFor Coarse-grained Counting, the data comes from detection datasets. The model goes through a structured process to count objects using bounding boxes as visual guides, making the counting more accurate.\n\nFine-grained Counting is more difficult due to less available data. A special method is used to create data for these tasks, involving generating questions and using reasoning chains to improve counting accuracy with the help of bounding boxes.",
+    "done_at": "2026-05-22T22:49:26"
+  },
+  "toc-11": {
+    "anchor": "toc-11",
+    "title": "Spatial Reasoning and General Visual QA",
+    "level": 3,
+    "page_start": 7,
+    "page_end": 8,
+    "summary": "This section describes how a model performs tasks by using visual clues, called visual primitives, to count objects in images or reason about their spatial relationships. The model uses a method called intent decomposition to understand what it needs to do and then uses a structured process to identify and count objects. For example, when asked to count the number of men in a team photo, it identifies and counts all people, including players and coaches, reaching a total of 25. Spatial reasoning tasks involve verifying attributes of objects, such as checking for a purple rubber object matching a gray metallic object's size, and the model was able to conclude that no such object exists. The approach helps the model avoid mistakes by training it to recognize when the objects or relationships queried are not present.",
+    "done_at": "2026-05-22T22:49:31"
+  },
+  "toc-12": {
+    "anchor": "toc-12",
+    "title": "Maze Navigation",
+    "level": 3,
+    "page_start": 9,
+    "page_end": 9,
+    "summary": "This section talks about solving a maze using a method called \"Thinking with Visual Primitives.\" The goal is to find a path from a start point to an end point in the maze using a trial-and-error strategy. The method involves exploring the maze systematically, using Depth-First Search (DFS) and other algorithms to navigate. The task helps test how well a model can understand spatial connectivity, which is challenging for pure language models. The result is that the maze is indeed solvable, and the specific path is provided as proof.",
+    "done_at": "2026-05-22T22:49:34"
+  },
+  "toc-13": {
+    "anchor": "toc-13",
+    "title": "Path Tracing",
+    "level": 3,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "This section describes a method to create complex mazes and a task to trace paths through a network of lines. The mazes are designed in different shapes (rectangle, circle, hexagon) and include unsolvable versions by adding strategic barriers. This makes the mazes seem solvable at first, requiring thorough checking to uncover their true nature. Maze difficulty is increased by enlarging the grid, leading to more complex puzzles that need more logical steps to solve. The research uses diverse visual styles to stop the models from recognizing and overfitting to specific patterns.\n\nFor maze-solving, natural language instructions are crafted to describe the exploration process, helping models learn to logically evaluate visual information. A total of 460,000 samples are generated for maze navigation tasks to help models develop reasoning skills.\n\nAdditionally, a path tracing task is designed to further test these visual reasoning skills. This requires a model to trace a specific line out of many overlapping curves, understanding intersections to accurately follow the path. These tasks teach the model to think critically with visual data in various scenarios.",
+    "done_at": "2026-05-22T22:49:37"
+  },
+  "toc-9": {
+    "anchor": "toc-9",
+    "title": "Task Design & Cold-Start Data",
+    "level": 2,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "This section describes how data is chosen and created for training models, focusing on specific tasks. The main goal is to ensure that the data accurately helps the model learn to perform tasks like counting objects, answering visual questions, and navigating mazes. Data is carefully filtered to avoid errors, such as missing annotations or poorly placed bounding boxes. \n\nIn the **Counting** subsection, the use of cold-start data is explained in training for counting tasks, highlighting the difficulty and methods for both coarse-grained and fine-grained counting. \n\nThe **Spatial Reasoning and General Visual QA** subsection discusses how models handle questions about object attributes and relationships using visual clues, while the **Maze Navigation** subsection talks about maze-solving using specific techniques to test spatial understanding. The **Path Tracing** subsection involves tasks that further challenge models to trace paths accurately in complex mazes. \n\nOverall, the section provides insights into designing datasets and tasks that enhance a model’s ability to think critically and logically with visual information.",
+    "done_at": "2026-05-22T22:49:40"
+  },
+  "toc-15": {
+    "anchor": "toc-15",
+    "title": "Specialized SFT",
+    "level": 3,
+    "page_start": 11,
+    "page_end": 11,
+    "summary": "This section explains a method for path tracing in images, where the model traces a line by following a sequence of coordinates, or points, along the path. The task tests the model's ability to understand visual paths based on shape, not color. The method adapts the number of points needed based on the complexity of the path—fewer points for straight segments and more points for complex curves. This resembles how humans focus more on difficult parts of the path. The study provides 125,000 samples of varying difficulty to improve the model’s path-tracing ability. The section also indicates that Figure 6 shows an example of these tasks.",
+    "done_at": "2026-05-22T22:49:43"
+  },
+  "toc-16": {
+    "anchor": "toc-16",
+    "title": "Specialized RL",
+    "level": 3,
+    "page_start": 12,
+    "page_end": 13,
+    "summary": "This section discusses the use of Reinforcement Learning (RL) for two specialized models, **F** TwG and **F** TwP, which were trained separately on different types of data from an earlier stage. RL helps improve these models by using algorithms and specific parameters to guide their learning without direct supervision, making it easier to use varied data like images and questions.\n\nDifferent Reward Models (RMs) are used to assess and guide the training. These include:\n\n- **Format RM**: Ensures output follows rules and format correctly.\n- **Quality RM**: Checks for response quality, consistency, and prevents manipulation for rewards.\n- **Accuracy RMs**: Designed for different tasks like Counting, Spatial Reasoning, Maze Navigation, and Path Tracing. Each focuses on reliable and informative feedback based on task-specific criteria, such as prediction accuracy in counting or exploration in maze tasks.\n\nThe RMs provide feedback on the quality of the tasks by considering aspects like prediction correctness, rule compliance, and logical reasoning. This feedback helps the models learn and improve their performance.",
+    "done_at": "2026-05-22T22:49:45"
+  },
+  "toc-17": {
+    "anchor": "toc-17",
+    "title": "Unified RFT",
+    "level": 3,
+    "page_start": 14,
+    "page_end": 14,
+    "summary": "This section describes methods and performance measures for training models to trace accurate trajectories. The method involves evaluating how closely the model's predicted path follows the real path. Different scores are used to check if the model traces from start to end accurately, doesn't leave gaps, and matches end labels correctly.\n\nFor reinforcement learning (RL), the data is divided into three levels: easy, normal, and hard, based on predictions. Only \"Normal-Level\" samples are used for training to provide efficient learning signals, resulting in two expert models.\n\nFinally, these expert models are integrated to create a single unified model using a new dataset. This process combines elements from both visual reasoning paradigms in training to enhance the model's performance.\n",
+    "done_at": "2026-05-22T22:49:50"
+  },
+  "toc-18": {
+    "anchor": "toc-18",
+    "title": "On-Policy Distillation",
+    "level": 3,
+    "page_start": 14,
+    "page_end": 14,
+    "summary": "The paper discusses methods for evaluating and improving a model's prediction of trajectories. It measures accuracy using several criteria, like how closely predicted points follow the true path and if the start and end coordinates are correct. The method also includes a penalty if the trajectory prediction is incomplete. \n\nThe evaluation method uses both forward and reverse checking to ensure the model's predictions are complete and accurate. In the training phase, data is categorized into easy, normal, and hard levels based on the number of correct model predictions. The normal-level data is used for further training to enhance the model. \n\nFinally, the study integrates two approaches, \"thinking with grounding\" and \"thinking with pointing,\" into one unified model. This unified model is trained with a diverse dataset, aiming to improve its performance.",
+    "done_at": "2026-05-22T22:49:53"
+  },
+  "toc-14": {
+    "anchor": "toc-14",
+    "title": "Post-Training Pipeline",
+    "level": 2,
+    "page_start": 11,
+    "page_end": 11,
+    "summary": "The \"Post-Training Pipeline\" section is about improving model performance through different training methods. \"Specialized SFT\" focuses on training the model to follow visual paths accurately by adapting its approach based on path complexity. \"Specialized RL\" uses Reinforcement Learning to enhance different models with feedback from various Reward Models, focusing on rule compliance, quality, and accuracy in tasks like path tracing. \"Unified RFT\" combines trained models into one by using selected data samples to provide effective learning signals, ultimately creating a unified model. \"On-Policy Distillation\" evaluates and boosts trajectory prediction accuracy by categorizing data and integrating diverse approaches for enhanced performance. Together, these processes work to make models more accurate and reliable in task performance.",
+    "done_at": "2026-05-22T22:49:55"
+  },
+  "toc-1": {
+    "anchor": "toc-1",
+    "title": "Method",
+    "level": 1,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "The Method section explains how a model uses images and text together to solve various tasks. This is done with the help of a Vision Transformer (ViT) for images and a large language model called DeepSeek-V4-Flash. The model's architecture focuses on combining visual and text data efficiently for problem-solving. Pretraining involves using a large variety of high-quality data, emphasizing detailed information like bounding boxes, to improve the model's understanding and performance in tasks. Task design carefully curates data to teach the model how to count objects, answer questions, and solve mazes using visual information. Post-training improvements are made using specialized training techniques and reinforcement learning to make the model more accurate and reliable. Overall, the section demonstrates how the model's architecture, training, and design aim to enhance its reasoning and comprehension skills.",
+    "done_at": "2026-05-22T22:49:58"
+  },
+  "toc-0": {
+    "anchor": "toc-0",
+    "title": "Introduction",
+    "level": 1,
+    "page_start": 0,
+    "page_end": 1,
+    "summary": "The paper introduces a new method called \"Thinking with Visual Primitives\" to improve how multimodal language models think about images. The main idea is to use simple visual elements, like points and boxes, as basic units of thought. This helps the model to better connect its thinking process with the visual details of an image. Unlike other methods that only focus on high-resolution visuals, this approach integrates visual markers directly into the reasoning process, similar to how humans use gestures to think about complex visuals. The new approach is highly efficient and performs as well or better than some of the latest models while using fewer visual tokens.",
+    "done_at": "2026-05-22T22:53:04"
+  },
+  "toc-20": {
+    "anchor": "toc-20",
+    "title": "Implementation Details",
+    "level": 2,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "The section explains a method called On-Policy Distillation (OPD) to improve a model called **F** by learning from expert models **E** TwG and **E** TwP. This method helps the model learn by mimicking the outputs of expert models based on its own outputs. A special loss function called reverse Kullback-Leibler (KL) divergence is used in the learning process. Two expert models are used as \"teacher\" models for this distillation method. This approach aims to combine the strengths of expert models into a single, improved student model.",
+    "done_at": "2026-05-22T22:53:06"
+  },
+  "toc-21": {
+    "anchor": "toc-21",
+    "title": "Evaluation Setup",
+    "level": 2,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "This section talks about using On-Policy Distillation (OPD) to improve a model called **F** by learning from expert models **E**. There is still a gap in performance between **F** and the expert models, so OPD helps reduce this difference. OPD allows the student model to learn from the output of the experts using its own data. The key method involves learning from multiple expert models by using an objective function that includes the reverse Kullback-Leibler divergence. The section also mentions using two expert teacher models, **E** TwG and **E** TwP, in this process.",
+    "done_at": "2026-05-22T22:53:08"
+  },
+  "toc-22": {
+    "anchor": "toc-22",
+    "title": "Comparison with Frontier Models",
+    "level": 2,
+    "page_start": 16,
+    "page_end": 16,
+    "summary": "This section compares different AI models using a fair and unified evaluation protocol. The results are displayed in Table 1, with top performances highlighted. For counting tasks, the authors introduce a new evaluation set called `DS_Finegrained_Counting` to improve testing precision. Spatial reasoning is tested using a suite called `DS_Spatial_Reasoning`, which reorganizes questions into multiple-choice format for easier evaluation. Two datasets, `DS_Maze_Navigation` and `DS_Path_Tracing`, assess topological reasoning. The authors' model performs well, using visual capabilities efficiently, but all models still show weaknesses in topological reasoning tasks.",
+    "done_at": "2026-05-22T22:53:10"
+  },
+  "toc-24": {
+    "anchor": "toc-24",
+    "title": "Boxes as Visual Primitives",
+    "level": 3,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "This section discusses results and insights from using visual primitives in modeling for tasks like counting, visual question answering, and path tracing. The model can use \"boxes\" and \"points\" as basic visual units to improve reasoning, showing integration of world knowledge and multilingual capabilities. However, there are limitations like lower resolution affecting performance and reliance on specific trigger words, which the authors plan to address in future work. The paper claims that using simple visual markers directly in the thought process helps the model perform complex tasks efficiently without increasing image resolution.",
+    "done_at": "2026-05-22T22:53:12"
+  },
+  "toc-25": {
+    "anchor": "toc-25",
+    "title": "Points as Visual Primitives",
+    "level": 3,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "In this section, the authors discuss the performance of their model using visual elements as basic units of understanding. They show that their model uses \"boxes\" to answer questions and reason in different languages, even without specific data in Chinese. \"Points\" allow the model to solve mazes by tracing paths step-by-step. This approach helps the model to map language concepts directly onto images. Despite these successes, the model struggles with details and needs specific cues to activate its reasoning. The authors plan to improve the model's ability to decide when to use these visual cues automatically, and to improve variety in problem-solving.",
+    "done_at": "2026-05-22T22:53:14"
+  },
+  "toc-23": {
+    "anchor": "toc-23",
+    "title": "Qualitative Results",
+    "level": 2,
+    "page_start": 16,
+    "page_end": 16,
+    "summary": "This section compares different models using specific benchmarks for tasks like counting, spatial reasoning, and topological reasoning. The authors introduce new evaluation sets to test these abilities and highlight their model's robust performance against frontier models. They explore using \"boxes\" and \"points\" as visual elements in reasoning tasks, enhancing multilingual abilities and mapping language to images. While their approach shows promise, there are challenges like handling low-resolution images and requiring specific triggers for reasoning. Overall, their model shows efficient performance in complex tasks, but there is room for improvement in automatic reasoning and handling fine details.",
+    "done_at": "2026-05-22T22:53:16"
+  },
+  "toc-19": {
+    "anchor": "toc-19",
+    "title": "Experiments",
+    "level": 1,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "The \"Experiments\" section explains how a method called On-Policy Distillation (OPD) helps improve a model, named **F**, by learning from two expert models, **E** TwG and **E** TwP. This method uses a special learning technique involving reverse Kullback-Leibler (KL) divergence to help the student model learn from the outputs of expert models. The subsections describe how OPD reduces performance gaps between the student and expert models and mention the use of a unified evaluation protocol to compare models' performances on tasks like counting and spatial reasoning. New datasets are introduced for precise evaluation, and some challenges remain, particularly in tasks requiring fine details and reasoning. Overall, OPD helps the student model make efficient use of visual information, showing improvement in handling complex tasks.",
+    "done_at": "2026-05-22T22:53:19"
+  },
+  "toc-26": {
+    "anchor": "toc-26",
+    "title": "Limitations",
+    "level": 1,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "The section describes how the model uses \"visual primitives\" like boxes and points to improve reasoning tasks. The model can understand complex questions and give answers using both visual and language skills, and it can even work in Chinese despite not being trained with Chinese data. It can identify paths and solve problems by pointing within images, which helps in tasks like maze navigation. There are some limitations, like the need for specific trigger words and challenges with very detailed tasks. But overall, the model can use visual markers to link language and images effectively, performing well on complex reasoning without needing high image quality.",
+    "done_at": "2026-05-22T22:53:22"
+  },
+  "toc-27": {
+    "anchor": "toc-27",
+    "title": "Conclusion",
+    "level": 1,
+    "page_start": 17,
+    "page_end": 24,
+    "summary": "This section shows the performance of the model using visual primitives, which are simple elements like points and boxes used for reasoning. The model is good at tasks like counting objects and answering questions about images by using these visual elements. The model can even think in different languages, like Chinese, thanks to its base model's multilingual abilities. It is also capable of solving mazes and tracking paths by reasoning with points.\n\nThe section outlines some limitations. For example, the model sometimes struggles with very detailed tasks and can't decide when to use visual primitives without prompts. Additionally, solving more complex problems with points is still challenging, and the model lacks the ability to generalize its skills across different situations.\n\nOverall, the model uses visual primitives effectively to reason about images, enhancing its ability to answer complex questions while using fewer image tokens. This approach highlights that understanding images can be more about precise reasoning with simple visual elements rather than just seeing more pixels.",
+    "done_at": "2026-05-22T22:53:25"
+  }
+}

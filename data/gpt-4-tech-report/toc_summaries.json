@@ -1,0 +1,11 @@
+{
+  "toc-0": {
+    "anchor": "toc-0",
+    "title": "Introduction",
+    "level": 1,
+    "page_start": 0,
+    "page_end": 0,
+    "summary": "The section introduces GPT-4, a model that can work with images and text to generate text. GPT-4 performs very well on tests designed for humans, like the bar exam, where it scores in the top 10%. It also outperforms previous models and state-of-the-art systems on language benchmarks. GPT-4 is better in multiple languages compared to models trained specifically for English. The report discusses how the infrastructure and methods used to build GPT-4 are scalable and predictable. However, GPT-4 still has limitations, such as being prone to errors and having a limited context memory.",
+    "done_at": "2026-05-22T23:06:57"
+  }
+}

@@ -1,0 +1,7 @@
+Define this term as used in the surrounding sentences from an ML / NLP paper.
+
+Previous sentence: {before}
+Term: {word}
+Next sentence: {after}
+
+Use Markdown formatting.

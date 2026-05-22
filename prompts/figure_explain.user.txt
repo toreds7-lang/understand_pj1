@@ -1,0 +1,9 @@
+Figure id: {figure_id}
+Page: {page_human}
+Caption: {caption}
+
+Excerpts from the paper that mention this figure or related concepts:
+
+{context}
+
+Explain this figure. The attached image is the full page that contains it.

@@ -1,0 +1,11 @@
+The user is reading an academic paper. Below is the surrounding paragraph; the selected text is marked.
+
+Context before:
+{before}
+
+>>> Selected: {sentence} <<<
+
+Context after:
+{after}
+
+Explain the selected text: what it means, why it matters, and any technical concepts it relies on. Under 150 words. Use Markdown.

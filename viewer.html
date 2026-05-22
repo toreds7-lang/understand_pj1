@@ -1,0 +1,1703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Paper viewer</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root {
+  --bg: #1e1e1e;
+  --panel: #252526;
+  --panel-2: #2d2d30;
+  --text: #d4d4d4;
+  --muted: #9aa0a6;
+  --accent: #4ec9b0;
+  --border: #3c3c3c;
+  --user-bg: #2a3a4a;
+  --assistant-bg: #2d2d30;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { display: flex; flex-direction: row; height: 100vh; overflow: hidden; }
+
+/* ── Panels & splitters ───────────────────────────────────────────────── */
+.panel { position: relative; min-width: 28px; height: 100%; flex: 0 0 auto; }
+.panel.flex-fill { flex: 1 1 0; min-width: 80px; }
+.panel.collapsed { flex: 0 0 28px !important; min-width: 28px; width: 28px !important;
+  overflow: hidden; background: var(--panel); border-right: 1px solid var(--border); }
+.panel.collapsed > *:not(.collapsed-label) { display: none !important; }
+.panel.collapsed > .collapsed-label { display: flex !important; }
+.collapsed-label { display: none; position: absolute; inset: 0;
+  align-items: center; justify-content: center;
+  writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+  cursor: pointer; user-select: none; }
+.collapsed-label:hover { color: var(--accent); }
+.collapse-btn { position: absolute; top: 6px; right: 6px; z-index: 5;
+  background: var(--panel-2); color: var(--muted); border: 1px solid var(--border);
+  border-radius: 3px; width: 18px; height: 18px; line-height: 14px; text-align: center;
+  font-size: 12px; cursor: pointer; padding: 0; }
+.collapse-btn:hover { color: var(--accent); border-color: var(--accent); }
+#paper-section h2 { cursor: pointer; user-select: none; }
+#paper-section h2::after { content: " ▾"; color: var(--muted); font-size: 10px; }
+#paper-section.section-collapsed h2::after { content: " ▸"; }
+#paper-section.section-collapsed > *:not(h2) { display: none; }
+#paper-section.section-collapsed { padding-bottom: 6px; }
+.splitter { flex: 0 0 5px; background: var(--border); cursor: col-resize;
+  transition: background 0.15s; height: 100%; }
+.splitter:hover, .splitter.dragging { background: var(--accent); }
+body.resizing { cursor: col-resize; user-select: none; }
+body.resizing iframe, body.resizing canvas { pointer-events: none; }
+
+/* ── Left ──────────────────────────────────────────────────────────────── */
+#left { background: var(--panel); border-right: 1px solid var(--border); overflow-y: auto; }
+#left .section { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+#left h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+#paper-id { font-size: 13px; color: var(--accent); word-break: break-all; }
+#toc { list-style: none; margin: 0; padding: 0; }
+#toc li { margin: 0; }
+#toc a { color: var(--text); text-decoration: none; display: block;
+  padding: 3px 6px; border-radius: 3px; font-size: 13px; cursor: pointer; }
+#toc a:hover { background: var(--panel-2); }
+#toc .lvl-1 { padding-left: 6px; font-weight: 600; }
+#toc .lvl-2 { padding-left: 18px; }
+#toc .lvl-3 { padding-left: 30px; font-size: 12px; color: var(--muted); }
+
+/* ── Middle (markdown + summary, split into two rows) ─────────────────── */
+#middle { display: flex; flex-direction: column; padding: 0; overflow: hidden;
+  border-right: 1px solid var(--border); }
+#middle > .page-nav { margin: 10px 12px 0; }
+.middle-row { flex: 1 1 0; min-height: 60px; overflow-y: auto; padding: 12px 22px; }
+.middle-row h3.row-label { margin: 0 0 8px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.hsplitter { flex: 0 0 5px; background: var(--border); cursor: row-resize;
+  transition: background 0.15s; }
+.hsplitter:hover, .hsplitter.dragging { background: var(--accent); }
+body.resizing-v { cursor: row-resize; user-select: none; }
+body.resizing-v iframe, body.resizing-v canvas { pointer-events: none; }
+.page-block { margin: 0 0 36px; display: none; }
+.page-block.active { display: block; }
+.pdf-page { display: none; }
+.pdf-page.active { display: block; }
+
+/* ── Page navigation toolbar ──────────────────────────────────────────── */
+.page-nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center;
+  gap: 8px; background: var(--panel-2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 6px 10px; margin: 0 0 14px; }
+.page-nav button { background: var(--panel); color: var(--text);
+  border: 1px solid var(--border); border-radius: 3px; padding: 4px 12px;
+  cursor: pointer; font: inherit; }
+.page-nav button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.page-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+.page-nav .page-indicator { font-size: 12px; color: var(--muted); margin-left: auto; }
+.page-nav input.page-jump { background: var(--panel); color: var(--text);
+  border: 1px solid var(--border); border-radius: 3px; padding: 3px 6px;
+  font: inherit; width: 50px; text-align: center; }
+.page-badge { display: inline-block; font-size: 11px; color: var(--muted);
+  background: var(--panel-2); padding: 2px 8px; border-radius: 10px;
+  border: 1px solid var(--border); margin-bottom: 10px; }
+.page-block .ocr h1, .page-block .ocr h2, .page-block .ocr h3 {
+  color: var(--accent); margin: 1.2em 0 0.4em; }
+.page-block .ocr h1 { font-size: 18px; }
+.page-block .ocr h2 { font-size: 16px; }
+.page-block .ocr h3 { font-size: 14px; }
+.page-block .ocr p { margin: 0.6em 0; }
+.page-block .ocr table { border-collapse: collapse; margin: 0.6em 0; }
+.page-block .ocr th, .page-block .ocr td { border: 1px solid var(--border); padding: 3px 8px; }
+.page-block .ocr img { max-width: 100%; border: 1px solid var(--border); border-radius: 4px;
+  background: white; margin: 0.6em 0; }
+.md-sum-divider { border: 0; border-top: 1px dashed var(--border); margin: 16px 0 12px; }
+.page-block .summary { color: var(--text); font-size: 13px; }
+.page-block .summary::before { content: "Summary"; display: inline-block;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--accent); font-weight: 600; margin-right: 6px; }
+
+/* ── Keyword highlights ───────────────────────────────────────────────── */
+mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
+  border-radius: 2px; font-weight: 600; }
+#middle-md.hl-off mark.kw { background: transparent; color: inherit;
+  padding: 0; border-radius: 0; font-weight: inherit; }
+.page-nav .hl-progress { font-size: 12px; color: var(--muted); margin-left: 4px; }
+.page-nav button.toggle-on { border-color: var(--accent); color: var(--accent); }
+
+/* ── Bottom summary panel header (mode toggle + bulk run) ─────────────── */
+#summary-header { position: sticky; top: 0; z-index: 5; display: flex; gap: 8px;
+  align-items: center; background: var(--panel); padding: 6px 22px;
+  border-bottom: 1px solid var(--border); }
+#summary-header .mode-toggle { display: inline-flex; border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden; }
+#summary-header .mode-btn { background: var(--panel-2); color: var(--text);
+  border: 0; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+#summary-header .mode-btn.active { background: var(--accent); color: #1e1e1e;
+  font-weight: 600; }
+#summary-header .mode-btn:hover:not(.active) { color: var(--accent); }
+#summary-header .summarize-all { margin-left: auto; background: var(--panel-2);
+  color: var(--text); border: 1px solid var(--border); border-radius: 4px;
+  padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+#summary-header .summarize-all:hover:not(:disabled) { border-color: var(--accent);
+  color: var(--accent); }
+#summary-header .summarize-all:disabled { opacity: 0.5; cursor: not-allowed; }
+#summary-header .progress { font-size: 11px; color: var(--muted); }
+
+#middle-summary .summary-pane { display: none; }
+#middle-summary .summary-pane.active { display: block; }
+
+/* TOC-mode block (rendered inside #middle-summary when summaryMode=='toc') */
+.toc-summary-block { margin-bottom: 18px; }
+.toc-summary-block .crumb { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.toc-summary-block .crumb span { color: var(--accent); }
+.toc-summary-block .crumb .sep { color: var(--muted); margin: 0 4px; }
+.toc-summary-block h4 { margin: 0 0 6px; color: var(--accent); font-size: 14px; }
+.toc-summary-block .pages { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+.toc-summary-block .body { font-size: 13px; line-height: 1.55; }
+.toc-summary-block .empty { color: var(--muted); font-style: italic; }
+.toc-summary-block .run-here { background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--accent); border-radius: 4px; padding: 4px 10px;
+  font: inherit; font-size: 12px; cursor: pointer; margin-right: 6px; }
+.toc-summary-block .run-here:hover:not(:disabled) { background: var(--accent);
+  color: #1e1e1e; }
+.toc-summary-block .run-here:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* TOC outline: per-row run button + done dot */
+#toc li { display: flex; align-items: center; }
+#toc li a { flex: 1; }
+#toc .toc-run { background: transparent; color: var(--muted); border: 0;
+  cursor: pointer; padding: 2px 6px; font-size: 11px; opacity: 0; }
+#toc li:hover .toc-run { opacity: 1; }
+#toc .toc-run:hover { color: var(--accent); }
+#toc .toc-run.running { color: var(--accent); opacity: 1; }
+#toc .done-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent); margin-right: 6px; visibility: hidden; flex-shrink: 0; }
+#toc .done-dot.on { visibility: visible; }
+
+/* ── Chat ─────────────────────────────────────────────────────────────── */
+#chat { display: flex; flex-direction: column; background: var(--panel);
+  border-right: 1px solid var(--border); min-height: 0; }
+#chat-header { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+#chat-header h2 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+.scope-toggle { display: flex; gap: 6px; align-items: center; }
+.scope-btn { flex: 1; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px;
+  font-size: 12px; cursor: pointer; }
+.scope-btn.active { background: var(--accent); color: #1e1e1e; border-color: var(--accent);
+  font-weight: 600; }
+#scope-page-num { background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px;
+  font-size: 12px; width: 60px; }
+#chat-log { flex: 1; overflow-y: auto; padding: 12px; }
+.msg { margin-bottom: 12px; padding: 8px 10px; border-radius: 6px;
+  font-size: 13px; line-height: 1.5; }
+.msg.user { background: var(--user-bg); }
+.msg.assistant { background: var(--assistant-bg); border: 1px solid var(--border); }
+.msg .role { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin-bottom: 4px; }
+.msg .scope-chip { display: inline-block; font-size: 10px; color: var(--accent);
+  background: rgba(78,201,176,0.12); border: 1px solid var(--accent);
+  border-radius: 8px; padding: 1px 6px; margin-left: 6px; }
+.msg p:first-child { margin-top: 0; } .msg p:last-child { margin-bottom: 0; }
+#chat-input-row { display: flex; gap: 6px; padding: 10px; border-top: 1px solid var(--border); }
+#chat-input { flex: 1; resize: none; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px; padding: 6px 8px;
+  font: inherit; min-height: 36px; max-height: 120px; }
+#chat-send { background: var(--accent); color: #1e1e1e; border: 0; border-radius: 4px;
+  padding: 0 14px; cursor: pointer; font-weight: 600; }
+#chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── PDF (right) ──────────────────────────────────────────────────────── */
+#right { overflow-y: auto; padding: 16px 22px; background: #2a2a2a; }
+.pdf-page { position: relative; margin: 0 auto 24px; background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+.pdf-page canvas { display: block; width: 100%; height: auto; }
+.pdf-page .textLayer { position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+  overflow: hidden; opacity: 0.25; line-height: 1; pointer-events: auto;
+  transform-origin: 0 0; }
+.pdf-page .textLayer > span { color: transparent; position: absolute;
+  white-space: pre; cursor: text; transform-origin: 0 0; }
+.pdf-page .textLayer ::selection { background: rgba(78,201,176,0.45); }
+.pdf-page .textLayer ::-moz-selection { background: rgba(78,201,176,0.45); }
+.pdf-badge { position: absolute; top: 6px; left: 6px; font-size: 11px;
+  color: var(--muted); background: rgba(0,0,0,0.6); padding: 1px 6px;
+  border-radius: 8px; z-index: 2; }
+.pdf-page .fig-overlay { position: absolute; z-index: 3;
+  border: 1px dashed transparent; border-radius: 3px;
+  cursor: help; background: transparent; transition: border-color 0.15s, background 0.15s; }
+.pdf-page .fig-overlay:hover { border-color: var(--accent);
+  background: rgba(78,201,176,0.06); }
+.pdf-page .fig-overlay.selected { border-style: solid; border-width: 2px;
+  border-color: var(--accent); background: rgba(78,201,176,0.14); }
+
+/* ── Popup ────────────────────────────────────────────────────────────── */
+#popup { position: fixed; z-index: 9999; max-width: 420px; min-width: 240px;
+  background: var(--panel); border: 1px solid var(--accent); border-radius: 6px;
+  padding: 12px 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  display: none; max-height: 60vh; overflow-y: auto; }
+#popup .pop-head { font-size: 11px; color: var(--accent); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 6px; }
+#popup .pop-target { font-size: 13px; color: var(--muted); margin-bottom: 8px;
+  border-bottom: 1px solid var(--border); padding-bottom: 6px; word-break: break-word; }
+#popup .pop-body { font-size: 13px; line-height: 1.5; }
+#popup .pop-close { position: absolute; top: 4px; right: 8px; cursor: pointer;
+  color: var(--muted); font-size: 16px; line-height: 1; }
+
+/* ── Open PDF button + picker modal ────────────────────────────────────── */
+.open-pdf-btn { margin-top: 8px; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px;
+  font: inherit; font-size: 12px; cursor: pointer; width: 100%; }
+.open-pdf-btn:hover { border-color: var(--accent); color: var(--accent); }
+.open-pdf-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+#reprocess-status { margin-top: 6px; font-size: 11px; color: var(--muted);
+  font-family: ui-monospace, Menlo, Consolas, monospace; word-break: break-word;
+  max-height: 80px; overflow-y: auto; display: none; padding: 4px 6px;
+  background: #1a1a1a; border: 1px solid var(--border); border-radius: 3px; }
+#reprocess-status.show { display: block; }
+#reprocess-status .err { color: #f48771; }
+#reprocess-status .ok { color: var(--accent); }
+
+#picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: none; align-items: center; justify-content: center; z-index: 10000; }
+#picker-overlay.show { display: flex; }
+#picker-card { background: var(--panel); border: 1px solid var(--border);
+  border-radius: 6px; width: min(560px, 92vw); max-height: 80vh; display: flex;
+  flex-direction: column; box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
+#picker-card .picker-head { display: flex; align-items: center;
+  padding: 10px 14px; border-bottom: 1px solid var(--border); }
+#picker-card .picker-head h3 { margin: 0; font-size: 13px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+#picker-card .picker-close { margin-left: auto; background: transparent;
+  color: var(--muted); border: 0; font-size: 18px; cursor: pointer; line-height: 1; }
+#picker-card .picker-close:hover { color: var(--accent); }
+#picker-card .picker-body { padding: 12px 14px; overflow-y: auto; }
+.picker-section { margin-bottom: 16px; }
+.picker-section > h4 { margin: 0 0 8px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+#picker-list { list-style: none; margin: 0; padding: 0;
+  border: 1px solid var(--border); border-radius: 4px; max-height: 200px; overflow-y: auto; }
+#picker-list li { padding: 6px 10px; cursor: pointer; font-size: 13px;
+  border-bottom: 1px solid var(--border); display: flex; align-items: center; }
+#picker-list li:last-child { border-bottom: 0; }
+#picker-list li:hover { background: var(--panel-2); color: var(--accent); }
+#picker-list li.current { color: var(--accent); }
+#picker-list li.current::before { content: "● "; margin-right: 6px; }
+#picker-list li.empty { color: var(--muted); font-style: italic; cursor: default; }
+#picker-list li.empty:hover { background: transparent; color: var(--muted); }
+.upload-row { display: flex; gap: 8px; align-items: center; }
+#picker-file { flex: 1; font-size: 12px; color: var(--text); }
+#picker-upload-btn { background: var(--accent); color: #1e1e1e; border: 0;
+  border-radius: 4px; padding: 5px 12px; cursor: pointer; font-weight: 600; font-size: 12px; }
+#picker-upload-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+#picker-log { margin-top: 10px; max-height: 180px; overflow-y: auto;
+  background: #1a1a1a; border: 1px solid var(--border); border-radius: 4px;
+  padding: 8px 10px; font: 11px/1.5 ui-monospace, Menlo, Consolas, monospace;
+  color: var(--muted); display: none; white-space: pre-wrap; word-break: break-word; }
+#picker-log.show { display: block; }
+#picker-log .err { color: #f48771; }
+#picker-log .ok { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<aside id="left" class="panel" style="flex-basis:220px;">
+  <button class="collapse-btn" data-target="left" title="Collapse">‹</button>
+  <span class="collapsed-label" data-target="left" title="Expand">Outline</span>
+  <div class="section" id="paper-section">
+    <h2>Paper</h2>
+    <div id="paper-id">loading…</div>
+    <button id="open-pdf-btn" class="open-pdf-btn">PDF 열기</button>
+    <button id="reprocess-btn" class="open-pdf-btn" title="Re-run extraction on this paper (figure bboxes, captions, RAG index). Equivalent to: run.py <pdf> --force.">재처리 (--force)</button>
+    <div id="reprocess-status"></div>
+  </div>
+  <div class="section">
+    <h2>Table of contents</h2>
+    <ul id="toc"></ul>
+  </div>
+  <div class="section">
+    <h2>Shortcuts</h2>
+    <div style="font-size:12px;color:var(--muted)">
+      <b>Ctrl+D</b> define selected word<br>
+      <b>Ctrl+E</b> explain selected sentence<br>
+      <b>Dbl-click</b> figure, then <b>Ctrl+I</b> explain it<br>
+      <b>Esc</b> close popup<br>
+      <b>Ctrl+1</b> toggle Paper section<br>
+      <b>Ctrl+2..5</b> toggle Outline / Markdown / Chat / PDF panes
+    </div>
+  </div>
+</aside>
+
+<div class="splitter" data-left="left" data-right="middle"></div>
+
+<main id="middle" class="panel flex-fill">
+  <button class="collapse-btn" data-target="middle" title="Collapse">‹</button>
+  <span class="collapsed-label" data-target="middle" title="Expand">Markdown</span>
+  <div class="page-nav" id="middle-nav">
+    <button id="middle-prev" title="Previous page">‹ Prev</button>
+    <button id="middle-next" title="Next page">Next ›</button>
+    <button id="highlight-all" title="LLM-extract & highlight key terms on every page. Cached per page on disk.">Highlight</button>
+    <button id="highlight-toggle" class="toggle-on" title="Show/hide keyword highlight marks">Hide highlights</button>
+    <span class="hl-progress" id="hl-progress"></span>
+    <span class="page-indicator">
+      Page <input type="number" class="page-jump" id="middle-jump" min="1" value="1">
+      / <span id="middle-total">?</span>
+    </span>
+  </div>
+  <div id="middle-md" class="middle-row">
+    <h3 class="row-label">Extracted markdown</h3>
+  </div>
+  <div class="hsplitter" data-top="middle-md" data-bottom="middle-summary"></div>
+  <div id="middle-summary" class="middle-row">
+    <div id="summary-header">
+      <div class="mode-toggle">
+        <button class="mode-btn active" data-mode="page">Page summary</button>
+        <button class="mode-btn" data-mode="toc">TOC summary</button>
+      </div>
+      <span class="progress" id="toc-progress"></span>
+      <button class="summarize-all" id="summarize-all" title="Run hierarchical summarization for every TOC node (bottom-up). Cached.">Summarize all</button>
+    </div>
+    <div class="summary-pane active" id="summary-pane-page"></div>
+    <div class="summary-pane" id="summary-pane-toc"></div>
+  </div>
+</main>
+
+<div class="splitter" data-left="middle" data-right="chat"></div>
+
+<section id="chat" class="panel" style="flex-basis:360px;">
+  <button class="collapse-btn" data-target="chat" title="Collapse">‹</button>
+  <span class="collapsed-label" data-target="chat" title="Expand">Chat</span>
+  <div id="chat-header">
+    <h2>RAG chat</h2>
+    <div class="scope-toggle">
+      <button class="scope-btn active" id="scope-paper">Whole paper</button>
+      <button class="scope-btn" id="scope-page">This page</button>
+      <input type="number" id="scope-page-num" min="1" value="1" title="Page (1-indexed)">
+      <button class="scope-btn" id="chat-clear" title="Clear chat history so the LLM no longer sees previous messages">Clear</button>
+    </div>
+  </div>
+  <div id="chat-log"></div>
+  <div id="chat-input-row">
+    <textarea id="chat-input" placeholder="Ask about the paper…"></textarea>
+    <button id="chat-send">Send</button>
+  </div>
+</section>
+
+<div class="splitter" data-left="chat" data-right="right"></div>
+
+<aside id="right" class="panel flex-fill">
+  <button class="collapse-btn" data-target="right" title="Collapse">‹</button>
+  <span class="collapsed-label" data-target="right" title="Expand">PDF</span>
+  <div class="page-nav" id="right-nav">
+    <button id="right-prev" title="Previous page">‹ Prev</button>
+    <button id="right-next" title="Next page">Next ›</button>
+    <span class="page-indicator">
+      Page <input type="number" class="page-jump" id="right-jump" min="1" value="1">
+      / <span id="right-total">?</span>
+    </span>
+  </div>
+</aside>
+
+<div id="popup" role="dialog" aria-live="polite">
+  <span class="pop-close" onclick="closePopup()">×</span>
+  <div class="pop-head" id="pop-head"></div>
+  <div class="pop-target" id="pop-target"></div>
+  <div class="pop-body" id="pop-body"></div>
+</div>
+
+<div id="picker-overlay" role="dialog" aria-modal="true">
+  <div id="picker-card">
+    <div class="picker-head">
+      <h3>PDF 열기</h3>
+      <button class="picker-close" id="picker-close" title="Close">×</button>
+    </div>
+    <div class="picker-body">
+      <div class="picker-section">
+        <h4>기존 논문</h4>
+        <ul id="picker-list"><li class="empty">loading…</li></ul>
+      </div>
+      <div class="picker-section">
+        <h4>새 PDF 업로드</h4>
+        <div class="upload-row">
+          <input type="file" id="picker-file" accept="application/pdf">
+          <button id="picker-upload-btn">처리 시작</button>
+        </div>
+        <div id="picker-log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.mjs";
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.mjs";
+
+window.pdfjsLib = pdfjsLib;
+
+const katexOpts = {
+  throwOnError: false,
+  delimiters: [
+    { left: "$$", right: "$$", display: true },
+    { left: "\\[", right: "\\]", display: true  },
+    { left: "\\(", right: "\\)", display: false },
+    { left: "$",  right: "$",  display: false },
+  ],
+};
+window.katexOpts = katexOpts;
+
+let paperData = null;
+let currentPageIdx = 0;       // single source of truth for visible page
+let totalPages = 0;
+let lastSelection = { text: "", before: "", after: "", page: null };
+let selectedFigure = null;  // { id, page } — set on overlay dblclick (sticky)
+let pdfZoom = 1;
+const PDF_ZOOM_MIN = 0.4;
+const PDF_ZOOM_MAX = 4;
+
+/* ── selection capture (works in both #middle and the PDF textLayer) ───── */
+function splitSentences(text) {
+  return text.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+}
+
+function captureSelection() {
+  const sel = window.getSelection();
+  const text = sel ? sel.toString().trim() : "";
+  if (!text) return;
+  let node = sel.anchorNode;
+  while (node && node.nodeType !== 1) node = node.parentNode;
+
+  // Determine source: PDF textLayer, middle-column .ocr/.summary block, or TOC summary block.
+  let pdfPage = node?.closest?.(".pdf-page");
+  let ocrBlock = node?.closest?.(".ocr, .summary");
+  let tocBlock = node?.closest?.(".toc-summary-block");
+  let pageIdx = null;
+  let blockText = "";
+
+  if (pdfPage) {
+    pageIdx = parseInt(pdfPage.dataset.page, 10);
+    // Use paper.json markdown for cleaner context than the textLayer's flow.
+    blockText = (paperData?.pages?.[pageIdx]?.markdown || "").replace(/\s+/g, " ");
+  } else if (ocrBlock) {
+    pageIdx = parseInt(ocrBlock.closest(".page-block")?.dataset.page, 10);
+    blockText = (ocrBlock.innerText || "").replace(/\s+/g, " ");
+  } else if (tocBlock) {
+    // Section-level summary: anchor it to the section's start page for context.
+    const anchor = tocBlock.dataset.anchor;
+    const tn = tocFlat.find(n => n.anchor === anchor);
+    pageIdx = tn ? tn.page_start : currentPageIdx;
+    const body = tocBlock.querySelector(".body");
+    blockText = ((body || tocBlock).innerText || "").replace(/\s+/g, " ");
+  } else {
+    return;
+  }
+
+  const idx = blockText.indexOf(text);
+  let before = "", after = "";
+  if (idx >= 0) {
+    before = splitSentences(blockText.slice(0, idx)).slice(-3).join(" ");
+    after  = splitSentences(blockText.slice(idx + text.length)).slice(0, 3).join(" ");
+  }
+  lastSelection = { text, before, after, page: pageIdx };
+}
+document.addEventListener("mouseup", captureSelection);
+document.addEventListener("keyup", e => { if (!e.ctrlKey) captureSelection(); });
+
+document.addEventListener("keydown", async e => {
+  if (e.key === "Escape") {
+    const popOpen = document.getElementById("popup").style.display === "block";
+    if (popOpen) { closePopup(); }
+    else {
+      // Deselect figure when popup is already closed.
+      document.querySelectorAll(".fig-overlay.selected")
+        .forEach(el => el.classList.remove("selected"));
+      selectedFigure = null;
+    }
+    return;
+  }
+  if (!e.ctrlKey) return;
+  if (e.key === "d" || e.key === "D") {
+    e.preventDefault();
+    if (!lastSelection.text) return;
+    await runAction("define", "/api/define", {
+      word: lastSelection.text, before: lastSelection.before, after: lastSelection.after,
+    });
+  } else if (e.key === "e" || e.key === "E") {
+    e.preventDefault();
+    if (!lastSelection.text) return;
+    await runAction("explain", "/api/explain", {
+      sentence: lastSelection.text, before: lastSelection.before, after: lastSelection.after,
+    });
+  } else if (e.key === "i" || e.key === "I") {
+    e.preventDefault();
+    if (selectedFigure) {
+      await runFigureExplain(selectedFigure);
+    } else {
+      const input = document.getElementById("chat-input");
+      const txt = (input?.value || "").trim();
+      const m = txt.match(/\b(?:figure|fig\.?)\s*(\d+)\b/i);
+      if (m) {
+        if (input) input.value = "";
+        await runFigureExplain({ ref: txt, label: `Figure ${m[1]}` });
+      }
+    }
+  }
+});
+
+async function runFigureExplain(fig) {
+  const isRef = !fig.id && fig.ref;
+  const label = isRef ? fig.label : `${fig.id} · page ${fig.page + 1}`;
+  const payload = isRef ? { figure_ref: fig.ref } : { figure_id: fig.id };
+
+  appendMsg("user", marked.parse(`explain **${label}**`));
+  const bodyEl = appendMsg("assistant", "<i>thinking…</i>", label);
+  let acc = "";
+  try {
+    const resp = await fetch("/api/figure-explain", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok || !resp.body) { bodyEl.textContent = `Error: ${resp.status}`; return; }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      acc += decoder.decode(value, { stream: true });
+      bodyEl.innerHTML = marked.parse(acc);
+      renderMathInElement(bodyEl, katexOpts);
+      document.getElementById("chat-log").scrollTop = 1e9;
+    }
+  } catch (err) {
+    bodyEl.textContent = "Network error: " + err.message;
+  }
+}
+
+function openPopup(label, target) {
+  const pop = document.getElementById("popup");
+  document.getElementById("pop-head").textContent = label;
+  document.getElementById("pop-target").textContent = target;
+  document.getElementById("pop-body").innerHTML = "<i>thinking…</i>";
+  const sel = window.getSelection();
+  let x = 80, y = 80;
+  if (sel && sel.rangeCount) {
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    x = Math.min(window.innerWidth - 460, Math.max(20, rect.right + 12));
+    y = Math.min(window.innerHeight - 200, Math.max(20, rect.top));
+  }
+  pop.style.left = x + "px"; pop.style.top = y + "px"; pop.style.display = "block";
+}
+window.closePopup = () => { document.getElementById("popup").style.display = "none"; };
+
+async function runAction(label, url, body) {
+  openPopup(label, body.word || body.sentence);
+  const popBody = document.getElementById("pop-body");
+  popBody.textContent = "";
+  let acc = "";
+  try {
+    const resp = await fetch(url, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok || !resp.body) { popBody.textContent = `Error: ${resp.status}`; return; }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      acc += decoder.decode(value, { stream: true });
+      popBody.innerHTML = marked.parse(acc);
+      renderMathInElement(popBody, katexOpts);
+    }
+  } catch (err) {
+    popBody.textContent = "Network error: " + err.message;
+  }
+}
+
+/* ── TOC ─────────────────────────────────────────────────────────────── */
+let tocFlat = [];           // flat list (mirrors paperData.toc) with page_end filled in
+let tocRoots = [];          // hierarchical tree built from tocFlat
+let tocSummaries = {};      // anchor -> {summary, title, level, page_start, page_end, done_at}
+let tocTotal = 0;
+let summaryMode = "page";   // "page" | "toc"
+let selectedTocAnchor = null;  // pinned when user clicks a TOC entry; cleared on page nav
+let bulkRunning = false;
+
+function buildTocTree(toc, numPages) {
+  // Mirror of server-side toc_summary.build_tree — keeps client/server in sync
+  // without an extra round-trip.
+  if (!toc || !toc.length) return { flat: [], roots: [] };
+  const flat = toc.map((e, i) => ({
+    anchor: e.anchor || `toc-${i}`,
+    title: e.title || `Section ${i}`,
+    level: Math.max(1, Math.min(3, e.level | 0 || 1)),
+    page_start: Math.max(0, e.page | 0),
+    page_end: numPages - 1,
+    children: [],
+  }));
+  for (let i = 0; i < flat.length; i++) {
+    let nxt = numPages;
+    for (let j = i + 1; j < flat.length; j++) {
+      if (flat[j].page_start >= flat[i].page_start) { nxt = flat[j].page_start; break; }
+    }
+    flat[i].page_end = Math.max(flat[i].page_start, Math.min(numPages - 1, nxt - 1));
+  }
+  const roots = [];
+  const stack = [];
+  for (const n of flat) {
+    while (stack.length && stack[stack.length - 1].level >= n.level) stack.pop();
+    if (stack.length) stack[stack.length - 1].children.push(n);
+    else roots.push(n);
+    stack.push(n);
+  }
+  return { flat, roots };
+}
+
+function countTocNodes(roots) {
+  let n = 0;
+  const walk = node => { n++; node.children.forEach(walk); };
+  roots.forEach(walk);
+  return n;
+}
+
+function findTocNodeForPage(roots, pageIdx) {
+  let best = null;
+  const walk = node => {
+    if (node.page_start <= pageIdx && pageIdx <= node.page_end) {
+      if (!best || node.level > best.level) best = node;
+    }
+    node.children.forEach(walk);
+  };
+  roots.forEach(walk);
+  return best;
+}
+
+function tocBreadcrumb(roots, anchor) {
+  const trail = [];
+  const walk = (node, path) => {
+    path.push(node);
+    if (node.anchor === anchor) { trail.push(...path); return true; }
+    for (const c of node.children) if (walk(c, path)) return true;
+    path.pop();
+    return false;
+  };
+  for (const r of roots) if (walk(r, [])) break;
+  return trail;
+}
+
+function buildToc(toc) {
+  const tocEl = document.getElementById("toc");
+  tocEl.innerHTML = "";
+  tocFlat.forEach(entry => {
+    const li = document.createElement("li");
+    const dot = document.createElement("span");
+    dot.className = "done-dot";
+    dot.dataset.anchor = entry.anchor;
+    const a = document.createElement("a");
+    a.textContent = entry.title;
+    a.className = `lvl-${entry.level}`;
+    a.addEventListener("click", () => {
+      selectedTocAnchor = entry.anchor;
+      scrollToPage(entry.page_start);
+      if (summaryMode === "toc") renderTocPane();
+    });
+    const run = document.createElement("button");
+    run.className = "toc-run";
+    run.dataset.anchor = entry.anchor;
+    run.title = "Summarize this section (recursive, cached)";
+    run.textContent = "▶";
+    run.addEventListener("click", ev => { ev.stopPropagation(); runNodeSummary(entry.anchor); });
+    li.appendChild(dot); li.appendChild(a); li.appendChild(run);
+    tocEl.appendChild(li);
+  });
+  refreshDoneDots();
+}
+
+function refreshDoneDots() {
+  document.querySelectorAll("#toc .done-dot").forEach(d => {
+    d.classList.toggle("on", !!tocSummaries[d.dataset.anchor]);
+  });
+  const done = Object.keys(tocSummaries).length;
+  const prog = document.getElementById("toc-progress");
+  if (prog) prog.textContent = tocTotal ? `${done}/${tocTotal} sections summarized` : "";
+}
+
+/* ── TOC summary view (bottom pane, when summaryMode==='toc') ─────────── */
+function setSummaryMode(mode) {
+  summaryMode = (mode === "toc") ? "toc" : "page";
+  document.querySelectorAll("#summary-header .mode-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.mode === summaryMode);
+  });
+  document.getElementById("summary-pane-page").classList.toggle("active", summaryMode === "page");
+  document.getElementById("summary-pane-toc").classList.toggle("active", summaryMode === "toc");
+  if (summaryMode === "toc") renderTocPane();
+}
+
+function renderTocPane() {
+  const pane = document.getElementById("summary-pane-toc");
+  pane.innerHTML = "";
+  let node = null;
+  if (selectedTocAnchor) {
+    node = tocFlat.find(n => n.anchor === selectedTocAnchor) || null;
+  }
+  if (!node) node = findTocNodeForPage(tocRoots, currentPageIdx);
+  if (!node) {
+    pane.innerHTML = `<div class="toc-summary-block empty">No TOC entry covers this page.</div>`;
+    return;
+  }
+  const trail = tocBreadcrumb(tocRoots, node.anchor);
+  const crumbHtml = trail.map((n, i) =>
+    `<span data-anchor="${n.anchor}">${escapeHtml(n.title)}</span>` +
+    (i < trail.length - 1 ? `<span class="sep">›</span>` : "")
+  ).join("");
+
+  const block = document.createElement("article");
+  block.className = "toc-summary-block";
+  block.dataset.anchor = node.anchor;
+  const rec = tocSummaries[node.anchor];
+  const summaryHtml = rec
+    ? marked.parse(rec.summary || "")
+    : `<div class="empty">Not summarized yet.</div>
+       <button class="run-here" data-anchor="${node.anchor}">▶ Summarize this section</button>`;
+  block.innerHTML = `
+    <div class="crumb">${crumbHtml}</div>
+    <h4>${escapeHtml(node.title)}</h4>
+    <div class="pages">pages ${node.page_start + 1}–${node.page_end + 1} · level ${node.level}${rec ? ` · summarized ${escapeHtml(rec.done_at || "")}` : ""}</div>
+    <div class="body">${summaryHtml}</div>`;
+  pane.appendChild(block);
+  renderMathInElement(block, katexOpts);
+
+  block.querySelectorAll(".run-here").forEach(btn => {
+    btn.addEventListener("click", () => runNodeSummary(btn.dataset.anchor));
+  });
+  block.querySelectorAll(".crumb span[data-anchor]").forEach(el => {
+    el.style.cursor = "pointer";
+    el.addEventListener("click", () => {
+      const a = el.dataset.anchor;
+      const n = tocFlat.find(x => x.anchor === a);
+      if (n) scrollToPage(n.page_start);
+    });
+  });
+}
+
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function runNodeSummary(anchor) {
+  if (bulkRunning) return;
+  const runBtn = document.querySelector(`#toc .toc-run[data-anchor="${CSS.escape(anchor)}"]`);
+  if (runBtn) { runBtn.classList.add("running"); runBtn.textContent = "…"; runBtn.disabled = true; }
+  try {
+    const resp = await fetch("/api/toc-summarize-node", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ anchor }),
+    });
+    if (!resp.ok || !resp.body) { alert(`Error: ${resp.status}`); return; }
+    await consumeNdjson(resp.body);
+  } catch (err) {
+    alert("Network error: " + err.message);
+  } finally {
+    if (runBtn) { runBtn.classList.remove("running"); runBtn.textContent = "▶"; runBtn.disabled = false; }
+    if (summaryMode === "toc") renderTocPane();
+  }
+}
+
+async function runSummarizeAll() {
+  if (bulkRunning) return;
+  bulkRunning = true;
+  const btn = document.getElementById("summarize-all");
+  btn.disabled = true; btn.textContent = "Summarizing…";
+  try {
+    const resp = await fetch("/api/toc-summarize-all", { method: "POST" });
+    if (!resp.ok || !resp.body) { alert(`Error: ${resp.status}`); return; }
+    await consumeNdjson(resp.body);
+  } catch (err) {
+    alert("Network error: " + err.message);
+  } finally {
+    bulkRunning = false;
+    btn.disabled = false; btn.textContent = "Summarize all";
+    if (summaryMode === "toc") renderTocPane();
+  }
+}
+
+async function consumeNdjson(body) {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line) continue;
+      try {
+        const rec = JSON.parse(line);
+        if (rec.anchor) {
+          tocSummaries[rec.anchor] = rec;
+          refreshDoneDots();
+        }
+      } catch (_) { /* ignore */ }
+    }
+  }
+}
+
+document.getElementById("summarize-all").addEventListener("click", runSummarizeAll);
+document.querySelectorAll("#summary-header .mode-btn").forEach(b => {
+  b.addEventListener("click", () => setSummaryMode(b.dataset.mode));
+});
+
+function scrollToPage(pageIdx) {
+  showPage(pageIdx);
+}
+
+function showPage(pageIdx) {
+  if (totalPages <= 0) return;
+  pageIdx = Math.max(0, Math.min(totalPages - 1, pageIdx));
+  currentPageIdx = pageIdx;
+
+  document.querySelectorAll("#middle .page-block").forEach(el => {
+    el.classList.toggle("active", parseInt(el.dataset.page, 10) === pageIdx);
+  });
+  document.querySelectorAll("#right .pdf-page").forEach(el => {
+    el.classList.toggle("active", parseInt(el.dataset.page, 10) === pageIdx);
+  });
+
+  const human = String(pageIdx + 1);
+  const mj = document.getElementById("middle-jump");
+  const rj = document.getElementById("right-jump");
+  if (mj && document.activeElement !== mj) mj.value = human;
+  if (rj && document.activeElement !== rj) rj.value = human;
+  const spn = document.getElementById("scope-page-num");
+  if (spn && document.activeElement !== spn) spn.value = human;
+
+  document.querySelectorAll("#middle-prev, #right-prev").forEach(b => b.disabled = pageIdx <= 0);
+  document.querySelectorAll("#middle-next, #right-next").forEach(b => b.disabled = pageIdx >= totalPages - 1);
+
+  const mdCol = document.getElementById("middle-md");
+  const sumCol = document.getElementById("middle-summary");
+  if (mdCol) mdCol.scrollTop = 0;
+  if (sumCol) sumCol.scrollTop = 0;
+  document.getElementById("right").scrollTop = 0;
+
+  if (summaryMode === "toc") renderTocPane();
+}
+
+function setupPageNav() {
+  const navTo = idx => { selectedTocAnchor = null; showPage(idx); };
+  document.getElementById("middle-prev").addEventListener("click", () => navTo(currentPageIdx - 1));
+  document.getElementById("middle-next").addEventListener("click", () => navTo(currentPageIdx + 1));
+  document.getElementById("right-prev").addEventListener("click", () => navTo(currentPageIdx - 1));
+  document.getElementById("right-next").addEventListener("click", () => navTo(currentPageIdx + 1));
+  const jump = id => document.getElementById(id).addEventListener("change", e => {
+    const v = parseInt(e.target.value, 10);
+    if (!isNaN(v)) navTo(v - 1);
+  });
+  jump("middle-jump"); jump("right-jump");
+
+  document.addEventListener("keydown", e => {
+    if (e.target.matches("input, textarea")) return;
+    if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); navTo(currentPageIdx - 1); }
+    else if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); navTo(currentPageIdx + 1); }
+  });
+}
+
+/* ── PDF.js rendering with selectable textLayer ──────────────────────── */
+async function renderPdf() {
+  const right = document.getElementById("right");
+  const bust = paperData?.paper_id ? `?v=${encodeURIComponent(paperData.paper_id)}` : `?v=${Date.now()}`;
+  const pdf = await pdfjsLib.getDocument({ url: "/api/pdf" + bust, disableAutoFetch: false }).promise;
+  const containerWidth = right.clientWidth - 44;  // padding
+
+  // Pre-create wrappers so IntersectionObserver can track them in page order.
+  const wrappers = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const wrap = document.createElement("div");
+    wrap.className = "pdf-page";
+    wrap.dataset.page = String(i - 1);
+    wrap.innerHTML = `<span class="pdf-badge">page ${i}</span>
+      <canvas></canvas>
+      <div class="textLayer"></div>`;
+    right.appendChild(wrap);
+    wrappers.push(wrap);
+  }
+
+  totalPages = pdf.numPages;
+  document.getElementById("right-total").textContent = String(totalPages);
+  document.getElementById("middle-total").textContent = String(totalPages);
+  document.getElementById("middle-jump").max = String(totalPages);
+  document.getElementById("right-jump").max = String(totalPages);
+  showPage(currentPageIdx);
+
+  // Render each page sequentially (PDF.js can handle parallel but keep mem low).
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const wrap = wrappers[i - 1];
+    const canvas = wrap.querySelector("canvas");
+    const textLayerDiv = wrap.querySelector(".textLayer");
+
+    const baseViewport = page.getViewport({ scale: 1 });
+    const scale = containerWidth / baseViewport.width;
+    const viewport = page.getViewport({ scale });
+    const outputScale = window.devicePixelRatio || 1;
+
+    canvas.width = Math.floor(viewport.width * outputScale);
+    canvas.height = Math.floor(viewport.height * outputScale);
+    canvas.style.width = Math.floor(viewport.width) + "px";
+    canvas.style.height = Math.floor(viewport.height) + "px";
+    wrap.style.width = Math.floor(viewport.width) + "px";
+    wrap.dataset.baseWidth = viewport.width;
+    wrap.dataset.baseHeight = viewport.height;
+    wrap.dataset.baseScale = viewport.scale;
+
+    const ctx = canvas.getContext("2d");
+    const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+    await page.render({ canvasContext: ctx, viewport, transform }).promise;
+
+    // Text layer for selection — CRITICAL for text-selectable PDF.
+    textLayerDiv.innerHTML = "";
+    textLayerDiv.style.width = Math.floor(viewport.width) + "px";
+    textLayerDiv.style.height = Math.floor(viewport.height) + "px";
+    textLayerDiv.style.setProperty("--scale-factor", viewport.scale);
+    textLayerDiv.dataset.baseScale = viewport.scale;
+
+    try {
+      const textContent = await page.getTextContent();
+      if (typeof pdfjsLib.TextLayer === "function") {
+        // pdfjs-dist v4+: new TextLayer class.
+        const textLayer = new pdfjsLib.TextLayer({
+          textContentSource: textContent,
+          container: textLayerDiv,
+          viewport,
+        });
+        await textLayer.render();
+      } else if (typeof pdfjsLib.renderTextLayer === "function") {
+        // Older API fallback.
+        const task = pdfjsLib.renderTextLayer({
+          textContentSource: textContent,
+          container: textLayerDiv,
+          viewport,
+          textDivs: [],
+        });
+        await (task?.promise || task);
+      }
+    } catch (err) {
+      console.warn(`textLayer render failed for page ${i}:`, err);
+    }
+
+    // Figure overlays: invisible hover targets per extracted figure.
+    const pageIdx = i - 1;
+    const pageFigs = paperData?.pages?.[pageIdx]?.figures || [];
+    for (const fig of pageFigs) {
+      if (!fig || !fig.bbox || !fig.id) continue;
+      const ov = document.createElement("div");
+      ov.className = "fig-overlay";
+      ov.dataset.figureId = fig.id;
+      ov.dataset.page = String(pageIdx);
+      ov.dataset.bbox = JSON.stringify(fig.bbox);
+      ov.title = `${fig.id} — double-click, then Ctrl+I to explain`;
+      ov.addEventListener("dblclick", e => {
+        e.preventDefault();
+        document.querySelectorAll(".fig-overlay.selected")
+          .forEach(el => el.classList.remove("selected"));
+        ov.classList.add("selected");
+        selectedFigure = { id: fig.id, page: pageIdx };
+      });
+      wrap.appendChild(ov);
+    }
+    positionFigOverlays(wrap);
+  }
+}
+
+function positionFigOverlays(wrap) {
+  const bs = parseFloat(wrap.dataset.baseScale);
+  if (!bs) return;
+  const k = bs * pdfZoom;
+  wrap.querySelectorAll(".fig-overlay").forEach(ov => {
+    let bbox;
+    try { bbox = JSON.parse(ov.dataset.bbox); } catch (_) { return; }
+    if (!bbox || bbox.length < 4) return;
+    const [x0, y0, x1, y1] = bbox;
+    ov.style.left = Math.floor(x0 * k) + "px";
+    ov.style.top = Math.floor(y0 * k) + "px";
+    ov.style.width = Math.max(4, Math.floor((x1 - x0) * k)) + "px";
+    ov.style.height = Math.max(4, Math.floor((y1 - y0) * k)) + "px";
+  });
+}
+
+function applyPdfZoom() {
+  document.querySelectorAll("#right .pdf-page").forEach(wrap => {
+    const bw = parseFloat(wrap.dataset.baseWidth);
+    const bh = parseFloat(wrap.dataset.baseHeight);
+    const bs = parseFloat(wrap.dataset.baseScale);
+    if (!bw || !bh) return;
+    const w = Math.floor(bw * pdfZoom);
+    const h = Math.floor(bh * pdfZoom);
+    wrap.style.width = w + "px";
+    const canvas = wrap.querySelector("canvas");
+    if (canvas) { canvas.style.width = w + "px"; canvas.style.height = h + "px"; }
+    const tl = wrap.querySelector(".textLayer");
+    if (tl) {
+      tl.style.width = w + "px";
+      tl.style.height = h + "px";
+      if (bs) tl.style.setProperty("--scale-factor", bs * pdfZoom);
+    }
+    positionFigOverlays(wrap);
+  });
+}
+
+function setupPdfZoom() {
+  const right = document.getElementById("right");
+  right.addEventListener("wheel", e => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const rect = right.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left + right.scrollLeft;
+    const offsetY = e.clientY - rect.top + right.scrollTop;
+    const prevZoom = pdfZoom;
+    const factor = Math.exp(-e.deltaY * 0.0015);
+    pdfZoom = Math.max(PDF_ZOOM_MIN, Math.min(PDF_ZOOM_MAX, pdfZoom * factor));
+    if (pdfZoom === prevZoom) return;
+    applyPdfZoom();
+    const ratio = pdfZoom / prevZoom;
+    right.scrollLeft = offsetX * ratio - (e.clientX - rect.left);
+    right.scrollTop = offsetY * ratio - (e.clientY - rect.top);
+  }, { passive: false });
+}
+
+/* ── Middle column ────────────────────────────────────────────────────── */
+function renderMiddle(pages) {
+  const mdCol = document.getElementById("middle-md");
+  const sumCol = document.getElementById("summary-pane-page");
+  pages.forEach(p => {
+    const mdBlock = document.createElement("article");
+    mdBlock.className = "page-block";
+    mdBlock.dataset.page = p.index;
+    mdBlock.innerHTML = `
+      <span class="page-badge">page ${p.index + 1}</span>
+      <div class="ocr">${marked.parse(p.markdown || "")}</div>`;
+    mdCol.appendChild(mdBlock);
+
+    const sumBlock = document.createElement("article");
+    sumBlock.className = "page-block";
+    sumBlock.dataset.page = p.index;
+    sumBlock.innerHTML = `
+      <span class="page-badge">page ${p.index + 1}</span>
+      <div class="summary">${marked.parse(p.summary || "")}</div>`;
+    sumCol.appendChild(sumBlock);
+  });
+  renderMathInElement(mdCol, katexOpts);
+  renderMathInElement(sumCol, katexOpts);
+}
+
+/* ── Chat ─────────────────────────────────────────────────────────────── */
+let chatHistory = [];     // [{role, content}]
+let chatScope = "paper";
+
+document.getElementById("scope-paper").addEventListener("click", () => setScope("paper"));
+document.getElementById("scope-page").addEventListener("click", () => setScope("page"));
+
+function setScope(s) {
+  chatScope = s;
+  document.getElementById("scope-paper").classList.toggle("active", s === "paper");
+  document.getElementById("scope-page").classList.toggle("active", s === "page");
+  if (s === "page") {
+    document.getElementById("scope-page-num").value = String(currentPageIdx + 1);
+  }
+}
+
+function appendMsg(role, html, scopeChip = null) {
+  const log = document.getElementById("chat-log");
+  const m = document.createElement("div");
+  m.className = "msg " + role;
+  const chipHtml = scopeChip ? `<span class="scope-chip">${scopeChip}</span>` : "";
+  m.innerHTML = `<div class="role">${role}${chipHtml}</div><div class="body">${html}</div>`;
+  log.appendChild(m);
+  log.scrollTop = log.scrollHeight;
+  return m.querySelector(".body");
+}
+
+async function sendChat() {
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("chat-send");
+  const message = input.value.trim();
+  if (!message) return;
+  input.value = "";
+
+  let pageIndex = null;
+  let scopeChip = null;
+  if (chatScope === "page") {
+    const raw = parseInt(document.getElementById("scope-page-num").value, 10);
+    pageIndex = Math.max(0, Math.min((paperData?.pages?.length || 1) - 1, (raw || 1) - 1));
+    scopeChip = `scoped to page ${pageIndex + 1}`;
+  }
+
+  appendMsg("user", marked.parse(message), scopeChip);
+  chatHistory.push({ role: "user", content: message });
+  const bodyEl = appendMsg("assistant", "<i>thinking…</i>");
+  sendBtn.disabled = true;
+
+  let acc = "";
+  try {
+    const resp = await fetch("/api/chat", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message, history: chatHistory.slice(0, -1),
+        scope: chatScope, page_index: pageIndex,
+      }),
+    });
+    if (!resp.ok || !resp.body) { bodyEl.textContent = `Error: ${resp.status}`; return; }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      acc += decoder.decode(value, { stream: true });
+      bodyEl.innerHTML = marked.parse(acc);
+      renderMathInElement(bodyEl, katexOpts);
+      document.getElementById("chat-log").scrollTop = 1e9;
+    }
+    chatHistory.push({ role: "assistant", content: acc });
+  } catch (err) {
+    bodyEl.textContent = "Network error: " + err.message;
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+document.getElementById("chat-send").addEventListener("click", sendChat);
+document.getElementById("chat-input").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
+document.getElementById("chat-clear").addEventListener("click", () => {
+  chatHistory = [];
+  document.getElementById("chat-log").innerHTML = "";
+});
+
+/* ── Layout: splitters + collapse ─────────────────────────────────────── */
+function setupLayout() {
+  // Collapse / expand toggles.
+  document.querySelectorAll(".collapse-btn, .collapsed-label").forEach(el => {
+    el.addEventListener("click", () => {
+      const panel = document.getElementById(el.dataset.target);
+      if (!panel) return;
+      const collapsing = !panel.classList.contains("collapsed");
+      if (collapsing) {
+        panel.dataset.prevBasis = panel.style.flexBasis || (getComputedStyle(panel).flexBasis);
+        panel.dataset.prevFlex = panel.classList.contains("flex-fill") ? "fill" : "fixed";
+      }
+      panel.classList.toggle("collapsed");
+      if (!collapsing && panel.dataset.prevFlex === "fixed" && panel.dataset.prevBasis) {
+        panel.style.flexBasis = panel.dataset.prevBasis;
+      }
+    });
+  });
+
+  const paperSection = document.getElementById("paper-section");
+  const paperHeader = paperSection?.querySelector("h2");
+  function togglePaperSection() { paperSection?.classList.toggle("section-collapsed"); }
+  paperHeader?.addEventListener("click", togglePaperSection);
+
+  function togglePanelById(id) {
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    const sel = panel.classList.contains("collapsed")
+      ? `.collapsed-label[data-target="${id}"]`
+      : `.collapse-btn[data-target="${id}"]`;
+    document.querySelector(sel)?.click();
+  }
+
+  document.addEventListener("keydown", e => {
+    if (!e.ctrlKey || e.altKey || e.shiftKey || e.metaKey || e.repeat) return;
+    const t = e.target;
+    if (t && t.matches && t.matches('input, textarea, [contenteditable=""], [contenteditable="true"]')) return;
+    switch (e.key) {
+      case "1": togglePaperSection(); break;
+      case "2": togglePanelById("left"); break;
+      case "3": togglePanelById("middle"); break;
+      case "4": togglePanelById("chat"); break;
+      case "5": togglePanelById("right"); break;
+      default: return;
+    }
+    e.preventDefault();
+  });
+
+  // Horizontal splitter drag (inside #middle).
+  document.querySelectorAll(".hsplitter").forEach(sp => {
+    sp.addEventListener("mousedown", e => {
+      e.preventDefault();
+      const top = document.getElementById(sp.dataset.top);
+      const bot = document.getElementById(sp.dataset.bottom);
+      if (!top || !bot) return;
+      const startY = e.clientY;
+      const tH = top.getBoundingClientRect().height;
+      const bH = bot.getBoundingClientRect().height;
+      sp.classList.add("dragging");
+      document.body.classList.add("resizing-v");
+      function onMove(ev) {
+        const dy = ev.clientY - startY;
+        const newT = Math.max(60, tH + dy);
+        const newB = Math.max(60, bH - dy);
+        if (newT <= 60 && dy < 0) return;
+        if (newB <= 60 && dy > 0) return;
+        top.style.flex = "0 0 auto";
+        bot.style.flex = "0 0 auto";
+        top.style.height = newT + "px";
+        bot.style.height = newB + "px";
+      }
+      function onUp() {
+        sp.classList.remove("dragging");
+        document.body.classList.remove("resizing-v");
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      }
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  });
+
+  // Splitter drag.
+  document.querySelectorAll(".splitter").forEach(sp => {
+    sp.addEventListener("mousedown", e => {
+      e.preventDefault();
+      const left = document.getElementById(sp.dataset.left);
+      const right = document.getElementById(sp.dataset.right);
+      if (!left || !right) return;
+      // If either neighbour is collapsed, drag does nothing.
+      if (left.classList.contains("collapsed") || right.classList.contains("collapsed")) return;
+
+      const startX = e.clientX;
+      const lRect = left.getBoundingClientRect();
+      const rRect = right.getBoundingClientRect();
+      const lFill = left.classList.contains("flex-fill");
+      const rFill = right.classList.contains("flex-fill");
+      sp.classList.add("dragging");
+      document.body.classList.add("resizing");
+
+      function onMove(ev) {
+        const dx = ev.clientX - startX;
+        const newL = Math.max(80, lRect.width + dx);
+        const newR = Math.max(80, rRect.width - dx);
+        // If width clamped on either side, abort this frame.
+        if (newL <= 80 && dx < 0) return;
+        if (newR <= 80 && dx > 0) return;
+        // Convert fill panels to fixed so explicit basis works during drag.
+        if (lFill) { left.classList.remove("flex-fill"); left.style.flex = "0 0 auto"; }
+        if (rFill) { right.classList.remove("flex-fill"); right.style.flex = "0 0 auto"; }
+        left.style.flexBasis = newL + "px";
+        right.style.flexBasis = newR + "px";
+      }
+      function onUp() {
+        sp.classList.remove("dragging");
+        document.body.classList.remove("resizing");
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      }
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  });
+}
+
+/* ── PDF picker modal ─────────────────────────────────────────────────── */
+function gotoPaper(paperId) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("paper", paperId);
+  url.hash = "";
+  window.location.assign(url.pathname + "?" + url.searchParams.toString());
+}
+
+function pickerLog(msg, cls) {
+  const el = document.getElementById("picker-log");
+  el.classList.add("show");
+  const line = document.createElement("div");
+  if (cls) line.className = cls;
+  line.textContent = msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearPickerLog() {
+  const el = document.getElementById("picker-log");
+  el.innerHTML = "";
+  el.classList.remove("show");
+}
+
+async function refreshPickerList() {
+  const list = document.getElementById("picker-list");
+  list.innerHTML = `<li class="empty">loading…</li>`;
+  try {
+    const resp = await fetch("/api/papers");
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const data = await resp.json();
+    list.innerHTML = "";
+    if (!data.papers || !data.papers.length) {
+      list.innerHTML = `<li class="empty">처리된 논문이 없습니다.</li>`;
+      return;
+    }
+    for (const p of data.papers) {
+      const li = document.createElement("li");
+      li.textContent = p.title || p.paper_id;
+      li.title = p.paper_id;
+      if (p.paper_id === data.current) li.classList.add("current");
+      li.addEventListener("click", () => gotoPaper(p.paper_id));
+      list.appendChild(li);
+    }
+  } catch (err) {
+    list.innerHTML = `<li class="empty">불러오기 실패: ${escapeHtml(err.message)}</li>`;
+  }
+}
+
+function openPicker() {
+  clearPickerLog();
+  document.getElementById("picker-file").value = "";
+  document.getElementById("picker-upload-btn").disabled = false;
+  document.getElementById("picker-overlay").classList.add("show");
+  refreshPickerList();
+}
+
+function closePicker() {
+  document.getElementById("picker-overlay").classList.remove("show");
+}
+
+async function uploadPdf() {
+  const fileInput = document.getElementById("picker-file");
+  const btn = document.getElementById("picker-upload-btn");
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) { pickerLog("PDF 파일을 선택해주세요.", "err"); return; }
+  if (!file.name.toLowerCase().endsWith(".pdf")) {
+    pickerLog("PDF 파일만 업로드 가능합니다.", "err"); return;
+  }
+  clearPickerLog();
+  pickerLog(`uploading ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)…`);
+  btn.disabled = true;
+  const fd = new FormData();
+  fd.append("file", file, file.name);
+  try {
+    const resp = await fetch("/api/upload-pdf", { method: "POST", body: fd });
+    if (!resp.ok || !resp.body) {
+      pickerLog(`Error: HTTP ${resp.status}`, "err");
+      btn.disabled = false;
+      return;
+    }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    let finalPaperId = null;
+    let okFlag = false;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        try {
+          const rec = JSON.parse(line);
+          if (rec.done) {
+            okFlag = !!rec.ok;
+            finalPaperId = rec.paper_id || null;
+            if (okFlag) pickerLog(`done — switching to '${finalPaperId}'`, "ok");
+          } else if (rec.stage === "error") {
+            pickerLog(`[error] ${rec.msg || ""}`, "err");
+          } else if (rec.msg) {
+            pickerLog(rec.msg);
+          }
+        } catch (_) { /* ignore */ }
+      }
+    }
+    if (okFlag && finalPaperId) {
+      setTimeout(() => gotoPaper(finalPaperId), 400);
+    } else {
+      btn.disabled = false;
+    }
+  } catch (err) {
+    pickerLog("Network error: " + err.message, "err");
+    btn.disabled = false;
+  }
+}
+
+async function reprocessCurrent() {
+  const btn = document.getElementById("reprocess-btn");
+  const openBtn = document.getElementById("open-pdf-btn");
+  const status = document.getElementById("reprocess-status");
+  if (!confirm("Re-extract this paper with --force? This rebuilds figure bboxes, captions, and the RAG index.")) return;
+  btn.disabled = true; openBtn.disabled = true;
+  const origLabel = btn.textContent;
+  btn.textContent = "재처리 중…";
+  status.classList.add("show");
+  status.innerHTML = "";
+  const log = (msg, cls) => {
+    const line = document.createElement("div");
+    if (cls) line.className = cls;
+    line.textContent = msg;
+    status.appendChild(line);
+    status.scrollTop = status.scrollHeight;
+  };
+  try {
+    const resp = await fetch("/api/reprocess", { method: "POST" });
+    if (!resp.ok || !resp.body) {
+      log(`Error: HTTP ${resp.status}`, "err");
+      btn.disabled = false; openBtn.disabled = false; btn.textContent = origLabel;
+      return;
+    }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    let okFlag = false;
+    let finalPaperId = null;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        try {
+          const rec = JSON.parse(line);
+          if (rec.done) {
+            okFlag = !!rec.ok;
+            finalPaperId = rec.paper_id || null;
+            if (okFlag) log(`done — reloading '${finalPaperId}'`, "ok");
+          } else if (rec.stage === "error") {
+            log(`[error] ${rec.msg || ""}`, "err");
+          } else if (rec.msg) {
+            log(rec.msg);
+          }
+        } catch (_) { /* ignore */ }
+      }
+    }
+    if (okFlag && finalPaperId) {
+      setTimeout(() => gotoPaper(finalPaperId), 500);
+    } else {
+      btn.disabled = false; openBtn.disabled = false; btn.textContent = origLabel;
+    }
+  } catch (err) {
+    log("Network error: " + err.message, "err");
+    btn.disabled = false; openBtn.disabled = false; btn.textContent = origLabel;
+  }
+}
+
+function setupPicker() {
+  document.getElementById("open-pdf-btn").addEventListener("click", openPicker);
+  document.getElementById("reprocess-btn").addEventListener("click", reprocessCurrent);
+  document.getElementById("picker-close").addEventListener("click", closePicker);
+  document.getElementById("picker-overlay").addEventListener("click", e => {
+    if (e.target.id === "picker-overlay") closePicker();
+  });
+  document.getElementById("picker-upload-btn").addEventListener("click", uploadPdf);
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" &&
+        document.getElementById("picker-overlay").classList.contains("show")) {
+      closePicker();
+    }
+  });
+}
+
+/* ── Keyword highlights ──────────────────────────────────────────────── */
+let highlightCache = {};       // {pageIdx: [keyword, ...]}
+let highlightRunning = false;
+const HL_TOGGLE_KEY = "viewer.highlightsVisible";
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function applyHighlights(block, keywords) {
+  if (!block || !keywords || !keywords.length) return;
+  const ocr = block.querySelector(".ocr");
+  if (!ocr) return;
+  const sorted = keywords.slice().sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(
+    "(" + sorted.map(escapeRegex).join("|") + ")",
+    "gi"
+  );
+
+  const walker = document.createTreeWalker(ocr, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      // Skip text already inside a highlight, code, or KaTeX
+      let p = node.parentNode;
+      while (p && p !== ocr) {
+        if (p.nodeType === 1) {
+          const tag = p.tagName;
+          if (tag === "MARK" || tag === "CODE" || tag === "PRE") return NodeFilter.FILTER_REJECT;
+          const cls = p.className || "";
+          if (typeof cls === "string" && (cls.indexOf("katex") !== -1)) return NodeFilter.FILTER_REJECT;
+        }
+        p = p.parentNode;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+
+  const targets = [];
+  let n;
+  while ((n = walker.nextNode())) targets.push(n);
+
+  for (const textNode of targets) {
+    const text = textNode.nodeValue;
+    pattern.lastIndex = 0;
+    if (!pattern.test(text)) continue;
+    pattern.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let last = 0;
+    let m;
+    while ((m = pattern.exec(text)) !== null) {
+      if (m.index > last) {
+        frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      }
+      const mark = document.createElement("mark");
+      mark.className = "kw";
+      mark.textContent = m[0];
+      frag.appendChild(mark);
+      last = m.index + m[0].length;
+      if (m[0].length === 0) pattern.lastIndex++;
+    }
+    if (last < text.length) {
+      frag.appendChild(document.createTextNode(text.slice(last)));
+    }
+    textNode.parentNode.replaceChild(frag, textNode);
+  }
+}
+
+function applyAllCachedHighlights() {
+  const mdCol = document.getElementById("middle-md");
+  mdCol.querySelectorAll(".page-block").forEach(block => {
+    const idx = block.dataset.page;
+    const rec = highlightCache[idx];
+    if (rec && rec.keywords) applyHighlights(block, rec.keywords);
+  });
+}
+
+function setHighlightsVisible(visible) {
+  const mdCol = document.getElementById("middle-md");
+  const btn = document.getElementById("highlight-toggle");
+  mdCol.classList.toggle("hl-off", !visible);
+  btn.classList.toggle("toggle-on", visible);
+  btn.textContent = visible ? "Hide highlights" : "Show highlights";
+  try { localStorage.setItem(HL_TOGGLE_KEY, visible ? "1" : "0"); } catch (_) {}
+}
+
+function updateHighlightProgress(done, total) {
+  const el = document.getElementById("hl-progress");
+  if (!el) return;
+  el.textContent = total ? `${done}/${total}` : "";
+}
+
+async function runHighlightAll() {
+  if (highlightRunning) return;
+  highlightRunning = true;
+  const btn = document.getElementById("highlight-all");
+  btn.disabled = true; btn.textContent = "Highlighting…";
+  const total = paperData.pages?.length || 0;
+  let done = 0;
+  updateHighlightProgress(done, total);
+  try {
+    const resp = await fetch("/api/highlight-all", { method: "POST" });
+    if (!resp.ok || !resp.body) { alert(`Error: ${resp.status}`); return; }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { done: rdDone, value } = await reader.read();
+      if (rdDone) break;
+      buf += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        try {
+          const rec = JSON.parse(line);
+          if (typeof rec.page_index === "number") {
+            highlightCache[String(rec.page_index)] = rec;
+            const block = document.querySelector(
+              `#middle-md .page-block[data-page="${rec.page_index}"]`
+            );
+            if (block && rec.keywords) applyHighlights(block, rec.keywords);
+            done++;
+            updateHighlightProgress(done, total);
+          }
+        } catch (_) { /* ignore */ }
+      }
+    }
+  } catch (err) {
+    alert("Network error: " + err.message);
+  } finally {
+    highlightRunning = false;
+    btn.disabled = false; btn.textContent = "Highlight";
+  }
+}
+
+/* ── Boot ────────────────────────────────────────────────────────────── */
+async function load() {
+  const resp = await fetch("/api/paper?t=" + Date.now(), { cache: "no-store" });
+  paperData = await resp.json();
+  document.getElementById("paper-id").textContent = paperData.paper_id;
+  document.title = paperData.paper_id;
+
+  renderMiddle(paperData.pages);
+
+  // Restore highlight visibility preference (default: visible)
+  let visible = true;
+  try {
+    const stored = localStorage.getItem(HL_TOGGLE_KEY);
+    if (stored === "0") visible = false;
+  } catch (_) {}
+  setHighlightsVisible(visible);
+
+  // Fetch cached highlights and apply
+  try {
+    const hlResp = await fetch("/api/highlights");
+    if (hlResp.ok) {
+      const data = await hlResp.json();
+      highlightCache = data.highlights || {};
+      applyAllCachedHighlights();
+      const cachedCount = Object.keys(highlightCache).length;
+      const total = paperData.pages?.length || 0;
+      if (cachedCount) updateHighlightProgress(cachedCount, total);
+    }
+  } catch (_) { /* leave empty */ }
+
+  document.getElementById("highlight-all").addEventListener("click", runHighlightAll);
+  document.getElementById("highlight-toggle").addEventListener("click", () => {
+    const mdCol = document.getElementById("middle-md");
+    setHighlightsVisible(mdCol.classList.contains("hl-off"));
+  });
+
+  const tree = buildTocTree(paperData.toc || [], paperData.pages?.length || 0);
+  tocFlat = tree.flat; tocRoots = tree.roots;
+  tocTotal = countTocNodes(tocRoots);
+  try {
+    const sumResp = await fetch("/api/toc-summaries");
+    if (sumResp.ok) {
+      const data = await sumResp.json();
+      tocSummaries = data.summaries || {};
+      if (data.total) tocTotal = data.total;
+    }
+  } catch (_) { /* leave empty */ }
+
+  buildToc(paperData.toc || []);
+  setupPageNav();
+  setupPdfZoom();
+  await renderPdf();
+  showPage(currentPageIdx);
+}
+
+function boot() {
+  if (window.marked && window.renderMathInElement) { setupLayout(); setupPicker(); load(); }
+  else setTimeout(boot, 30);
+}
+window.addEventListener("DOMContentLoaded", boot);
+</script>
+</body>
+</html>
