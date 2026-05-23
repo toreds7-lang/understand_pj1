@@ -612,15 +612,21 @@ document.addEventListener("keydown", async e => {
   if (!e.ctrlKey) return;
   if (e.key === "d" || e.key === "D") {
     e.preventDefault();
-    if (!lastSelection.text) return;
+    const sel = window.getSelection().toString().trim();
+    const text = sel || lastSelection.text;
+    console.log("Ctrl+D pressed. Selected:", sel, "lastSelection:", lastSelection);
+    if (!text) return;
     await runAction("define", "/api/define", {
-      word: lastSelection.text, before: lastSelection.before, after: lastSelection.after,
+      word: text, before: lastSelection.before || "", after: lastSelection.after || "",
     });
   } else if (e.key === "e" || e.key === "E") {
     e.preventDefault();
-    if (!lastSelection.text) return;
+    const sel = window.getSelection().toString().trim();
+    const text = sel || lastSelection.text;
+    console.log("Ctrl+E pressed. Selected:", sel, "lastSelection:", lastSelection);
+    if (!text) return;
     await runAction("explain", "/api/explain", {
-      sentence: lastSelection.text, before: lastSelection.before, after: lastSelection.after,
+      sentence: text, before: lastSelection.before || "", after: lastSelection.after || "",
     });
   } else if (e.key === "i" || e.key === "I") {
     e.preventDefault();
@@ -1868,37 +1874,8 @@ async function load() {
   document.getElementById("wiki-send")?.addEventListener("click", sendWikiChat);
   document.getElementById("wiki-input")?.addEventListener("keydown", e => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendWikiChat(); }
-    if (e.ctrlKey && (e.key === "d" || e.key === "D")) {
-      e.preventDefault();
-      const sel = window.getSelection().toString().trim();
-      if (sel) {
-        runAction("define", "/api/define", { word: sel, before: "", after: "" });
-      }
-    }
-    if (e.ctrlKey && (e.key === "e" || e.key === "E")) {
-      e.preventDefault();
-      const sel = window.getSelection().toString().trim();
-      if (sel) {
-        runAction("explain", "/api/explain", { sentence: sel, before: "", after: "" });
-      }
-    }
   });
-  document.getElementById("wiki-page-content")?.addEventListener("keydown", e => {
-    if (!e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
-    if (e.key === "d" || e.key === "D") {
-      e.preventDefault();
-      const sel = window.getSelection().toString().trim();
-      if (sel) {
-        runAction("define", "/api/define", { word: sel, before: "", after: "" });
-      }
-    } else if (e.key === "e" || e.key === "E") {
-      e.preventDefault();
-      const sel = window.getSelection().toString().trim();
-      if (sel) {
-        runAction("explain", "/api/explain", { sentence: sel, before: "", after: "" });
-      }
-    }
-  });
+  document.getElementById("wiki-page-content")?.setAttribute("tabindex", "0");
 }
 
 /* ── Graph / Wiki functions ───────────────────────────────────────────────── */
