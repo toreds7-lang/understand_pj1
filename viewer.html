@@ -210,7 +210,10 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 #chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── PDF (right) ──────────────────────────────────────────────────────── */
-#right { overflow-y: auto; padding: 16px 22px; background: #2a2a2a; }
+#right { overflow-y: auto; padding: 16px 22px; background: #2a2a2a; position: relative; }
+#right-resize-handle { position: absolute; right: 0; top: 0; bottom: 0; width: 6px;
+  cursor: col-resize; background: transparent; transition: background 0.15s; z-index: 2; }
+#right-resize-handle:hover { background: var(--accent); }
 .pdf-page { position: relative; margin: 0 auto 24px; background: white;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
 .pdf-page canvas { display: block; width: 100%; height: auto; }
@@ -298,6 +301,54 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 #picker-log.show { display: block; }
 #picker-log .err { color: #f48771; }
 #picker-log .ok { color: var(--accent); }
+
+/* ── Graph panel ──────────────────────────────────────────────────────────── */
+#graph { display: flex; flex-direction: column; background: var(--panel);
+  border-left: 1px solid var(--border); min-height: 0; }
+#graph-header { padding: 8px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#graph-header h2 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+#graph-body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+#graph-wiki-sidebar { flex: 0 0 280px; overflow-y: auto;
+  padding: 10px 12px; border-right: 1px solid var(--border); font-size: 13px; }
+#graph-right { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+#graph-canvas-wrap { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+#graph-svg { width: 100%; height: 100%; }
+#wiki-page-content h1 { font-size: 15px; color: var(--accent); margin: 0 0 8px; }
+#wiki-page-content h2 { font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted); margin: 14px 0 4px; }
+#wiki-page-content a { color: var(--accent); }
+#ingest-btn { background: var(--panel-2); color: var(--text); border: 1px solid var(--accent);
+  border-radius: 4px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+#ingest-btn:hover:not(:disabled) { background: var(--accent); color: #1e1e1e; }
+#ingest-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+#ingest-log { font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace;
+  max-height: 60px; overflow-y: auto; margin-top: 4px; }
+#wiki-qa-section { border-top: 1px solid var(--border); display: flex;
+  flex-direction: column; flex: 1; min-height: 150px; }
+#wiki-chat-log { flex: 1; overflow-y: auto; padding: 8px 10px; font-size: 13px; min-height: 0; }
+#wiki-input-row { display: flex; gap: 6px; padding: 6px 10px;
+  border-top: 1px solid var(--border); flex-shrink: 0; }
+#wiki-input { flex: 1; resize: none; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px; padding: 5px 7px;
+  font: inherit; min-height: 32px; max-height: 80px; }
+#wiki-send { background: var(--accent); color: #1e1e1e; border: 0;
+  border-radius: 4px; padding: 0 12px; cursor: pointer; font-weight: 600; font-size: 12px; }
+.node-architecture { fill: #4ec9b0; }
+.node-mechanism    { fill: #569cd6; }
+.node-concept      { fill: #9cdcfe; }
+.node-method       { fill: #dcdcaa; }
+.node-dataset      { fill: #ce9178; }
+.node-metric       { fill: #b5cea8; }
+.node-person       { fill: #c586c0; }
+.node circle { stroke: var(--border); stroke-width: 1.5; cursor: pointer; }
+.node circle:hover { stroke: white; stroke-width: 2; }
+.node.selected circle { stroke: white; stroke-width: 2.5; }
+.node text { fill: var(--text); font-size: 11px; pointer-events: none; }
+.link { stroke: var(--border); stroke-opacity: 0.5; }
+.link.highlighted { stroke: var(--accent); stroke-opacity: 0.9; }
+.link-label { fill: var(--muted); font-size: 9px; pointer-events: none; }
+#graph-controls { display: flex; flex-direction: column; gap: 6px; }
 </style>
 </head>
 <body>
@@ -310,6 +361,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
     <div id="paper-id">loading…</div>
     <button id="open-pdf-btn" class="open-pdf-btn">PDF 열기</button>
     <button id="reprocess-btn" class="open-pdf-btn" title="Re-run extraction on this paper (figure bboxes, captions, RAG index). Equivalent to: run.py <pdf> --force.">재처리 (--force)</button>
+    <button id="open-graph-btn" class="open-pdf-btn" style="margin-top:8px">Knowledge Graph</button>
     <div id="reprocess-status"></div>
   </div>
   <div class="section">
@@ -324,7 +376,9 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <b>Dbl-click</b> figure, then <b>Ctrl+I</b> explain it<br>
       <b>Esc</b> close popup<br>
       <b>Ctrl+1</b> toggle Paper section<br>
-      <b>Ctrl+2..5</b> toggle Outline / Markdown / Chat / PDF panes
+      <b>Ctrl+2..5</b> toggle Outline / Markdown / Chat / PDF panes<br>
+      <b>Ctrl+6</b> toggle Knowledge Graph panel<br>
+      <b>Ctrl+G</b> focus graph (collapse other panes)
     </div>
   </div>
 </aside>
@@ -387,6 +441,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 <div class="splitter" data-left="chat" data-right="right"></div>
 
 <aside id="right" class="panel flex-fill">
+  <div id="right-resize-handle" title="Drag to resize PDF panel"></div>
   <button class="collapse-btn" data-target="right" title="Collapse">‹</button>
   <span class="collapsed-label" data-target="right" title="Expand">PDF</span>
   <div class="page-nav" id="right-nav">
@@ -398,6 +453,39 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
     </span>
   </div>
 </aside>
+
+<div class="splitter" data-left="right" data-right="graph" id="graph-splitter" style="display:none"></div>
+
+<section id="graph" class="panel flex-fill" style="display:none;">
+  <button class="collapse-btn" data-target="graph" title="Collapse">‹</button>
+  <span class="collapsed-label" data-target="graph" title="Expand">Graph</span>
+  <div id="graph-header">
+    <h2>Knowledge Graph</h2>
+    <div id="graph-controls">
+      <button id="ingest-btn">Ingest current paper</button>
+      <div id="ingest-log"></div>
+    </div>
+  </div>
+  <div id="graph-body">
+    <div id="graph-wiki-sidebar">
+      <div id="wiki-page-content"></div>
+    </div>
+    <div class="splitter" data-left="graph-wiki-sidebar" data-right="graph-right"></div>
+    <div id="graph-right">
+      <div id="graph-canvas-wrap">
+        <svg id="graph-svg"></svg>
+      </div>
+      <div class="hsplitter" data-top="graph-canvas-wrap" data-bottom="wiki-qa-section"></div>
+      <div id="wiki-qa-section">
+        <div id="wiki-chat-log"></div>
+        <div id="wiki-input-row">
+          <textarea id="wiki-input" placeholder="Ask about concepts across papers…"></textarea>
+          <button id="wiki-send">Ask</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <div id="popup" role="dialog" aria-live="polite">
   <span class="pop-close" onclick="closePopup()">×</span>
@@ -468,10 +556,11 @@ function captureSelection() {
   let node = sel.anchorNode;
   while (node && node.nodeType !== 1) node = node.parentNode;
 
-  // Determine source: PDF textLayer, middle-column .ocr/.summary block, or TOC summary block.
+  // Determine source: PDF textLayer, middle-column .ocr/.summary block, TOC summary block, or wiki page.
   let pdfPage = node?.closest?.(".pdf-page");
   let ocrBlock = node?.closest?.(".ocr, .summary");
   let tocBlock = node?.closest?.(".toc-summary-block");
+  let wikiContent = node?.closest?.("#wiki-page-content");
   let pageIdx = null;
   let blockText = "";
 
@@ -489,6 +578,10 @@ function captureSelection() {
     pageIdx = tn ? tn.page_start : currentPageIdx;
     const body = tocBlock.querySelector(".body");
     blockText = ((body || tocBlock).innerText || "").replace(/\s+/g, " ");
+  } else if (wikiContent) {
+    // Wiki page content in knowledge graph: use current page as context.
+    pageIdx = currentPageIdx;
+    blockText = (wikiContent.innerText || "").replace(/\s+/g, " ");
   } else {
     return;
   }
@@ -1221,10 +1314,55 @@ function setupLayout() {
       case "3": togglePanelById("middle"); break;
       case "4": togglePanelById("chat"); break;
       case "5": togglePanelById("right"); break;
+      case "6": toggleGraphPanel(); break;
+      case "g": case "G": collapseAllExceptGraph(); break;
       default: return;
     }
     e.preventDefault();
   });
+
+  function toggleGraphPanel() {
+    const graphPanel = document.getElementById("graph");
+    const graphSplitter = document.getElementById("graph-splitter");
+    if (!graphPanel || !graphSplitter) return;
+    if (graphPanel.style.display === "none") {
+      graphPanel.style.display = "";
+      graphSplitter.style.display = "";
+      openGraphPanel();
+    } else {
+      togglePanelById("graph");
+    }
+  }
+
+  function collapseAllExceptGraph() {
+    const panels = ["left", "middle", "chat", "right"];
+    const allCollapsed = panels.every(id => {
+      const panel = document.getElementById(id);
+      return panel && panel.classList.contains("collapsed");
+    });
+
+    if (allCollapsed) {
+      panels.forEach(id => {
+        const sel = `.collapse-btn[data-target="${id}"]`;
+        document.querySelector(sel)?.click();
+      });
+    } else {
+      panels.forEach(id => {
+        const panel = document.getElementById(id);
+        if (panel && !panel.classList.contains("collapsed")) {
+          const sel = `.collapse-btn[data-target="${id}"]`;
+          document.querySelector(sel)?.click();
+        }
+      });
+      const graphPanel = document.getElementById("graph");
+      const graphSplitter = document.getElementById("graph-splitter");
+      if (graphPanel && graphPanel.style.display === "none") {
+        graphPanel.style.display = "";
+        graphSplitter.style.display = "";
+        openGraphPanel();
+      }
+    }
+  }
 
   // Horizontal splitter drag (inside #middle).
   document.querySelectorAll(".hsplitter").forEach(sp => {
@@ -1301,6 +1439,35 @@ function setupLayout() {
       document.addEventListener("mouseup", onUp);
     });
   });
+
+  // Right panel resize handle (drag right edge to expand/shrink).
+  const rightResizeHandle = document.getElementById("right-resize-handle");
+  if (rightResizeHandle) {
+    rightResizeHandle.addEventListener("mousedown", e => {
+      e.preventDefault();
+      const right = document.getElementById("right");
+      if (!right) return;
+      const startX = e.clientX;
+      const rRect = right.getBoundingClientRect();
+      const rFill = right.classList.contains("flex-fill");
+      document.body.classList.add("resizing");
+
+      function onMove(ev) {
+        const dx = ev.clientX - startX;
+        const newR = Math.max(80, rRect.width + dx);
+        if (newR <= 80 && dx < 0) return;
+        if (rFill) { right.classList.remove("flex-fill"); right.style.flex = "0 0 auto"; }
+        right.style.flexBasis = newR + "px";
+      }
+      function onUp() {
+        document.body.classList.remove("resizing");
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      }
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  }
 }
 
 /* ── PDF picker modal ─────────────────────────────────────────────────── */
@@ -1691,6 +1858,283 @@ async function load() {
   setupPdfZoom();
   await renderPdf();
   showPage(currentPageIdx);
+
+  // Setup graph panel if graph button exists
+  const graphBtn = document.getElementById("open-graph-btn");
+  if (graphBtn) {
+    graphBtn.addEventListener("click", openGraphPanel);
+  }
+  document.getElementById("ingest-btn")?.addEventListener("click", runIngest);
+  document.getElementById("wiki-send")?.addEventListener("click", sendWikiChat);
+  document.getElementById("wiki-input")?.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendWikiChat(); }
+    if (e.ctrlKey && (e.key === "d" || e.key === "D")) {
+      e.preventDefault();
+      const sel = window.getSelection().toString().trim();
+      if (sel) {
+        runAction("define", "/api/define", { word: sel, before: "", after: "" });
+      }
+    }
+    if (e.ctrlKey && (e.key === "e" || e.key === "E")) {
+      e.preventDefault();
+      const sel = window.getSelection().toString().trim();
+      if (sel) {
+        runAction("explain", "/api/explain", { sentence: sel, before: "", after: "" });
+      }
+    }
+  });
+  document.getElementById("wiki-page-content")?.addEventListener("keydown", e => {
+    if (!e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+    if (e.key === "d" || e.key === "D") {
+      e.preventDefault();
+      const sel = window.getSelection().toString().trim();
+      if (sel) {
+        runAction("define", "/api/define", { word: sel, before: "", after: "" });
+      }
+    } else if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      const sel = window.getSelection().toString().trim();
+      if (sel) {
+        runAction("explain", "/api/explain", { sentence: sel, before: "", after: "" });
+      }
+    }
+  });
+}
+
+/* ── Graph / Wiki functions ───────────────────────────────────────────────── */
+let graphData = null;
+let graphSimulation = null;
+let wikiHistory = [];
+
+async function loadGraph() {
+  try {
+    const resp = await fetch("/api/wiki/graph");
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch (_) { return null; }
+}
+
+async function openGraphPanel() {
+  const panel = document.getElementById("graph");
+  const splitter = document.getElementById("graph-splitter");
+  panel.style.display = "";
+  splitter.style.display = "";
+
+  if (!graphData) {
+    graphData = await loadGraph();
+    if (graphData && graphData.nodes && graphData.nodes.length) {
+      const d3 = await import("https://cdn.jsdelivr.net/npm/d3@7/+esm");
+      renderForceGraph(d3, graphData);
+    } else {
+      document.getElementById("graph-canvas-wrap").innerHTML =
+        `<div style="padding:20px;color:var(--muted)">No graph data yet. Click "Ingest current paper" to build the knowledge graph.</div>`;
+    }
+  }
+}
+
+function renderForceGraph(d3, data) {
+  const wrap = document.getElementById("graph-canvas-wrap");
+  const W = wrap.clientWidth || 500;
+  const H = wrap.clientHeight || 500;
+  const svg = d3.select("#graph-svg")
+    .attr("viewBox", [0, 0, W, H]);
+
+  const g = svg.append("g");
+  svg.call(d3.zoom().scaleExtent([0.1, 8]).on("zoom", ({transform}) => {
+    g.attr("transform", transform);
+  }));
+
+  const maxWeight = d3.max(data.edges, e => e.weight) || 1;
+  const edgeWidth = d => Math.max(1, (d.weight / maxWeight) * 4);
+
+  const link = g.append("g").selectAll("line")
+    .data(data.edges).join("line")
+    .attr("class", "link")
+    .style("stroke-width", edgeWidth);
+
+  const linkLabel = g.append("g").selectAll("text")
+    .data(data.edges).join("text")
+    .attr("class", "link-label")
+    .text(d => d.relation);
+
+  const node = g.append("g").selectAll("g")
+    .data(data.nodes).join("g")
+    .attr("class", "node")
+    .attr("data-id", d => d.id)
+    .call(d3.drag()
+      .on("start", (event, d) => {
+        if (!event.active) sim.alphaTarget(0.3).restart();
+        d.fx = d.x; d.fy = d.y;
+      })
+      .on("drag", (event, d) => { d.fx = event.x; d.fy = event.y; })
+      .on("end", (event, d) => {
+        if (!event.active) sim.alphaTarget(0);
+        d.fx = null; d.fy = null;
+      })
+    );
+
+  const radius = d => 5 + (d.papers?.length || 1) * 2;
+
+  node.append("circle")
+    .attr("r", radius)
+    .attr("class", d => `node-${d.type}`);
+
+  node.append("text")
+    .attr("dy", d => radius(d) + 11)
+    .attr("text-anchor", "middle")
+    .text(d => d.label);
+
+  node.on("click", (event, d) => {
+    link.classed("highlighted", e => e.source.id === d.id || e.target.id === d.id);
+    document.querySelectorAll(".node").forEach(el => el.classList.remove("selected"));
+    event.currentTarget.classList.add("selected");
+    showWikiPage(d.id, d.label);
+  });
+
+  const sim = d3.forceSimulation(data.nodes)
+    .force("link", d3.forceLink(data.edges)
+      .id(d => d.id)
+      .distance(80).strength(0.5))
+    .force("charge", d3.forceManyBody().strength(-200))
+    .force("center", d3.forceCenter(W / 2, H / 2))
+    .force("collision", d3.forceCollide().radius(d => radius(d) + 6))
+    .on("tick", () => {
+      link
+        .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+      linkLabel
+        .attr("x", d => (d.source.x + d.target.x) / 2)
+        .attr("y", d => (d.source.y + d.target.y) / 2);
+      node.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+  graphSimulation = sim;
+}
+
+async function showWikiPage(conceptId, label) {
+  const sidebar = document.getElementById("wiki-page-content");
+  sidebar.innerHTML = `<div style="color:var(--muted)">Loading ${escapeHtml(label)}…</div>`;
+  try {
+    const resp = await fetch(`/api/wiki/page/${encodeURIComponent(conceptId)}`);
+    if (!resp.ok) {
+      sidebar.innerHTML = `<div style="color:var(--muted)">No wiki page yet for ${escapeHtml(label)}.</div>`;
+      return;
+    }
+    const data = await resp.json();
+    sidebar.innerHTML = marked.parse(data.content || "");
+    renderMathInElement(sidebar, katexOpts);
+    sidebar.querySelectorAll("a[href$='.md']").forEach(a => {
+      const cid = a.getAttribute("href").replace(".md", "");
+      a.href = "#";
+      a.addEventListener("click", e => {
+        e.preventDefault();
+        showWikiPage(cid, a.textContent);
+      });
+    });
+  } catch (err) {
+    sidebar.innerHTML = `<div style="color:#f48771">Error: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function runIngest() {
+  const btn = document.getElementById("ingest-btn");
+  const log = document.getElementById("ingest-log");
+  const paperId = paperData?.paper_id;
+  if (!paperId) return;
+  btn.disabled = true;
+  log.textContent = "";
+  const appendLog = msg => {
+    log.textContent += msg + "\n";
+    log.scrollTop = log.scrollHeight;
+  };
+  appendLog(`Ingesting ${paperId}…`);
+  try {
+    const resp = await fetch(`/api/wiki/ingest/${encodeURIComponent(paperId)}`, { method: "POST" });
+    if (!resp.ok || !resp.body) { appendLog(`Error: HTTP ${resp.status}`); return; }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        try {
+          const rec = JSON.parse(line);
+          if (rec.msg) appendLog(rec.msg);
+          if (rec.done && rec.ok) {
+            appendLog("Done! Reloading graph…");
+            graphData = await loadGraph();
+            const svg = document.getElementById("graph-svg");
+            const wrap = document.getElementById("graph-canvas-wrap");
+            svg.innerHTML = "";
+            if (graphData?.nodes?.length) {
+              const d3 = await import("https://cdn.jsdelivr.net/npm/d3@7/+esm");
+              renderForceGraph(d3, graphData);
+            }
+            // Ensure graph panel is visible
+            const panel = document.getElementById("graph");
+            const splitter = document.getElementById("graph-splitter");
+            if (panel && panel.style.display === "none") {
+              panel.style.display = "";
+              splitter.style.display = "";
+            }
+          }
+        } catch (_) {}
+      }
+    }
+  } catch (err) {
+    appendLog("Network error: " + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function sendWikiChat() {
+  const input = document.getElementById("wiki-input");
+  const question = input.value.trim();
+  if (!question) return;
+  input.value = "";
+  const log = document.getElementById("wiki-chat-log");
+
+  const userDiv = document.createElement("div");
+  userDiv.className = "msg user";
+  userDiv.innerHTML = `<div class="role">user</div><div class="body">${marked.parse(question)}</div>`;
+  log.appendChild(userDiv);
+
+  const aDiv = document.createElement("div");
+  aDiv.className = "msg assistant";
+  aDiv.innerHTML = `<div class="role">wiki assistant</div><div class="body"><i>thinking…</i></div>`;
+  log.appendChild(aDiv);
+  const bodyEl = aDiv.querySelector(".body");
+  log.scrollTop = log.scrollHeight;
+
+  wikiHistory.push({ role: "user", content: question });
+  let acc = "";
+  try {
+    const resp = await fetch("/api/wiki/qa", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, history: wikiHistory.slice(0, -1) }),
+    });
+    if (!resp.ok || !resp.body) { bodyEl.textContent = `Error: ${resp.status}`; return; }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      acc += decoder.decode(value, { stream: true });
+      bodyEl.innerHTML = marked.parse(acc);
+      renderMathInElement(bodyEl, katexOpts);
+      log.scrollTop = log.scrollHeight;
+    }
+    wikiHistory.push({ role: "assistant", content: acc });
+  } catch (err) {
+    bodyEl.textContent = "Network error: " + err.message;
+  }
 }
 
 function boot() {
