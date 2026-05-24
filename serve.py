@@ -24,8 +24,33 @@ import highlights
 import run as run_pipeline
 import toc_summary
 from rag import RagIndex
+import graph as graph_module
+import wiki as wiki_module
 
 ROOT = Path(__file__).parent
+_CACHE_FILE = ROOT / ".last_paper_id"
+
+
+def _load_cached_paper_id() -> str | None:
+    """Load the last used paper_id from cache, if it exists and is valid."""
+    if _CACHE_FILE.exists():
+        try:
+            paper_id = _CACHE_FILE.read_text(encoding="utf-8").strip()
+            if paper_id:
+                # Verify it still exists
+                if (DATA_DIR / paper_id / "paper.json").exists():
+                    return paper_id
+        except Exception:
+            pass
+    return None
+
+
+def _save_cached_paper_id(paper_id: str) -> None:
+    """Save the paper_id to cache for next startup."""
+    try:
+        _CACHE_FILE.write_text(paper_id, encoding="utf-8")
+    except Exception:
+        pass
 
 
 def _pick_paper_id(arg: str | None) -> str:
@@ -34,16 +59,44 @@ def _pick_paper_id(arg: str | None) -> str:
     if not DATA_DIR.exists():
         print(f"ERROR: no data directory at {DATA_DIR}. Run run.py first.", file=sys.stderr)
         sys.exit(1)
-    candidates = [d.name for d in DATA_DIR.iterdir() if d.is_dir()
+    candidates = [d.name for d in sorted(DATA_DIR.iterdir()) if d.is_dir()
                   and (d / "paper.json").exists()]
+
+    # Try cache first
+    cached = _load_cached_paper_id()
+    if cached and cached in candidates:
+        return cached
+
     if len(candidates) == 1:
         return candidates[0]
     if not candidates:
         print(f"ERROR: no processed papers under {DATA_DIR}. Run run.py first.", file=sys.stderr)
         sys.exit(1)
-    print(f"ERROR: multiple papers in {DATA_DIR}: {candidates}. Pass one as an arg.",
-          file=sys.stderr)
-    sys.exit(1)
+
+    # Multiple papers: show interactive menu
+    print(f"\nFound {len(candidates)} papers. Choose one:", file=sys.stderr)
+    for i, paper in enumerate(candidates, 1):
+        title = paper
+        try:
+            paper_json = DATA_DIR / paper / "paper.json"
+            data = json.loads(paper_json.read_text(encoding="utf-8"))
+            title = data.get("title") or data.get("paper_id") or paper
+        except Exception:
+            pass
+        print(f"  {i}. {title} ({paper})", file=sys.stderr)
+
+    while True:
+        try:
+            choice = input("\nEnter number (or press Ctrl+C to cancel): ").strip()
+            idx = int(choice) - 1
+            if 0 <= idx < len(candidates):
+                return candidates[idx]
+            print(f"Invalid choice. Enter a number between 1 and {len(candidates)}.", file=sys.stderr)
+        except ValueError:
+            print(f"Invalid input. Enter a number between 1 and {len(candidates)}.", file=sys.stderr)
+        except KeyboardInterrupt:
+            print("\nCancelled.", file=sys.stderr)
+            sys.exit(0)
 
 
 @dataclass
@@ -157,7 +210,10 @@ def build_app(initial_paper_id: str) -> FastAPI:
     @app.get("/api/paper")
     def api_paper() -> Any:
         from fastapi.responses import JSONResponse
-        return JSONResponse(cur().paper, headers=NO_STORE)
+        paper = cur().paper.copy() if isinstance(cur().paper, dict) else cur().paper
+        if isinstance(paper, dict):
+            paper["paper_id"] = cur().paper_id
+        return JSONResponse(paper, headers=NO_STORE)
 
     @app.get("/api/pdf")
     def api_pdf() -> FileResponse:
@@ -447,6 +503,177 @@ def build_app(initial_paper_id: str) -> FastAPI:
 
         return StreamingResponse(gen(), media_type="application/x-ndjson")
 
+    # ── Wiki / Graph endpoints ────────────────────────────────────────────────────
+
+    @app.get("/api/wiki/graph")
+    def api_wiki_graph() -> Any:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(graph_module.get_graph(cur().paper_id), headers=NO_STORE)
+
+    @app.get("/api/wiki/pages")
+    def api_wiki_pages() -> Any:
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"pages": wiki_module.list_pages(cur().paper_id)}, headers=NO_STORE)
+
+    @app.get("/api/wiki/page/{name}")
+    def api_wiki_page(name: str) -> Any:
+        from fastapi.responses import JSONResponse
+        content = wiki_module.load_page(cur().paper_id, name)
+        if content is None:
+            raise HTTPException(404, f"wiki page not found: {name}")
+        return JSONResponse(
+            {"name": name, "content": wiki_module.resolve_wiki_links(content)},
+            headers=NO_STORE
+        )
+
+    @app.post("/api/wiki/ingest/{paper_id}")
+    def api_wiki_ingest(paper_id: str) -> StreamingResponse:
+        """Run LLM extraction + wiki update for a paper. Streams NDJSON progress."""
+        pj = DATA_DIR / paper_id / "paper.json"
+        if not pj.exists():
+            raise HTTPException(404, f"paper not found: {paper_id}")
+
+        def gen():
+            try:
+                wiki_module.ensure_wiki_dir(paper_id)
+                paper_data = json.loads(pj.read_text(encoding="utf-8"))
+                pages = paper_data.get("pages", [])
+                data_dir = DATA_DIR / paper_id
+
+                # Load toc_summaries if available
+                toc_summaries = {}
+                toc_summaries_file = data_dir / "toc_summaries.json"
+                if toc_summaries_file.exists():
+                    try:
+                        toc_summaries = json.loads(toc_summaries_file.read_text(encoding="utf-8"))
+                    except Exception:
+                        yield json.dumps({
+                            "stage": "warning",
+                            "msg": "toc_summaries.json found but could not be loaded"
+                        }) + "\n"
+                else:
+                    yield json.dumps({
+                        "stage": "warning",
+                        "msg": "toc_summaries.json not found — running without section summaries. Run TOC summarization first for better results."
+                    }) + "\n"
+
+                # Step 1: graph extraction + merge
+                yield json.dumps({"stage": "start", "msg": f"ingesting {paper_id}"}) + "\n"
+                id_map = {}
+                for rec in graph_module.ingest_paper(paper_id, pages, toc_summaries):
+                    if rec.get("done"):
+                        id_map = rec.get("id_map", {})
+                    yield json.dumps(rec, ensure_ascii=False) + "\n"
+
+                # Step 2: wiki page generation for affected nodes
+                g = graph_module.load_graph(paper_id)
+                rag_indices = {}
+                all_papers_data = {}
+                toc_summaries_by_paper = {}
+
+                for node in g.get("nodes", []):
+                    for pid in node.get("papers", []):
+                        if pid not in rag_indices:
+                            pd = DATA_DIR / pid
+                            if (pd / "rag.json").exists():
+                                try:
+                                    rag_indices[pid] = RagIndex(pd)
+                                except Exception:
+                                    pass
+                            pjp = pd / "paper.json"
+                            if pjp.exists():
+                                try:
+                                    all_papers_data[pid] = json.loads(pjp.read_text(encoding="utf-8"))
+                                except Exception:
+                                    pass
+                            toc_file = pd / "toc_summaries.json"
+                            if toc_file.exists():
+                                try:
+                                    toc_summaries_by_paper[pid] = json.loads(toc_file.read_text(encoding="utf-8"))
+                                except Exception:
+                                    pass
+
+                affected = list(id_map.values())
+                for rec in wiki_module.update_pages_for_paper(
+                    paper_id, affected, g, rag_indices, all_papers_data, toc_summaries_by_paper
+                ):
+                    yield json.dumps(rec, ensure_ascii=False) + "\n"
+
+                # Step 3: rebuild index + log
+                wiki_module.rebuild_index(paper_id, g)
+                wiki_module.append_log(
+                    paper_id, f"ingest: {paper_id} — {len(affected)} nodes affected"
+                )
+                yield json.dumps({"done": True, "ok": True, "paper_id": paper_id}) + "\n"
+            except Exception as e:
+                yield json.dumps({"stage": "error", "msg": str(e)}) + "\n"
+                yield json.dumps({"done": True, "ok": False}) + "\n"
+
+        return StreamingResponse(gen(), media_type="application/x-ndjson")
+
+    class WikiQABody(BaseModel):
+        question: str
+        history: list[dict] = []
+
+    @app.post("/api/wiki/qa")
+    def api_wiki_qa(body: WikiQABody) -> StreamingResponse:
+        """Answer a question using graph + wiki + RAG context."""
+        if not body.question.strip():
+            raise HTTPException(400, "question is empty")
+
+        ctx = cur()
+        g = graph_module.get_graph(ctx.paper_id)
+        rag_indices = {}
+        for d in DATA_DIR.iterdir():
+            if d.is_dir() and (d / "rag.json").exists():
+                try:
+                    rag_indices[d.name] = RagIndex(d)
+                except Exception:
+                    pass
+
+        return StreamingResponse(
+            wiki_module.wiki_qa_stream(body.question, g, rag_indices, body.history, ctx.paper_id),
+            media_type="text/plain; charset=utf-8",
+        )
+
+    @app.post("/api/wiki/page/{name}/regenerate")
+    def api_wiki_page_regenerate(name: str) -> Any:
+        """Regenerate a specific wiki page."""
+        from fastapi.responses import JSONResponse
+        g = graph_module.get_graph(cur().paper_id)
+        node = next((n for n in g.get("nodes", []) if n["id"] == name), None)
+        if node is None:
+            raise HTTPException(404, f"node not found: {name}")
+
+        rag_indices = {}
+        all_papers_data = {}
+        toc_summaries_by_paper = {}
+        for pid in node.get("papers", []):
+            pd = DATA_DIR / pid
+            if (pd / "rag.json").exists():
+                try:
+                    rag_indices[pid] = RagIndex(pd)
+                except Exception:
+                    pass
+            pjp = pd / "paper.json"
+            if pjp.exists():
+                try:
+                    all_papers_data[pid] = json.loads(pjp.read_text(encoding="utf-8"))
+                except Exception:
+                    pass
+            toc_file = pd / "toc_summaries.json"
+            if toc_file.exists():
+                try:
+                    toc_summaries_by_paper[pid] = json.loads(toc_file.read_text(encoding="utf-8"))
+                except Exception:
+                    pass
+
+        content = wiki_module.regenerate_page(cur().paper_id, name, g, rag_indices, all_papers_data, toc_summaries_by_paper)
+        return JSONResponse(
+            {"name": name, "content": wiki_module.resolve_wiki_links(content)},
+            headers=NO_STORE
+        )
+
     return app
 
 
@@ -464,12 +691,13 @@ def _count_nodes(roots) -> int:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Browser viewer for a processed paper")
-    parser.add_argument("paper_id", nargs="?", help="Folder under data/ (default: only one)")
+    parser.add_argument("paper_id", nargs="?", help="Folder under data/ (default: last used or only one)")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--no-open", action="store_true")
     args = parser.parse_args()
 
     paper_id = _pick_paper_id(args.paper_id)
+    _save_cached_paper_id(paper_id)
     app = build_app(paper_id)
 
     if not args.no_open:

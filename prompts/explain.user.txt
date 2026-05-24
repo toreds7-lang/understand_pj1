@@ -8,4 +8,4 @@ Context before:
 Context after:
 {after}
 
-Explain the selected text: what it means, why it matters, and any technical concepts it relies on. Under 150 words. Use Markdown.
+Explain the selected text: what it means, why it matters, and any technical concepts it relies on. Use Markdown. Use Bullet points.
