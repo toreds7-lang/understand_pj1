@@ -1,61 +1,90 @@
-"""OpenAI client + embeddings. Supports vLLM via LLM_BASE_URL."""
+"""LangChain-based chat and embeddings client with OpenAI backend. Supports vLLM via LLM_BASE_URL."""
 from typing import Iterable
+import functools
 
 import numpy as np
-from openai import OpenAI
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_openai import OpenAIEmbeddings
 
 from config import (
     OPENAI_API_KEY,
     LLM_MODEL,
     LLM_BASE_URL,
+    VISION_MODEL,
+    VISION_BASE_URL,
     EMBEDDING_MODEL,
     EMBEDDING_BASE_URL,
 )
 
 
-def _make_client() -> OpenAI:
+@functools.lru_cache(maxsize=8)
+def _get_llm(model: str):
+    """Get or create a cached LangChain LLM instance."""
+    kwargs = {}
     if LLM_BASE_URL:
-        return OpenAI(api_key="EMPTY", base_url=LLM_BASE_URL)
-    return OpenAI(api_key=OPENAI_API_KEY)
+        kwargs["base_url"] = LLM_BASE_URL
+        kwargs["api_key"] = "EMPTY"
+    else:
+        kwargs["api_key"] = OPENAI_API_KEY
+    return init_chat_model(model, model_provider="openai", **kwargs)
 
 
-def _make_embedding_client() -> OpenAI:
+@functools.lru_cache(maxsize=8)
+def _get_vision_llm(model: str):
+    """Get or create a cached LangChain vision LLM instance."""
+    kwargs = {}
+    if VISION_BASE_URL:
+        kwargs["base_url"] = VISION_BASE_URL
+        kwargs["api_key"] = "EMPTY"
+    else:
+        kwargs["api_key"] = OPENAI_API_KEY
+    return init_chat_model(model, model_provider="openai", **kwargs)
+
+
+@functools.lru_cache(maxsize=2)
+def _get_embeddings(model: str):
+    """Get or create a cached LangChain embeddings instance."""
+    kwargs = {"model": model}
     if EMBEDDING_BASE_URL:
-        return OpenAI(api_key="EMPTY", base_url=EMBEDDING_BASE_URL)
-    return OpenAI(api_key=OPENAI_API_KEY)
+        kwargs["base_url"] = EMBEDDING_BASE_URL
+        kwargs["openai_api_key"] = "EMPTY"
+    else:
+        kwargs["openai_api_key"] = OPENAI_API_KEY
+    return OpenAIEmbeddings(**kwargs)
 
 
-_client: OpenAI = _make_client()
-_embed_client: OpenAI = _make_embedding_client()
+def _to_lc_messages(messages: list[dict]):
+    """Convert OpenAI-format message dicts to LangChain message objects."""
+    mapping = {"system": SystemMessage, "user": HumanMessage, "assistant": AIMessage}
+    return [mapping[m["role"]](content=m["content"]) for m in messages]
 
 
 def chat(system: str, user: str, model: str = LLM_MODEL) -> str:
-    resp = _client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
-    )
-    return resp.choices[0].message.content or ""
+    """Non-streaming chat completion."""
+    llm = _get_llm(model)
+    result = llm.invoke([SystemMessage(content=system), HumanMessage(content=user)])
+    return result.content or ""
 
 
 def stream_messages(messages: list[dict], model: str = LLM_MODEL):
-    """Yield content tokens from an OpenAI streaming chat completion."""
-    with _client.chat.completions.create(
-        model=model, messages=messages, stream=True
-    ) as stream:
-        for event in stream:
-            token = event.choices[0].delta.content or ""
-            if token:
-                yield token
+    """Yield content tokens from a streaming chat completion."""
+    llm = _get_llm(model)
+    for chunk in llm.stream(_to_lc_messages(messages)):
+        token = chunk.content or ""
+        if token:
+            yield token
 
 
-def stream_vision_messages(messages: list[dict], model: str = LLM_MODEL):
+def stream_vision_messages(messages: list[dict], model: str = VISION_MODEL):
     """Multimodal variant: messages may contain content lists with
-    {'type': 'image_url', 'image_url': {...}} entries. The OpenAI SDK accepts
-    this shape directly; this helper exists to make intent explicit at call sites."""
-    yield from stream_messages(messages, model=model)
+    {'type': 'image_url', 'image_url': {...}} entries. Uses the dedicated
+    vision model/endpoint configured via VISION_MODEL and VISION_BASE_URL."""
+    llm = _get_vision_llm(model)
+    for chunk in llm.stream(_to_lc_messages(messages)):
+        token = chunk.content or ""
+        if token:
+            yield token
 
 
 def embed(texts: Iterable[str], model: str = EMBEDDING_MODEL) -> np.ndarray:
@@ -63,8 +92,8 @@ def embed(texts: Iterable[str], model: str = EMBEDDING_MODEL) -> np.ndarray:
     texts = list(texts)
     if not texts:
         return np.zeros((0, 0), dtype=np.float32)
-    resp = _embed_client.embeddings.create(model=model, input=texts)
-    vecs = np.array([d.embedding for d in resp.data], dtype=np.float32)
+    embedder = _get_embeddings(model)
+    vecs = np.array(embedder.embed_documents(texts), dtype=np.float32)
     norms = np.linalg.norm(vecs, axis=1, keepdims=True)
     norms[norms == 0] = 1.0
     return vecs / norms

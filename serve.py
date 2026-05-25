@@ -193,6 +193,7 @@ def build_app(initial_paper_id: str) -> FastAPI:
                 with app.state.swap_lock:
                     try:
                         app.state.current = _load_context(paper)
+                        _save_cached_paper_id(paper)
                     except Exception as e:
                         print(f"WARN: failed to swap to '{paper}': {e}", file=sys.stderr)
         return FileResponse(ROOT / "viewer.html")
