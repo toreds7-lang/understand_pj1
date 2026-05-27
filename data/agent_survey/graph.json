@@ -1,0 +1,280 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-23T13:10:47",
+  "nodes": [
+    {
+      "id": "large_language_model_agent",
+      "label": "Large Language Model Agent",
+      "type": "concept",
+      "aliases": [
+        "LLM agent",
+        "AI agent"
+      ],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "An intelligent entity powered by large language models capable of perceiving environments, reasoning about goals, and executing actions.",
+      "wiki_page": "large_language_model_agent.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "artificial_general_intelligence",
+      "label": "Artificial General Intelligence",
+      "type": "concept",
+      "aliases": [
+        "AGI"
+      ],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A type of intelligence that can understand, learn, and apply knowledge across a wide range of tasks similar to a human being.",
+      "wiki_page": "artificial_general_intelligence.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "multi_agent_system",
+      "label": "Multi-Agent System",
+      "type": "concept",
+      "aliases": [
+        "MAS"
+      ],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A system composed of multiple interacting intelligent agents, often autonomous or semi-autonomous.",
+      "wiki_page": "multi_agent_system.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "taxonomy_of_llm_agents",
+      "label": "Taxonomy of LLM Agents",
+      "type": "concept",
+      "aliases": [
+        "LLM agent taxonomy"
+      ],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A structured classification of large language model agents based on their methodology, construction, collaboration, and evolution.",
+      "wiki_page": "taxonomy_of_llm_agents.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "memory_mechanism",
+      "label": "Memory Mechanism",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A system within agents that stores, organizes, and retrieves information across different temporal dimensions.",
+      "wiki_page": "memory_mechanism.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "planning_capability",
+      "label": "Planning Capability",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "The ability of LLM agents to navigate through complex tasks and problem-solving scenarios accurately.",
+      "wiki_page": "planning_capability.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "action_execution",
+      "label": "Action Execution",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "The process by which LLM agents carry out planned actions in real-world applications.",
+      "wiki_page": "action_execution.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "profile_definition",
+      "label": "Profile Definition",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A process that establishes an agent’s operational identity by configuring its attributes and patterns.",
+      "wiki_page": "profile_definition.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "collaboration_mechanism",
+      "label": "Collaboration Mechanism",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "The system that enables LLM agents to interact and work together through centralized, decentralized, or hybrid architectures.",
+      "wiki_page": "collaboration_mechanism.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "evaluation_methodology",
+      "label": "Evaluation Methodology",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A method used to assess the effectiveness and efficiency of LLM agent systems.",
+      "wiki_page": "evaluation_methodology.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "dacheng_tao",
+      "label": "Dacheng Tao",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A prominent researcher contributing to the field of Large Language Model Agents.",
+      "wiki_page": "dacheng_tao.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "philip_s_yu",
+      "label": "Philip S. Yu",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A prominent researcher contributing to the field of Large Language Model Agents.",
+      "wiki_page": "philip_s_yu.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "ming_zhang",
+      "label": "Ming Zhang",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A prominent researcher contributing to the field of Large Language Model Agents.",
+      "wiki_page": "ming_zhang.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "deepresearch",
+      "label": "DeepResearch",
+      "type": "dataset",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A reference to commercial LLM agent systems that execute complex tasks autonomously.",
+      "wiki_page": "deepresearch.md",
+      "added_at": "2026-05-23T13:10:47"
+    },
+    {
+      "id": "knowledge_retrieval",
+      "label": "Knowledge Retrieval",
+      "type": "concept",
+      "aliases": [
+        "Knowledge Retrieval as Memory"
+      ],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A process incorporated in agents to retrieve and utilize external knowledge repositories during task execution.",
+      "wiki_page": "knowledge_retrieval.md",
+      "added_at": "2026-05-23T13:10:47"
+    }
+  ],
+  "edges": [
+    {
+      "source": "large_language_model_agent",
+      "target": "large_language_model_agent",
+      "relation": "is_a",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "large_language_model_agent",
+      "target": "artificial_general_intelligence",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "taxonomy_of_llm_agents",
+      "target": "memory_mechanism",
+      "relation": "includes",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "taxonomy_of_llm_agents",
+      "target": "planning_capability",
+      "relation": "includes",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "taxonomy_of_llm_agents",
+      "target": "action_execution",
+      "relation": "includes",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "taxonomy_of_llm_agents",
+      "target": "profile_definition",
+      "relation": "includes",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "taxonomy_of_llm_agents",
+      "target": "collaboration_mechanism",
+      "relation": "includes",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "large_language_model_agent",
+      "target": "deepresearch",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "memory_mechanism",
+      "target": "knowledge_retrieval",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    }
+  ]
+}

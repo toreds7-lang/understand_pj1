@@ -1,0 +1,7 @@
+**What it shows**: Figure 2 presents a taxonomy of large language model (LLM) agent methodologies, outlining the various aspects involved in the creation and functioning of LLM-based agents.
+
+**Key components**: The figure is structured into three main sections: Agent Construction, Agent Collaboration, and Agent Evolution. Each section has subcategories, such as Profile Definition, Memory Mechanism, Planning Capability, and Action Execution under Construction. Collaboration is divided into Centralized Control, Decentralized Collaboration, and Hybrid Architecture. Evolution involves Autonomous Optimization and Self-Learning, Multi-Agent Co-Evolution, and Evolution via External Resources. Each subcategory lists methodologies and tools, with references to related works.
+
+**What the paper concludes from it**: The taxonomy offers a systematic framework to analyze LLM agents' full lifecycle, focusing on construction, collaboration, and evolution. This structured approach helps in understanding, comparing, and advancing LLM agent research, providing a foundational perspective valuable for both researchers and industry practitioners [page 2-3].
+
+**Caveats / limits**: The paper notes that despite the comprehensive framework, challenges such as scalability limitations, memory constraints, and evaluation inadequacies remain critical issues in the field, suggesting the need for ongoing research and development [page 19].

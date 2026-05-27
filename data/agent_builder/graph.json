@@ -1,0 +1,443 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-24T14:51:40",
+  "nodes": [
+    {
+      "id": "agentbuilder",
+      "label": "AgentBuilder",
+      "type": "tool",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "A graphical, no-code tool designed to support prototyping agent experiences.",
+      "wiki_page": "agentbuilder.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "interface_agent",
+      "label": "Interface Agent",
+      "type": "concept",
+      "aliases": [
+        "agent"
+      ],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "An AI that automates actions in user interfaces by understanding user habits, preferences, and interests.",
+      "wiki_page": "interface_agent.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "generative_ai_model",
+      "label": "Generative AI Model",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "AI models that generate outputs such as text or images based on input data.",
+      "wiki_page": "generative_ai_model.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "agent_experience",
+      "label": "Agent Experience",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "The design and user experience of interface agents in executing tasks.",
+      "wiki_page": "agent_experience.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "requirements_elicitation_study",
+      "label": "Requirements Elicitation Study",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "A study conducted to identify important activities and desired capabilities in agent prototyping systems.",
+      "wiki_page": "requirements_elicitation_study.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "no_code_interface",
+      "label": "No-Code Interface",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "A graphical user interface that allows users to create applications without writing code.",
+      "wiki_page": "no_code_interface.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "design_probe",
+      "label": "Design Probe",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "A prototype used to explore design possibilities and gather feedback.",
+      "wiki_page": "design_probe.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "prototyping",
+      "label": "Prototyping",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "The process of creating a preliminary model or version of something for testing or demonstration.",
+      "wiki_page": "prototyping.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "titus_barik",
+      "label": "Titus Barik",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "An author of the paper involved in agent experience research.",
+      "wiki_page": "titus_barik.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "jeffrey_nichols",
+      "label": "Jeffrey Nichols",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "An author of the paper involved in agent experience research.",
+      "wiki_page": "jeffrey_nichols.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "eldon_schoop",
+      "label": "Eldon Schoop",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "An author of the paper involved in agent experience research.",
+      "wiki_page": "eldon_schoop.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "ruijia_cheng",
+      "label": "Ruijia Cheng",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "An author of the paper involved in agent experience research.",
+      "wiki_page": "ruijia_cheng.md",
+      "added_at": "2026-05-24T14:49:35"
+    },
+    {
+      "id": "interface_agents",
+      "label": "Interface Agents",
+      "type": "concept",
+      "aliases": [
+        "agents"
+      ],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Interface agents are AIs that automate actions in user interfaces by understanding user habits, preferences, and interests.",
+      "wiki_page": "interface_agents.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "generative_ai_models",
+      "label": "Generative AI Models",
+      "type": "concept",
+      "aliases": [
+        "(M)LLMs"
+      ],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Generative AI models are a class of machine learning models that can generate text, images, or other outputs based on input data.",
+      "wiki_page": "generative_ai_models.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "no_code_interfaces",
+      "label": "No-Code Interfaces",
+      "type": "technology",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "No-code interfaces allow users to build applications and prototypes without needing to write traditional code.",
+      "wiki_page": "no_code_interfaces.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "activity",
+      "label": "Activity",
+      "type": "concept",
+      "aliases": [
+        "Activities"
+      ],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "In this context, activities refer to specific tasks involved in the prototyping of agent experiences.",
+      "wiki_page": "activity.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "capability",
+      "label": "Capability",
+      "type": "concept",
+      "aliases": [
+        "Capabilities"
+      ],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Capabilities refer to specific functionalities or features that a system should support for effective agent experience prototyping.",
+      "wiki_page": "capability.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "mixed_initiative_interface",
+      "label": "Mixed-Initiative Interface",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Mixed-initiative interfaces are systems where both human and AI can take the initiative in interactions and task completion.",
+      "wiki_page": "mixed_initiative_interface.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "design_recommendations",
+      "label": "Design Recommendations",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Design recommendations are proposed guidelines or strategies to improve the systems or processes being evaluated.",
+      "wiki_page": "design_recommendations.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "prompt_development",
+      "label": "Prompt Development",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Prompt development involves creating natural language prompts to guide generative AI models in producing desired outputs.",
+      "wiki_page": "prompt_development.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "user_interface_ui",
+      "label": "User Interface (UI)",
+      "type": "concept",
+      "aliases": [
+        "UI"
+      ],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "User Interface (UI) refers to the space where interactions between humans and machines occur, including how information is displayed and how users give commands.",
+      "wiki_page": "user_interface_ui.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "liang_jenny_t",
+      "label": "Liang, Jenny T.",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Jenny T. Liang is one of the authors of the paper, affiliated with Carnegie Mellon University, USA.",
+      "wiki_page": "liang_jenny_t.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "barik_titus",
+      "label": "Barik, Titus",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Titus Barik is one of the authors of the paper, affiliated with Apple, USA.",
+      "wiki_page": "barik_titus.md",
+      "added_at": "2026-05-24T14:51:40"
+    },
+    {
+      "id": "nichols_jeffrey",
+      "label": "Nichols, Jeffrey",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_builder"
+      ],
+      "summary": "Jeffrey Nichols is one of the authors of the paper, affiliated with Apple, USA.",
+      "wiki_page": "nichols_jeffrey.md",
+      "added_at": "2026-05-24T14:51:40"
+    }
+  ],
+  "edges": [
+    {
+      "source": "agentbuilder",
+      "target": "interface_agent",
+      "relation": "supports",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "interface_agent",
+      "target": "generative_ai_model",
+      "relation": "powered_by",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "interface_agent",
+      "target": "agent_experience",
+      "relation": "is_a",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "requirements_elicitation_study",
+      "target": "agentbuilder",
+      "relation": "informs",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "no_code_interface",
+      "target": "agentbuilder",
+      "relation": "incorporates",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "design_probe",
+      "target": "agentbuilder",
+      "relation": "demonstrated_by",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "prototyping",
+      "target": "agent_experience",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "agentbuilder",
+      "target": "interface_agents",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "requirements_elicitation_study",
+      "target": "agent_experience",
+      "relation": "extends",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "agentbuilder",
+      "target": "no_code_interfaces",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "liang_jenny_t",
+      "target": "agentbuilder",
+      "relation": "proposed_by",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "mixed_initiative_interface",
+      "target": "interface_agents",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "prompt_development",
+      "target": "generative_ai_models",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "design_recommendations",
+      "target": "agent_experience",
+      "relation": "extends",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    },
+    {
+      "source": "agentbuilder",
+      "target": "design_probe",
+      "relation": "is_a",
+      "weight": 1,
+      "papers": [
+        "agent_builder"
+      ]
+    }
+  ]
+}

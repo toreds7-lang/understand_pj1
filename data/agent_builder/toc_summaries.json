@@ -1,0 +1,245 @@
+{
+  "toc-0": {
+    "anchor": "toc-0",
+    "title": "Abstract",
+    "level": 1,
+    "page_start": 0,
+    "page_end": 0,
+    "summary": "The purpose of this section is to introduce the concept of interface agents, which are AI systems that automate actions based on user commands in user interfaces. The main idea is that these agents need good user experiences, and it is beneficial if more people, beyond just AI engineers, can help design these experiences. The paper explores what features are necessary for creating effective tools to prototype (or test) these agent experiences. It also discusses a study conducted with people of different experience levels to understand what features such a tool should have. The tool they developed for this purpose is called AgentBuilder.",
+    "done_at": "2026-05-24T14:50:15"
+  },
+  "toc-1": {
+    "anchor": "toc-1",
+    "title": "1 Introduction",
+    "level": 1,
+    "page_start": 0,
+    "page_end": 1,
+    "summary": "This paper discusses a tool called AgentBuilder, which helps people design and prototype user experiences for interface agents. Interface agents are AI systems that perform tasks for users by understanding their commands. Many people who want to design agent experiences, like UX designers, do not have the technical skills needed for traditional agent development. The authors conducted studies to find out what features are needed for easy prototyping of these experiences and included these features in AgentBuilder. They tested AgentBuilder with users to see if it met these needs and to understand how developers make and improve these agent experiences.",
+    "done_at": "2026-05-24T14:50:16"
+  },
+  "toc-3": {
+    "anchor": "toc-3",
+    "title": "2.1 Interface Agents",
+    "level": 2,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "The section discusses the need for tools that help people who are not experts in computer programming to design and prototype user experiences with interface agents. These tools, called scaffolds, can assist users like managers or end-users in creating well-designed agent experiences. The authors created a tool named AgentBuilder, which is a graphical tool that does not require coding skills. They conducted a study with 12 participants to identify key activities and capabilities important for agent prototyping systems. Using AgentBuilder, they tested their approach with 14 participants to validate these requirements and understand the process better. This study aims to make creating AI and agent experiences easier for everyone, even those without technical expertise.",
+    "done_at": "2026-05-24T14:50:18"
+  },
+  "toc-4": {
+    "anchor": "toc-4",
+    "title": "2.2 Designing for User Experience in Generative AI",
+    "level": 2,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "The text highlights the importance of user experience (UX) design for generative AI technologies and the challenges involved. Two main challenges are _capability uncertainty_ (not knowing what the AI can do or its errors) and _output complexity_ (the diverse range of AI outputs). Existing research offers guidelines for managing these challenges, like allowing multiple outputs. Prototyping is crucial for designing AI experiences and requires a mix of skills. Tools like Suede and CSLU help designers create and test AI UI components. The paper suggests combining these strategies with prompt development techniques to improve user experience design for agents. Developing prompts requires much iteration, and deciding prompt content is difficult yet essential.",
+    "done_at": "2026-05-24T14:50:19"
+  },
+  "toc-5": {
+    "anchor": "toc-5",
+    "title": "2.3 Developing Prompts for Generative AI Experiences",
+    "level": 2,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "This section explains the challenges and strategies involved in designing user experiences for generative AI, focusing on interface agents powered by large language models (LLMs). Many interface agents now understand user inputs and perform tasks in various applications, such as web browsers and operating systems. A key challenge in designing AI user experiences is dealing with _capability uncertainty_ (not knowing exactly what the AI can do or errors it might have) and _output complexity_ (the wide range and unpredictability of what the AI can create). Prototyping is an essential part of this design process, requiring expertise in design and technology. Existing tools help prototype user experiences, but challenges remain, especially in creating and refining prompts for AI interactions. The paper explores ways to improve this process by considering new methods to support better prototyping in AI agents.",
+    "done_at": "2026-05-24T14:50:21"
+  },
+  "toc-2": {
+    "anchor": "toc-2",
+    "title": "2 Related Work",
+    "level": 1,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "Section 2 of the paper reviews existing work related to creating and improving user experiences with interface agents and generative AI. It first introduces the concept of interface agents, highlighting tools like AgentBuilder, which help non-experts design user experiences without needing coding skills. It then examines the importance of user experience design for generative AI, outlining challenges like understanding AI capabilities and managing the complexity of AI outputs. In designing prompts for AI, these challenges persist due to the unpredictable nature of AI-generated outputs. The section emphasizes the need for effective prototyping tools and strategies to overcome these challenges, showcasing methods for improving interaction design with AI agents.",
+    "done_at": "2026-05-24T14:50:22"
+  },
+  "toc-7": {
+    "anchor": "toc-7",
+    "title": "3.1 Methodology",
+    "level": 2,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This paper discusses the challenges of developing user experiences for interface agents, which are AI systems that interact with users. Designing these agents involves creating prompts and interaction designs. The authors point out that current studies on prompt development do not address the specific challenges faced in agent development. They conducted a study with 12 participants from a technology company to learn more about these challenges. The study aimed to find out what activities developers do when designing agent experiences and what features a system should have to assist them. Participants included both experts and non-experts in AI technology.",
+    "done_at": "2026-05-24T14:50:23"
+  },
+  "toc-8": {
+    "anchor": "toc-8",
+    "title": "3.2 Results",
+    "level": 2,
+    "page_start": 5,
+    "page_end": 7,
+    "summary": "The study looked into how people create and test agents (like chatbots) and identified two main phases: designing the agent and inspecting it. Designing involves deciding what tasks the agent can do and how it interacts with users. No-code tools and clear user interfaces can make this easier. Inspecting the agent involves testing its behavior to make sure it works correctly. Key needs identified include having tools to set limits on what the agent can do, control how it looks on screen, and manage how it interacts with users. A successful system should also offer a way to test and control the agent during its use.",
+    "done_at": "2026-05-24T14:50:25"
+  },
+  "toc-6": {
+    "anchor": "toc-6",
+    "title": "3 Requirements Elicitation Study",
+    "level": 1,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This section explores the process of understanding what is needed to develop user experiences with AI interface agents. The authors conducted a study involving 12 participants from a technology company to understand the activities developers engage in when creating these agents. The study revealed two main stages in the development process: designing the agent's tasks and interactions, and testing the agent to ensure proper functioning. To help developers, the study highlighted the importance of no-code tools, simple user interfaces, and features that help test and control the agents. Overall, the research aims to identify system features that support developers in creating effective AI agents.",
+    "done_at": "2026-05-24T14:50:26"
+  },
+  "toc-10": {
+    "anchor": "toc-10",
+    "title": "4.1 Scaffolds for Designing the Agent",
+    "level": 2,
+    "page_start": 8,
+    "page_end": 11,
+    "summary": "AgentBuilder helps in designing and testing user experiences with interface agents. It includes two main interfaces: one for designing how an agent should interact with users and another for running and checking the agent's behavior. Through a no-code graphical interface, users can define the actions and conditions that guide the agent. They use nodes and edges to represent actions like asking for confirmation or displaying messages. Users can also create natural language prompts to guide the agent’s behavior. When running the agent, users can see its actions live and have controls to pause or stop the agent if needed. This setup allows users to understand and debug how the agent behaves during tasks.",
+    "done_at": "2026-05-24T14:50:27"
+  },
+  "toc-11": {
+    "anchor": "toc-11",
+    "title": "4.2 Implementation",
+    "level": 2,
+    "page_start": 12,
+    "page_end": 12,
+    "summary": "This section describes AgentBuilder, a tool for designing and testing user interface agents. AgentBuilder has two parts: a Prototyping interface and an Execution interface. The Prototyping interface helps users create workflows using a visual editor, and these workflows are turned into text using a model. The Execution interface shows what the agent does within a browser and can receive user input or pause actions. A Debugging Mode helps find and fix errors by showing the agent’s actions and reasoning. AgentBuilder is built with TypeScript and React, and uses a library called ReactFlow for the visual editor.",
+    "done_at": "2026-05-24T14:50:28"
+  },
+  "toc-9": {
+    "anchor": "toc-9",
+    "title": "4 Design Probe: AgentBuilder",
+    "level": 1,
+    "page_start": 8,
+    "page_end": 8,
+    "summary": "AgentBuilder is a tool that helps users design and test user interface agents without needing to write code. It provides two main interfaces: one for creating the agent's interactions with users, and the other for running and observing the agent’s behavior. Users can build workflows using a visual editor and guide the agent’s actions with natural language prompts. As the agent operates, users can view its actions live and control its execution, which aids in understanding and fixing any issues. The tool uses TypeScript and React technologies, along with ReactFlow for its visual editing capabilities. Overall, it simplifies designing and debugging agents through an intuitive graphical interface.",
+    "done_at": "2026-05-24T14:50:30"
+  },
+  "toc-13": {
+    "anchor": "toc-13",
+    "title": "5.1 Methodology",
+    "level": 2,
+    "page_start": 14,
+    "page_end": 14,
+    "summary": "The study explored what tools developers need to create prototyping systems for interface agents. Fourteen participants from different job roles took part in a prototyping exercise using \"AgentBuilder\", which lasted about 90 minutes and was conducted online. The participants had various levels of experience with agents and generative AI. They started with an onboarding session to learn about agents and \"AgentBuilder\", and then worked on improving the user experience of an agent designed for a coffee chain's website. These sessions were recorded and transcribed to collect detailed feedback.",
+    "done_at": "2026-05-24T14:50:31"
+  },
+  "toc-14": {
+    "anchor": "toc-14",
+    "title": "5.2 Results",
+    "level": 2,
+    "page_start": 15,
+    "page_end": 18,
+    "summary": "The study aims to understand how developers prototype user experiences with agents using AgentBuilder, a tool that allows agent prototyping without coding. Participants created one to five prototypes on average, which involved iterative design and testing phases. \n\nIn the process, participants designed initial agent prototypes focusing on how information is displayed and interactions with users. They monitored agent performance, debugged issues, and iterated on their design to enhance the agent's functionality and user interaction.\n\nDevelopers used AgentBuilder's visual and natural language interfaces to adjust agent behavior and were able to create prototypes that factored in user knowledge and preferences. However, there were challenges in understanding agent actions in real-time, as more detailed information was only helpful retrospectively.\n\nParticipants appreciated tools that defined agent capabilities but found it difficult to verify complex interactions beforehand, often relying on trial and error. The results suggest that agent prototyping systems should offer better support for understanding agent behavior and providing precise control over agent interactions.",
+    "done_at": "2026-05-24T14:50:34"
+  },
+  "toc-12": {
+    "anchor": "toc-12",
+    "title": "5 In Situ Agent Prototyping Study",
+    "level": 1,
+    "page_start": 13,
+    "page_end": 13,
+    "summary": "The section describes a study using the tool \"AgentBuilder\" to understand how developers prototype agents. It involved 14 participants who worked online to enhance a coffee chain's website agent. This process included onboarding, feedback collection, and improving user experiences through design iterations. Participants created multiple prototypes using AgentBuilder, which allows prototyping without coding. They worked on debugging, testing, and perfecting agent interactions to meet user needs. However, they found challenges in understanding real-time agent actions and desired better tools for controlling agent interactions. The study highlights the importance of tools that support easy prototyping and detailed information on agent behavior.",
+    "done_at": "2026-05-24T14:50:36"
+  },
+  "toc-16": {
+    "anchor": "toc-16",
+    "title": "6.1 Unique Challenges and Opportunities of Developing Prompts for Agents",
+    "level": 2,
+    "page_start": 20,
+    "page_end": 20,
+    "summary": "The purpose of this section is to identify unique challenges and opportunities in developing prompts for interface agents based on a study with AgentBuilder. The main claim is that agent prototyping requires understanding multiple forms of agent inputs and outputs, which differs from the static text inputs and outputs of language models. Developers need tools to handle continuous updates and make sense of the agent's behavior and runtime data. Another challenge is for developers to build a mental model of the agent, understanding how it functions and what can be modified. AgentBuilder introduces Workflow representation, which helps developers by making interaction components clear and showing the sequence of agent actions.",
+    "done_at": "2026-05-24T14:50:37"
+  },
+  "toc-17": {
+    "anchor": "toc-17",
+    "title": "6.2 Design Implications for Agent Prototyping Systems",
+    "level": 2,
+    "page_start": 21,
+    "page_end": 21,
+    "summary": "This paper section discusses improvements for systems used in creating software agents. The authors suggest making interaction components, which are basic parts of an agent, easier to understand and customize. They advise showing different amounts of information based on whether the user is a developer or an end-user to avoid overwhelming or confusing either group. Developers also need to be able to review and adjust the agent's activity, especially to control how fast the agent works. The section also mentions limitations of the study, such as the small number of participants and that they were all from one tech company, which might affect how widely the findings apply.",
+    "done_at": "2026-05-24T14:50:39"
+  },
+  "toc-18": {
+    "anchor": "toc-18",
+    "title": "6.3 Limitations",
+    "level": 2,
+    "page_start": 21,
+    "page_end": 21,
+    "summary": "This section suggests ways to improve systems for creating prototypes of software agents. One idea is to make interaction components easy to understand and customize, using clear tools and previews. Another idea is to provide different amounts of information during the agent's runtime, so developers and end-users both get what they need without being overwhelmed. The study also found that showing the agent’s status and allowing users to control how fast it runs would be helpful. The limitations of the study include a small sample size and participants from just one technology company, which might not represent all users.",
+    "done_at": "2026-05-24T14:50:40"
+  },
+  "toc-15": {
+    "anchor": "toc-15",
+    "title": "6 Discussion",
+    "level": 1,
+    "page_start": 19,
+    "page_end": 19,
+    "summary": "The discussion section explores ways to develop and improve user interface (UI) agents based on insights from a study using AgentBuilder. It identifies challenges and opportunities in creating prompts for agents, emphasizing the need for tools that handle dynamic inputs and outputs while helping developers understand the agent's behavior. It suggests improvements in agent prototyping systems, like making interaction components clearer and providing adaptable information for both developers and end-users. Additionally, it highlights the necessity of showing the agent's runtime status and allowing users to control the speed of the agent's actions. The study's findings may be limited by the small and specific participant group, which could affect their general applicability.",
+    "done_at": "2026-05-24T14:50:41"
+  },
+  "toc-19": {
+    "anchor": "toc-19",
+    "title": "7 Conclusion",
+    "level": 1,
+    "page_start": 22,
+    "page_end": 22,
+    "summary": "This research explores how to create prototypes for interface agents. Initially, the team interviewed 12 people with agent experience to identify what is needed in an agent prototyping system, resulting in 5 key activities and 6 capabilities. They then designed AgentBuilder, a tool to build and test these prototypes. By using AgentBuilder, the study involving 14 participants provided insights into developers' needs during the agent prototyping process. The study suggests developers need help with understanding agent inputs, contexts, and technical details. The findings lead to recommendations for better agent prototyping systems in the future.",
+    "done_at": "2026-05-24T14:50:43"
+  },
+  "toc-20": {
+    "anchor": "toc-20",
+    "title": "Acknowledgments",
+    "level": 1,
+    "page_start": 22,
+    "page_end": 22,
+    "summary": "This work investigates how to prototype user experiences with interface agents. It starts by listing design requirements for agent prototyping systems, obtained from interviews with people experienced with agents. Five activities were identified in the prototyping process, leading to the definition of six essential capabilities that these systems should have. The study introduces AgentBuilder, a tool for designing and testing agent prototypes, which was used to explore how people prototype agents and what they need. Insights gained suggest improving systems to help developers understand agent input, context, and outputs better. The findings led to specific recommendations for designing future agent prototyping systems.",
+    "done_at": "2026-05-24T14:50:44"
+  },
+  "toc-21": {
+    "anchor": "toc-21",
+    "title": "References",
+    "level": 1,
+    "page_start": 22,
+    "page_end": 24,
+    "summary": "This paper talks about how to create prototypes for interface agents, which are software programs that interact with users. The authors interviewed 12 people to find the key design requirements needed for such prototyping systems. They identified five important activities and six desired capabilities for prototyping. They then used these insights to develop a tool called AgentBuilder, which helps in designing and testing agent prototypes. This tool was tested with 14 people, and it showed the importance of understanding agent inputs, context, and outputs, along with the technical details of agents' implementation. Based on their findings, they suggest recommendations for improving prototyping systems.",
+    "done_at": "2026-05-24T14:50:45"
+  },
+  "toc-23": {
+    "anchor": "toc-23",
+    "title": "A.1 Agent Prototype Examples",
+    "level": 2,
+    "page_start": 25,
+    "page_end": 26,
+    "summary": "The section discusses how AgentBuilder is used to create different types of agent prototypes that help users perform tasks like ordering a cappuccino. There are three prototypes: Prototype 1 interacts with the user by confirming orders and explaining its actions; Prototype 2 performs tasks without user interaction but shows a summary of actions; Prototype 3 interacts with the user like Prototype 1 but does not show details about its actions. The purpose is to demonstrate how AgentBuilder can be used to build agents with varying levels of user interaction and information transparency. Each prototype serves as an example of different user experience strategies in developing agents.",
+    "done_at": "2026-05-24T14:50:47"
+  },
+  "toc-22": {
+    "anchor": "toc-22",
+    "title": "A Design Probe: AgentBuilder",
+    "level": 1,
+    "page_start": 25,
+    "page_end": 25,
+    "summary": "The section explains how AgentBuilder can create different agent prototypes for tasks such as ordering a cappuccino. There are three prototypes with different user interaction styles and information transparency. Prototype 1 involves user interaction with detailed explanations, Prototype 2 works without user interaction but provides a summary, and Prototype 3 interacts like Prototype 1 but without detailed action information. These examples illustrate how AgentBuilder helps build agents with various user experience strategies.",
+    "done_at": "2026-05-24T14:50:48"
+  },
+  "toc-25": {
+    "anchor": "toc-25",
+    "title": "B.1 Participant Agent Prototype Examples",
+    "level": 2,
+    "page_start": 27,
+    "page_end": 28,
+    "summary": "This section describes examples of different agents created by participants using a tool called AgentBuilder. Each participant (P1, P4, P6, and P14) designed their own agent with unique workflows for ordering different items. \n\n- P1 designed an agent to be interactive and friendly, asking multiple times for user input to confirm an order, showing no UI action details in the chat.\n- P4 created an agent with minimal interaction, primarily showing a confirmation message for a potentially risky order.\n- P6 built an agent that provided recommendations in a dropdown menu, showing brief descriptions of UI actions while allowing users to explore options.\n- P14's agent handled errors by interacting further with the user if the initial item order failed and was designed to show more information about UI actions and reasoning. \n\nThese examples highlight various approaches to designing interactive agents based on specific user needs.",
+    "done_at": "2026-05-24T14:50:49"
+  },
+  "toc-26": {
+    "anchor": "toc-26",
+    "title": "B.2 Agent Prototyping Exercise Instructions",
+    "level": 2,
+    "page_start": 29,
+    "page_end": 32,
+    "summary": "This section gives instructions for creating an agent that helps users order from the Starbucks website. The goal is to design an agent that provides a pleasant experience for users. The exercise includes designing prompts to guide the agent's actions and deciding what information the agent shares with the user. The agent should be able to handle different user requests, such as ordering a specific drink or suggesting items based on past orders. It's more important for the agent to make the experience enjoyable rather than performing tasks perfectly on its own.",
+    "done_at": "2026-05-24T14:50:50"
+  },
+  "toc-24": {
+    "anchor": "toc-24",
+    "title": "B In Situ Agent Prototyping Study",
+    "level": 1,
+    "page_start": 27,
+    "page_end": 27,
+    "summary": "This section discusses how participants designed different interactive agents using a tool called AgentBuilder. Each participant created a unique agent with specific features tailored to ordering items. The examples illustrate diverse design approaches, such as interactive dialogues, minimal interaction, recommendation options, and error handling. The section also provides instructions for designing an agent to help users order from Starbucks, emphasizing creating a pleasant user experience. The focus is on how the agent should assist with ordering tasks while making interactions enjoyable for users.",
+    "done_at": "2026-05-24T14:50:51"
+  }
+}

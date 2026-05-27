@@ -1,0 +1,119 @@
+{
+  "toc-0": {
+    "anchor": "toc-0",
+    "title": "Introduction",
+    "level": 1,
+    "page_start": 1,
+    "page_end": 1,
+    "summary": "The section introduces the idea of using large language models (LLMs) in multiple-agent systems to tackle complex tasks across various domains. The main claim is that \"multi-agent conversations\" can enhance reasoning, cooperation, and problem-solving abilities by enabling agents to communicate and work together effectively. The paper proposes a framework called `AutoGen` to facilitate this concept. \n\n`AutoGen` aims to offer customizable, conversable agents and a programming paradigm called \"conversation programming.\" This setup allows for flexible application development by defining agent roles and programming their interactions. This approach combines natural language with coding, enabling developers to create diverse applications with various conversation patterns and agent behaviors.",
+    "done_at": "2026-05-24T13:36:51"
+  },
+  "toc-2": {
+    "anchor": "toc-2",
+    "title": "Conversable Agents",
+    "level": 2,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "`AutoGen` is a framework designed to make it easier for developers to create applications using large language models (LLMs) by simplifying how agents communicate and work together. It introduces two main ideas: conversable agents and conversation programming. A conversable agent can send and receive messages, and it can have different abilities, such as using LLMs, human inputs, or tools. These abilities let the agent handle tasks like conversations and can be customized for different applications. `AutoGen` allows agents to work together, using their combined strengths to solve tasks more effectively, reducing the effort needed to develop complex systems. An LLM-backed assistant agent can generate solutions, while a tool- and human-backed user proxy agent may improve these solutions with human feedback or tool execution.",
+    "done_at": "2026-05-24T13:36:53"
+  },
+  "toc-3": {
+    "anchor": "toc-3",
+    "title": "Conversation Programming",
+    "level": 2,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "The section explains how `AutoGen` uses \"conversation programming\" for multi-agent interactions. This means two things: computation, which is how agents figure out their responses, and control flow, which is the order of actions in conversations. `AutoGen` allows agents to perform actions based on conversations they are part of and to pass messages as needed. This helps create flexible and efficient communication patterns between multiple agents. The process is illustrated in Figure 2, showing agents doing specific tasks based on their part in a conversation and responding accordingly. The system adapts depending on input and past messages, enabling agents to complete tasks over multiple exchanges.",
+    "done_at": "2026-05-24T13:36:55"
+  },
+  "toc-1": {
+    "anchor": "toc-1",
+    "title": "The AutoGen Framework",
+    "level": 1,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "The AutoGen framework helps developers create applications with large language models (LLMs) by making agent communication easier. It introduces conversable agents, which can send and receive messages using LLMs, human inputs, or tools to perform tasks. This allows agents to collaborate and solve complex tasks more effectively. Conversation programming is another component of AutoGen, where these agents efficiently handle tasks using computation and control flow during their interactions. This system enables agents to adapt and complete tasks over several exchanges by responding to different inputs and past messages. Overall, AutoGen reduces the effort needed to build advanced systems by allowing effective multi-agent collaboration.",
+    "done_at": "2026-05-24T13:36:56"
+  },
+  "toc-4": {
+    "anchor": "toc-4",
+    "title": "Applications of AutoGen",
+    "level": 1,
+    "page_start": 4,
+    "page_end": 7,
+    "summary": "This section describes design patterns in `AutoGen` that help in building conversational programs. `AutoGen` provides unified interfaces and automatic response mechanisms for agent communication. Once an agent receives a message, it can automatically generate and send a reply unless a termination condition is met. This process does not need extra control modules. \n\n`AutoGen` supports programming control using both natural language and code. Agents can be directed using natural language prompts, or through programmed responses using Python. Transitions between these control types are flexible, allowing the system to use one for a while and then switch to another.\n\n`AutoGen` helps in managing conversations among multiple agents. It supports static conversations and dynamic flows where messages can trigger interactions with other agents based on the conversation's progress. \n\nIn addition, `AutoGen` includes a feature called `GroupChatManager` that can manage group conversations by choosing who speaks next. It supports complex conversation scenarios efficiently.",
+    "done_at": "2026-05-24T13:36:59"
+  },
+  "toc-5": {
+    "anchor": "toc-5",
+    "title": "Discussion",
+    "level": 1,
+    "page_start": 8,
+    "page_end": 12,
+    "summary": "The section describes `AutoGen's` support for a \"dynamic group chat\" communication pattern, where multiple agents interact fluidly without a strict order. This makes it useful for collaborative tasks where the conversation naturally flows. The `GroupChatManager` oversees these interactions by selecting speakers, gathering responses, and sharing messages. A special \"role-play style\" prompt helps agents align their roles with the conversation, enhancing the problem-solving process. Testing showed this approach results in higher task success and fewer necessary calls to the language model.",
+    "done_at": "2026-05-24T13:37:01"
+  },
+  "toc-6": {
+    "anchor": "toc-6",
+    "title": "Related Work",
+    "level": 1,
+    "page_start": 13,
+    "page_end": 14,
+    "summary": "The paper discusses different systems that use large language models (LLMs) to build AI applications. It separates these systems into two types: single-agent and multi-agent. \n\nSingle-agent systems include AutoGPT, ChatGPT+, LangChain Agents, and Transformers Agent. These systems operate independently and do not collaborate with other agents.\n\nMulti-agent systems like BabyAGI, CAMEL, Multi-Agent Debate, and MetaGPT use multiple agents to work together. However, each has limitations, such as being unable to dynamically change conversations or support tool usage.\n\nThe `AutoGen` system is highlighted as different because it supports multi-agent collaboration with flexible conversation patterns, tool usage, and human involvement.",
+    "done_at": "2026-05-24T13:37:02"
+  },
+  "toc-8": {
+    "anchor": "toc-8",
+    "title": "General Guidelines for Using AutoGen",
+    "level": 2,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "This section discusses how `AutoGen` software helps create new applications and improve existing ones. It makes multi-agent systems, where multiple AI and human agents communicate, easier to implement. The authors find several benefits of using `AutoGen`:\n\n- **Ease of use:** Built-in agents work well right away without needing extra changes.\n- **Modularity:** Divides tasks into separate agents, making the system easier to manage.\n- **Programmability:** Users can easily customize agents.\n- **Human involvement:** Allows humans to join AI activities.\n- **Collaborative/adversarial interactions:** Agents can work together or against each other, sharing information smartly.\n\nThe section also gives guidelines for using `AutoGen`, like starting with simple agent setups and using built-in methods before creating custom ones.",
+    "done_at": "2026-05-24T13:37:04"
+  },
+  "toc-9": {
+    "anchor": "toc-9",
+    "title": "Future Work",
+    "level": 2,
+    "page_start": 16,
+    "page_end": 16,
+    "summary": "This section describes possible future work related to improving multi-agent systems like `AutoGen`. It identifies challenges like designing the best multi-agent workflows and creating more capable agents. The document notes that using multiple agents isn't always a one-size-fits-all solution, and different tasks might need different setups. It mentions that `AutoGen` can help make agents that are good at using tools, but creating guidelines for these agents will need more work. As these systems grow, tracking and understanding their behavior becomes more important to avoid issues. There are also concerns about high autonomy, which can be risky, so it's important to ensure safe and ethical use of such technology by controlling human involvement effectively.",
+    "done_at": "2026-05-24T13:37:05"
+  },
+  "toc-7": {
+    "anchor": "toc-7",
+    "title": "Expanded Discussion",
+    "level": 1,
+    "page_start": 15,
+    "page_end": 15,
+    "summary": "The expanded discussion covers the use of `AutoGen` software and explores future improvements for multi-agent systems. It highlights how `AutoGen` simplifies creating and improving applications by using multiple agents that can interact with each other and humans. Key advantages include ease of use, modularity, programmability, and enabling human participation. The section also provides guidelines for beginners, suggesting simple setups and built-in methods. Looking ahead, the text outlines challenges and potential improvements for multi-agent systems, emphasizing the importance of careful design, effective tracking, and ethical considerations to ensure safety and proper human involvement.",
+    "done_at": "2026-05-24T13:37:07"
+  },
+  "toc-10": {
+    "anchor": "toc-10",
+    "title": "Default System Message for Assistant Agent",
+    "level": 1,
+    "page_start": 17,
+    "page_end": 17,
+    "summary": "This section discusses the default system message for an AI assistant agent in a program called `AutoGen` version 0.1.1. It introduces new techniques for creating conversation prompts, like role play and control flow, to make interactions more complex. The system aims to use large language models (LLMs) effectively, though these models might not follow instructions perfectly. The system message guides the AI assistant to solve tasks and verify results, suggesting complete code for users to execute without modification. Overall, the system is designed to handle exceptions and ensure clear communication, noting that GPT-4 follows instructions better than GPT-3.5-turbo.",
+    "done_at": "2026-05-24T13:37:08"
+  },
+  "toc-11": {
+    "anchor": "toc-11",
+    "title": "Application Details",
+    "level": 1,
+    "page_start": 18,
+    "page_end": 32,
+    "summary": "The section provides details about testing different AI systems for solving math problems. They use the GPT-4 model and compare various systems, including `AutoGen`, AutoGPT, and ChatGPT variants. In testing, `AutoGen` solves math problems more successfully than others like AutoGPT and ChatGPT with plugins. They also try a \"human-in-the-loop\" method, where a human gives feedback to help the AI solve difficult problems, which improves results. `AutoGen` is also capable of supporting multi-user problem-solving, involving both students and experts. This setup is easy to create and allows assistance from more knowledgeable users when needed.",
+    "done_at": "2026-05-24T13:37:10"
+  },
+  "toc-12": {
+    "anchor": "toc-12",
+    "title": "Example outputs from applications",
+    "level": 1,
+    "page_start": 33,
+    "page_end": 42,
+    "summary": "This section shows example outputs from several applications and systems that solve math problems. In one example, ChatGPT with a Plugin gave the wrong answer to a math problem, even though Wolfram Alpha provided the correct answer. `AutoGen` solved the same problem correctly. LangChain ReAct generated code, but the result did not match the intended output. AutoGPT had issues as it did not print the results, making it less efficient. Finally, Multi-Agent Debate reached the same answer with different justifications, with one side pointing out a mistake in the other's method.",
+    "done_at": "2026-05-24T13:37:12"
+  }
+}

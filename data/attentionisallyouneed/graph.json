@@ -1,0 +1,326 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-23T12:43:21",
+  "nodes": [
+    {
+      "id": "transformer",
+      "label": "Transformer",
+      "type": "architecture",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "The Transformer is a neural network architecture that relies entirely on attention mechanisms to model input-output dependencies without using recurrence or convolutions.",
+      "wiki_page": "transformer.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "attention_mechanism",
+      "label": "Attention Mechanism",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "An attention mechanism is a model component that computes a weighted sum of input features to focus on certain parts of the input for generating an output.",
+      "wiki_page": "attention_mechanism.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "self_attention",
+      "label": "Self-Attention",
+      "type": "mechanism",
+      "aliases": [
+        "intra-attention"
+      ],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Self-attention, or intra-attention, is an attention mechanism that relates different positions of a single sequence to compute a representation of the sequence.",
+      "wiki_page": "self_attention.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "multi_head_attention",
+      "label": "Multi-Head Attention",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Multi-Head Attention is an attention mechanism that projects queries, keys, and values multiple times with different learned projections to enable the model to jointly attend to information from different representation subspaces.",
+      "wiki_page": "multi_head_attention.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "scaled_dot_product_attention",
+      "label": "Scaled Dot-Product Attention",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Scaled Dot-Product Attention is an attention mechanism where the dot products of queries and keys are divided by the square root of the dimension of the keys, followed by a softmax to obtain the attention weights.",
+      "wiki_page": "scaled_dot_product_attention.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "residual_connection",
+      "label": "Residual Connection",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Residual connections are shortcuts that skip one or more layers to enable gradient flow and facilitate the training of deep neural networks.",
+      "wiki_page": "residual_connection.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "layer_normalization",
+      "label": "Layer Normalization",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Layer normalization is a technique to normalize the inputs across features for each training instance to improve convergence in training deep neural networks.",
+      "wiki_page": "layer_normalization.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "position_wise_feed_forward_networks",
+      "label": "Position-wise Feed-Forward Networks",
+      "type": "architecture",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Position-wise Feed-Forward Networks are fully connected feed-forward layers applied independently to each position in the sequence.",
+      "wiki_page": "position_wise_feed_forward_networks.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "positional_encoding",
+      "label": "Positional Encoding",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Positional encodings are added to input embeddings to provide information about the position of tokens in a sequence, enabling the model to capture sequence order.",
+      "wiki_page": "positional_encoding.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "bleu_score",
+      "label": "BLEU Score",
+      "type": "metric",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "The BLEU score is a metric for evaluating the quality of text, especially in machine translation, by comparing it to one or more reference texts.",
+      "wiki_page": "bleu_score.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "wmt_2014_english_to_german_task",
+      "label": "WMT 2014 English-to-German Task",
+      "type": "dataset",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "The WMT 2014 English-to-German Task is a standard benchmark dataset for evaluating machine translation models from English to German.",
+      "wiki_page": "wmt_2014_english_to_german_task.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "wmt_2014_english_to_french_task",
+      "label": "WMT 2014 English-to-French Task",
+      "type": "dataset",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "The WMT 2014 English-to-French Task is a benchmark dataset for evaluating machine translation models from English to French.",
+      "wiki_page": "wmt_2014_english_to_french_task.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "recurrent_neural_network_rnn",
+      "label": "Recurrent Neural Network (RNN)",
+      "type": "architecture",
+      "aliases": [
+        "RNN"
+      ],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Recurrent Neural Networks are a type of neural network where connections between nodes form a directed graph along a sequence, allowing them to exhibit temporal dynamic behavior.",
+      "wiki_page": "recurrent_neural_network_rnn.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "encoder_decoder",
+      "label": "Encoder-Decoder",
+      "type": "architecture",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Encoder-Decoder is a neural network architecture pattern commonly used for sequence-to-sequence tasks, where the encoder processes the input sequence and the decoder generates the output sequence.",
+      "wiki_page": "encoder_decoder.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "vaswani_ashish",
+      "label": "Vaswani, Ashish",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Ashish Vaswani is one of the researchers who proposed the Transformer architecture.",
+      "wiki_page": "vaswani_ashish.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "uszkoreit_jakob",
+      "label": "Uszkoreit, Jakob",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Jakob Uszkoreit is a researcher who proposed replacing RNNs with self-attention in the development of the Transformer.",
+      "wiki_page": "uszkoreit_jakob.md",
+      "added_at": "2026-05-23T12:43:21"
+    },
+    {
+      "id": "byte_pair_encoding",
+      "label": "Byte Pair Encoding",
+      "type": "method",
+      "aliases": [
+        "BPE"
+      ],
+      "papers": [
+        "attentionisallyouneed"
+      ],
+      "summary": "Byte Pair Encoding is a data compression technique adapted as a form of vocabulary generation in training tokenizers for neural networks.",
+      "wiki_page": "byte_pair_encoding.md",
+      "added_at": "2026-05-23T12:43:21"
+    }
+  ],
+  "edges": [
+    {
+      "source": "transformer",
+      "target": "attention_mechanism",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "transformer",
+      "target": "self_attention",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "scaled_dot_product_attention",
+      "target": "multi_head_attention",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "multi_head_attention",
+      "target": "transformer",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "positional_encoding",
+      "target": "transformer",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "residual_connection",
+      "target": "transformer",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "layer_normalization",
+      "target": "transformer",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "position_wise_feed_forward_networks",
+      "target": "transformer",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "transformer",
+      "target": "wmt_2014_english_to_german_task",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "transformer",
+      "target": "wmt_2014_english_to_french_task",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "vaswani_ashish",
+      "target": "transformer",
+      "relation": "proposed_by",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    },
+    {
+      "source": "uszkoreit_jakob",
+      "target": "self_attention",
+      "relation": "proposed_by",
+      "weight": 1,
+      "papers": [
+        "attentionisallyouneed"
+      ]
+    }
+  ]
+}

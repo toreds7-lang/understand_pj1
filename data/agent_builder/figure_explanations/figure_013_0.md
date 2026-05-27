@@ -1,0 +1,7 @@
+**What it shows**: Figure 5 presents the Debug Mode of the AgentBuilder execution interface. It illustrates how users can toggle debug features, view agent tool calls and reasoning, and inspect detailed debugging information.
+
+**Key components**: The figure consists of three main panels. The left panel shows the debug mode deactivated. The middle and right panels display debug mode activated, with the middle focusing on chat and tool call interactions. Key elements include the "Debug" button (1), slider for navigating actions (3), and details like the webpage screenshot and accessibility tree (5) in the rightmost panel.
+
+**What the paper concludes from it**: The authors explain that Debug Mode, shown in Figure 5, allows users to identify issues in the agent's behavior by observing tool calls and agent reasoning. Users can further engage with Detailed Debugging to view inputs and outputs, which helps in diagnosing and rectifying errors in the agent's execution [page 14]. This feature was highly valued by study participants for tracking runtime data and understanding the agent's actions [page 20].
+
+**Caveats / limits**: Participants found some debug information challenging to interpret, such as the accessibility tree, which hindered their understanding of the agent's decision-making process. Issues like agent reasoning hallucinations also contributed to debugging difficulties [page 20].

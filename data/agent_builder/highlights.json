@@ -1,0 +1,526 @@
+{
+  "0": {
+    "page_index": 0,
+    "keywords": [
+      "AgentBuilder",
+      "interface agents",
+      "generative AI models",
+      "user experience",
+      "agent experience",
+      "scaffolds",
+      "prototyping agent experiences",
+      "agent prototyping systems",
+      "requirements elicitation study",
+      "AgentBuilder design probe",
+      "in situ agent prototyping study",
+      "multimodal large language models",
+      "vanilla large language models"
+    ],
+    "done_at": "2026-05-24T17:14:58"
+  },
+  "1": {
+    "page_index": 1,
+    "keywords": [
+      "requirements elicitation study",
+      "agent prototyping systems",
+      "Activities",
+      "Desired Capabilities",
+      "AgentBuilder",
+      "in situ agent prototyping study",
+      "MLLMs",
+      "interface agents",
+      "generative AI models",
+      "code executors",
+      "UI element",
+      "AI engineering expertise",
+      "agent experience",
+      "user experience"
+    ],
+    "done_at": "2026-05-24T17:14:59"
+  },
+  "2": {
+    "page_index": 2,
+    "keywords": [
+      "AgentBuilder",
+      "prototyping user experiences",
+      "prototyping scaffolds",
+      "agent prototyping system",
+      "requirements elicitation study",
+      "designing and inspecting the agent",
+      "Activities",
+      "Desired Capabilities",
+      "in situ agent prototyping study",
+      "validated design requirements",
+      "no-code interface",
+      "democratizing",
+      "HCI",
+      "interface agents",
+      "user preferences"
+    ],
+    "done_at": "2026-05-24T17:15:00"
+  },
+  "3": {
+    "page_index": 3,
+    "keywords": [
+      "mixed-initiative settings",
+      "interface agents",
+      "(M)LLMs",
+      "web agents",
+      "Cowpilot",
+      "collaborative human-agent workflows",
+      "user experience",
+      "capability uncertainty",
+      "output complexity",
+      "generative AI experiences",
+      "PromptInfuser",
+      "UX prototyping",
+      "Wizard-Of-Oz protocol",
+      "developing prompts"
+    ],
+    "done_at": "2026-05-24T17:15:01"
+  },
+  "4": {
+    "page_index": 4,
+    "keywords": [
+      "AgentBuilder",
+      "prompting for user experience",
+      "generative AI experiences",
+      "natural language composition support",
+      "node-based approaches",
+      "ChainForge",
+      "agent development",
+      "multi-agent workflows",
+      "FlowForge",
+      "no-code scaffolds",
+      "requirements elicitation study",
+      "large technology company",
+      "agent user experiences",
+      "research questions"
+    ],
+    "done_at": "2026-05-24T17:15:02"
+  },
+  "5": {
+    "page_index": 5,
+    "keywords": [
+      "agent experience patterns",
+      "agent prototyping",
+      "theoretical coding",
+      "code saturation",
+      "axial coding",
+      "provisional coding",
+      "Designing the Agent",
+      "Inspecting the Agent",
+      "Desired Capabilities",
+      "C1. Use no-code interfaces",
+      "GUI-based prototyping tools",
+      "Developing LLM prompts"
+    ],
+    "done_at": "2026-05-24T17:15:03"
+  },
+  "6": {
+    "page_index": 6,
+    "keywords": [
+      "Design the scope and boundaries of the agent",
+      "A1",
+      "guardrails",
+      "personalized experiences",
+      "Help constrain the agent’s task space and knowledge of the user",
+      "C2",
+      "Design the agent’s information display",
+      "A2",
+      "UI components",
+      "invisible",
+      "C3",
+      "Define the UI of the agent in the chat and the environment"
+    ],
+    "done_at": "2026-05-24T17:15:04"
+  },
+  "7": {
+    "page_index": 7,
+    "keywords": [
+      "interactions between the agent and user",
+      "user inputs",
+      "requesting confirmation for actions",
+      "prompting",
+      "conversational interaction",
+      "interaction components",
+      "tools provided to the model",
+      "controlling proactivity",
+      "slider of autonomy",
+      "right level of autonomy",
+      "C4. Provide components",
+      "run the agent prototype",
+      "manual testing",
+      "agent controls",
+      "pause",
+      "interrupt",
+      "cancel",
+      "continue",
+      "C5. Provide an environment"
+    ],
+    "done_at": "2026-05-24T17:15:06"
+  },
+  "8": {
+    "page_index": 8,
+    "keywords": [
+      "runtime behavior",
+      "visual representations of the UI",
+      "textual representations",
+      "HTML and accessibility trees",
+      "x-ray view",
+      "debug the agent’s runtime behavior",
+      "AgentBuilder",
+      "Prototyping interface",
+      "Execution interface",
+      "Workflow tab",
+      "graphical editor",
+      "nodes and edges",
+      "Interact",
+      "Plan",
+      "UI Actions",
+      "Confirmation"
+    ],
+    "done_at": "2026-05-24T17:15:07"
+  },
+  "9": {
+    "page_index": 9,
+    "keywords": [
+      "AgentBuilder prototyping interface",
+      "agent workflows",
+      "library of actions",
+      "confirmation inquiry",
+      "predefined labels",
+      "Inspector pane",
+      "UI actions",
+      "chat messages",
+      "web UI",
+      "UI Actions node’s inspector"
+    ],
+    "done_at": "2026-05-24T17:15:07"
+  },
+  "10": {
+    "page_index": 10,
+    "keywords": [
+      "AgentBuilder Prompt panel",
+      "structured prompt",
+      "Edit tab",
+      "Preview tab",
+      "agent's scope",
+      "togggle tooltips",
+      "live preview of the agent UI",
+      "Interact node",
+      "specifying the type of user input",
+      "dropdown to give the user coffee drinks",
+      "open-ended text field",
+      "requirement elicitation study"
+    ],
+    "done_at": "2026-05-24T17:15:08"
+  },
+  "11": {
+    "page_index": 11,
+    "keywords": [
+      "Prompt interface",
+      "Generate Prompt",
+      "Workflow Prompt",
+      "Generate Flow",
+      "Preview tab",
+      "AgentBuilder",
+      "no-code notation",
+      "Agent Capabilities Prompt",
+      "User Information Prompt",
+      "Other Instructions section",
+      "Execution interface",
+      "agent Execution Interface",
+      "cappuccino ordering page",
+      "Pause button",
+      "Resume",
+      "Cancel button"
+    ],
+    "done_at": "2026-05-24T17:15:09"
+  },
+  "12": {
+    "page_index": 12,
+    "keywords": [
+      "AgentBuilder",
+      "CowPilot agent",
+      "execution environment",
+      "UI action preview",
+      "request user input",
+      "Debugging Mode",
+      "Detailed Debug view",
+      "TypeScript React applications",
+      "Prototyping interface",
+      "ReactFlow library",
+      "Convert paths into a text representation",
+      "LLM"
+    ],
+    "done_at": "2026-05-24T17:15:10"
+  },
+  "13": {
+    "page_index": 13,
+    "keywords": [
+      "AgentBuilder execution interface",
+      "Debug Mode",
+      "Detailed Debugging interface",
+      "webpage screenshot",
+      "webpage accessibility tree",
+      "tool call",
+      "agent reasoning",
+      "slider",
+      "CowPilot’s underlying agent",
+      "Interaction Components",
+      "design probe",
+      "in situ study",
+      "Activities and Desired Capabilities",
+      "agent prototyping scaffolds"
+    ],
+    "done_at": "2026-05-24T17:15:11"
+  },
+  "14": {
+    "page_index": 14,
+    "keywords": [
+      "AgentBuilder",
+      "prototyping user experiences",
+      "agent prototyping system",
+      "videoconferencing software",
+      "generative AI usage",
+      "prompt engineering",
+      "AgentBuilder user study",
+      "Machine Learning Engineer",
+      "product managers",
+      "user experience",
+      "baseline agent",
+      "UX limitations",
+      "prototyping exercise"
+    ],
+    "done_at": "2026-05-24T17:15:13"
+  },
+  "15": {
+    "page_index": 15,
+    "keywords": [
+      "AgentBuilder",
+      "agent prototypes",
+      "prototyping Activities",
+      "Desired Capabilities",
+      "requirements elicitation study",
+      "iterative loop",
+      "design and inspection phases",
+      "information display",
+      "user interaction",
+      "interaction components",
+      "Workflow",
+      "Prompt",
+      "prompt prototyping"
+    ],
+    "done_at": "2026-05-24T17:15:14"
+  },
+  "16": {
+    "page_index": 16,
+    "keywords": [
+      "AgentBuilder",
+      "scaffolds for prototyping",
+      "interface agents",
+      "agent reasoning",
+      "Running and monitoring",
+      "Debug Mode",
+      "debugging the agent",
+      "adversarial prompt",
+      "UI action preview",
+      "Workflow",
+      "Prompt",
+      "natural language instructions"
+    ],
+    "done_at": "2026-05-24T17:15:15"
+  },
+  "17": {
+    "page_index": 17,
+    "keywords": [
+      "AgentBuilder",
+      "no-code interfaces",
+      "Workflow Prompt",
+      "Other Instructions Prompt",
+      "natural language prompts",
+      "workflow notation",
+      "Prompt and Workflow interfaces",
+      "Interact nodes",
+      "UI Actions nodes",
+      "Agent Capabilities Prompt",
+      "User Information Prompt",
+      "agency",
+      "task space",
+      "knowledge of the user",
+      "UI action indicator"
+    ],
+    "done_at": "2026-05-24T17:15:16"
+  },
+  "18": {
+    "page_index": 18,
+    "keywords": [
+      "action names",
+      "anticipated information needs",
+      "Workflow interface",
+      "Generate Prompt feature",
+      "agent prototyping systems",
+      "C4. Provide components that enable the agent to invoke different user interactions",
+      "bidirectional translation between Workflow and Prompt",
+      "interaction components",
+      "specify, preview, and test interaction components",
+      "Stop or Pause controls"
+    ],
+    "done_at": "2026-05-24T17:15:17"
+  },
+  "19": {
+    "page_index": 19,
+    "keywords": [
+      "Pause and Resume features",
+      "CowPilot",
+      "UI action previews",
+      "execution interfaces",
+      "tracking of detailed runtime information",
+      "AgentBuilder",
+      "Detailed Debugging interface",
+      "Debug Mode",
+      "webpage accessibility tree",
+      "agent input context and outputs",
+      "agent reasoning",
+      "scaffolding approaches",
+      "prototyping user experiences",
+      "prototyping activities",
+      "desired capabilities"
+    ],
+    "done_at": "2026-05-24T17:15:18"
+  },
+  "20": {
+    "page_index": 20,
+    "keywords": [
+      "AgentBuilder",
+      "no-code notations",
+      "broadening participation of prototyping AI",
+      "Unique Challenges and Opportunities of Developing Prompts for Agents",
+      "making sense of several forms of agent inputs and outputs during execution",
+      "agent’s actions in the webpage",
+      "messages in the chat",
+      "agent’s reasoning",
+      "webpage screenshots",
+      "webpage accessibility trees",
+      "support tracking of detailed runtime information",
+      "scaffolds to present multiple sources of runtime data",
+      "mental model of the agent for configuration and iteration",
+      "make sense of and adjust how the agent makes decisions",
+      "Workflow representation",
+      "reusable components"
+    ],
+    "done_at": "2026-05-24T17:15:20"
+  },
+  "21": {
+    "page_index": 21,
+    "keywords": [
+      "agent developers",
+      "workflow representations",
+      "agent prototyping",
+      "interaction components",
+      "workflow notation",
+      "agent debugging",
+      "pre-defined set of interaction components",
+      "discovering interaction components",
+      "toggling between presenting different amounts of agent runtime information",
+      "reviewing and customizing the agent’s runtime",
+      "status indicators",
+      "appropriate timing for the agent’s actions",
+      "controlling appropriate timing",
+      "user to vary the agent’s execution speed"
+    ],
+    "done_at": "2026-05-24T17:15:21"
+  },
+  "22": {
+    "page_index": 22,
+    "keywords": [
+      "requirements elicitation study",
+      "AgentBuilder",
+      "agent prototyping",
+      "in situ study",
+      "design requirements",
+      "design probe",
+      "5 Activities",
+      "6 Desired Capabilities",
+      "agent input",
+      "context",
+      "outputs",
+      "technical implementation",
+      "design recommendations",
+      "Machine Learning Intern",
+      "Apple’s UI Understanding Team"
+    ],
+    "done_at": "2026-05-24T17:15:22"
+  },
+  "23": {
+    "page_index": 23,
+    "keywords": [],
+    "done_at": "2026-05-24T17:15:22"
+  },
+  "24": {
+    "page_index": 24,
+    "keywords": [],
+    "done_at": "2026-05-24T17:15:23"
+  },
+  "25": {
+    "page_index": 25,
+    "keywords": [],
+    "done_at": "2026-05-24T17:15:23"
+  },
+  "26": {
+    "page_index": 26,
+    "keywords": [
+      "AgentBuilder",
+      "interface agents",
+      "Prototype 1",
+      "Prototype 2",
+      "Prototype 3",
+      "interactive agent",
+      "Confirm and Interact nodes",
+      "UI Actions",
+      "user interaction"
+    ],
+    "done_at": "2026-05-24T17:15:24"
+  },
+  "27": {
+    "page_index": 27,
+    "keywords": [
+      "Prototype 3",
+      "friendly, communicative, and interactive agent",
+      "AgentBuilder",
+      "P1 Agent Prototypes",
+      "P4 Agent Prototypes",
+      "Caffè Misto",
+      "high risk action",
+      "P6 Agent Prototypes",
+      "butter croissant"
+    ],
+    "done_at": "2026-05-24T17:15:25"
+  },
+  "28": {
+    "page_index": 28,
+    "keywords": [],
+    "done_at": "2026-05-24T17:15:27"
+  },
+  "29": {
+    "page_index": 29,
+    "keywords": [],
+    "done_at": "2026-05-24T17:15:28"
+  },
+  "30": {
+    "page_index": 30,
+    "keywords": [],
+    "done_at": "2026-05-24T17:15:28"
+  },
+  "31": {
+    "page_index": 31,
+    "keywords": [],
+    "done_at": "2026-05-24T17:15:29"
+  },
+  "32": {
+    "page_index": 32,
+    "keywords": [],
+    "done_at": "2026-05-24T17:15:30"
+  }
+}

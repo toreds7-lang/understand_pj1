@@ -1,0 +1,218 @@
+{
+  "toc-0": {
+    "anchor": "toc-0",
+    "title": "Introduction",
+    "level": 1,
+    "page_start": 0,
+    "page_end": 1,
+    "summary": "The section explains that new large language models (LLMs) are becoming more than just chatbots. They can now act as agents that perform tasks and interact with systems. The paper introduces MedAgentBench, which is a tool to test how well these LLM agents work in handling medical records and tasks. MedAgentBench includes many patient tasks, patient profiles, and uses standard electronic medical record (EMR) systems. The best current model used in this benchmark succeeded 69.67% of the time, showing room for improvement. MedAgentBench is designed to help develop better AI systems for healthcare by providing a way to measure progress in these advanced agent capabilities.",
+    "done_at": "2026-05-24T13:15:15"
+  },
+  "toc-2": {
+    "anchor": "toc-2",
+    "title": "Tasks",
+    "level": 2,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "This section describes MedAgentBench, a new tool to test large language models (LLMs) in healthcare environments. The goal is to help these AI models move beyond simple tasks and become useful in complex medical settings. MedAgentBench includes 300 tasks from real medical situations that need careful handling. It uses a realistic patient data environment to see how well AI models interact with electronic medical records (EMR).\n\nThe tool was tested on 12 advanced LLMs, showing they have potential for healthcare but aren't fully reliable yet. The section also explains how tasks were created and what types are included, such as patient communication and data management, aiming to help doctors focus more on patient care rather than paperwork.",
+    "done_at": "2026-05-24T13:15:17"
+  },
+  "toc-4": {
+    "anchor": "toc-4",
+    "title": "Patient cohort",
+    "level": 3,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "The paper introduces MedAgentBench, which classifies medical tasks into seven broad categories, like retrieving patient information or ordering tests. Each category uses placeholders for patient data that must be replaced with real information when used. The tasks are illustrated using examples of user instructions and specific hospital contexts, showing how these processes work in electronic health record (EHR) systems. The patient data for examples come from deidentified real cases managed by the STARR project. They select 100 patients, who had sodium lab tests on a specific date, to create realistic task scenarios.",
+    "done_at": "2026-05-24T13:15:19"
+  },
+  "toc-5": {
+    "anchor": "toc-5",
+    "title": "Patient demographics",
+    "level": 3,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This section explains how patient data is handled and organized in the study. First, patient details like names and addresses are anonymized using fake identifiers. Lab test results and vital signs data are collected and converted into special data types called Observation resources. Procedure orders and diagnoses are also organized carefully, using standard codes, and are stored as Procedure and Condition resources, respectively. Similarly, medication orders are organized and cleaned, removing incomplete entries, and stored as MedicationRequest resources. The environment setup involves using the FHIR standard for easy sharing of health information, with everything set up in a Docker image for easier use.",
+    "done_at": "2026-05-24T13:15:21"
+  },
+  "toc-6": {
+    "anchor": "toc-6",
+    "title": "Lab test results",
+    "level": 3,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This section describes how patient data is handled for research. Private information is removed, and fake details like medical record numbers are created. Various types of patient data, such as lab results and vital signs, are collected and formatted for use. Procedures and medications are recorded with specific details, and any missing information is corrected or removed. The information is stored using a standard called FHIR, which helps exchange health data between systems. A special environment is set up using FHIR for the project, making it easier to use and share the data.",
+    "done_at": "2026-05-24T13:15:22"
+  },
+  "toc-7": {
+    "anchor": "toc-7",
+    "title": "Vital signs",
+    "level": 3,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "This section describes how patient data is organized and shared in a FHIR-compliant environment. Fake patient data is generated to replace sensitive information, ensuring privacy. Specific patient details such as lab test results, vital signs, procedure orders, diagnosis, and medication orders are extracted and categorized into appropriate FHIR resources. Missing details in the data are handled by imputing or removing them, depending on the field. The FHIR environment, useful for exchanging health data, is set up using HAPI FHIR JPA and made available through a Docker image for easy use.",
+    "done_at": "2026-05-24T13:15:23"
+  },
+  "toc-8": {
+    "anchor": "toc-8",
+    "title": "Procedure orders",
+    "level": 3,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "The patient data section describes how health information is managed and integrated into a system using the FHIR standard for easy data exchange. Fake medical record numbers, names, and contact details are generated to protect patient privacy. Data related to lab tests, vital signs, procedures, diagnoses, and medications are collected, cleaned for missing information, and then processed into the system as specific resource types like Observation, Procedure, Condition, and MedicationRequest resources. An interactive environment using HAPI FHIR JPA and a Docker image has been set up to ensure compatibility and easy access. The Docker image is available for download online.",
+    "done_at": "2026-05-24T13:15:24"
+  },
+  "toc-9": {
+    "anchor": "toc-9",
+    "title": "Diagnosis",
+    "level": 3,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "The paper describes the processing and structuring of patient data for use in an interactive environment. They anonymize personal information by creating fake medical record numbers and using generated names and contact details. Specific lab test results, vital signs, procedure orders, diagnoses, and medication orders are extracted with certain criteria and uploaded as standardized FHIR resources. FHIR is a standard that helps different health systems exchange data effectively. The environment is built using HAPI FHIR with a persistent database, and it can be easily set up using a Docker image available online.",
+    "done_at": "2026-05-24T13:15:25"
+  },
+  "toc-10": {
+    "anchor": "toc-10",
+    "title": "Medication orders",
+    "level": 3,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "The section describes how different types of patient data are handled and used in a medical data environment. Personal information is removed for privacy, and fake medical record numbers, names, and addresses are created using Python tools. Various medical data like lab test results, vital signs, procedures, diagnoses, and medication orders are organized and uploaded as resources for use in a system. Missing or incomplete data is carefully managed to avoid errors. The environment is set up to follow FHIR standards to allow easy sharing of medical information, and a Docker image is provided for setting up the system easily.",
+    "done_at": "2026-05-24T13:15:27"
+  },
+  "toc-3": {
+    "anchor": "toc-3",
+    "title": "Patient profiles",
+    "level": 2,
+    "page_start": 3,
+    "page_end": 3,
+    "summary": "The \"Patient profiles\" section describes how patient information is organized and used in a medical data system called MedAgentBench. It starts by explaining the classification of tasks related to patient information in electronic health records (EHR), using examples from real, anonymized cases. Across different subsections, it details the handling of patient demographics, lab test results, vital signs, procedure orders, diagnoses, and medication orders. All personal information is anonymized using fake identifiers to ensure privacy. The data is organized using a standard called FHIR, which helps share health information between systems. A special environment is set up using Docker and FHIR to make the data easy to use and access for research or other purposes.",
+    "done_at": "2026-05-24T13:15:28"
+  },
+  "toc-11": {
+    "anchor": "toc-11",
+    "title": "Environment setup",
+    "level": 2,
+    "page_start": 4,
+    "page_end": 4,
+    "summary": "The purpose of this section is to explain how patient data is processed and uploaded for use in a healthcare data environment. The authors describe the removal of real personal information and the creation of fake identifiers using random numbers and a tool called Faker. They extract and upload various types of medical data like lab test results, vital signs, procedure details, diagnoses, and medication orders into a structured format known as FHIR (Fast Healthcare Interoperability Resources). The environment is set up using HAPI FHIR, a tool that supports FHIR standards, and made available through a Docker image for easy access. The authors ensure data completeness by removing records with missing critical information or replacing missing values where possible.",
+    "done_at": "2026-05-24T13:15:30"
+  },
+  "toc-13": {
+    "anchor": "toc-13",
+    "title": "Metrics",
+    "level": 3,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "This section explains how the authors evaluate AI models in a simulated medical records environment. They use the MedAgentBench framework to test large language models (LLMs). The main measure for success is the task success rate, focusing on accuracy because errors in medical settings can be serious.\n\nThey choose state-of-the-art LLMs from different companies to benchmark, setting strict performance conditions since healthcare requires high precision. The agent orchestrator is a tool they developed to manage how AI agents interact with the environment using certain FHIR functions. This setup limits the interactions to eight steps to complete tasks and ensures responses are accurate and follow predefined rules.",
+    "done_at": "2026-05-24T13:15:32"
+  },
+  "toc-14": {
+    "anchor": "toc-14",
+    "title": "Models",
+    "level": 3,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "The section describes the setup and evaluation of MedAgentBench, a system for testing AI models in a simulated medical records environment. They use the task success rate as the main metric, meaning they check if the AI completes the assigned tasks correctly. They only send GET requests to avoid restarting the environment for each task because it is slow to start. \n\nThe section also explains they only allow one attempt (\"pass@1\") for each task, which is important in healthcare to avoid errors. They use many different AI models from companies like OpenAI, Google, and Meta to see how well they perform. An \"Agent Orchestrator\" is used to manage the tasks, and it can send requests or end the task within a few steps.",
+    "done_at": "2026-05-24T13:15:33"
+  },
+  "toc-15": {
+    "anchor": "toc-15",
+    "title": "Agent orchestrator",
+    "level": 3,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "The paper discusses setting up a simulated environment for Electronic Medical Records (EMR) using Docker on Google Cloud to interact with AI systems. The focus is on evaluating an AI benchmark, MedAgentBench, built with the AgentBench framework. It uses live metrics to judge AI performance, with task success rate being the primary measure. Important methods include using real-world medical service protocols (FHIR) and ensuring stringent accuracy by allowing only one attempt per task (pass@1). Various top language models (e.g., GPT-4o, Gemini, Claude) are tested. An \"Agent Orchestrator\" manages simple tasks, using specific medical data requests.",
+    "done_at": "2026-05-24T13:15:35"
+  },
+  "toc-12": {
+    "anchor": "toc-12",
+    "title": "Evaluation setup",
+    "level": 2,
+    "page_start": 5,
+    "page_end": 5,
+    "summary": "The evaluation setup discusses how AI models are tested in a simulated medical records environment using MedAgentBench. The main metric for evaluating success is the task success rate, which focuses on accuracy because errors in healthcare are critical. Different leading AI models from companies like OpenAI, Google, and Meta are evaluated under strict conditions, allowing only one attempt per task. The Agent Orchestrator helps manage these task interactions efficiently, ensuring accuracy with a limited number of steps. This setup uses standard medical protocols to ensure the testing is as realistic and reliable as possible.",
+    "done_at": "2026-05-24T13:15:36"
+  },
+  "toc-17": {
+    "anchor": "toc-17",
+    "title": "Subgroup analysis based on task types",
+    "level": 3,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section discusses the performance of different large language models (LLMs) on a test called MedAgentBench. The best model, Claude 3.5 Sonnet, achieved a success rate of 69.67%. However, none of the models are reliable enough for critical medical tasks. \n\nTasks on MedAgentBench are divided into two types: **query-based** (simple information retrieval) and **action-based** (modifying medical records). Most models perform better on query-based tasks. \n\nCommon mistakes include models not following instructions correctly and providing responses in unexpected formats. For example, giving answers in full sentences when only a number is needed.",
+    "done_at": "2026-05-24T13:15:38"
+  },
+  "toc-18": {
+    "anchor": "toc-18",
+    "title": "Common error patterns",
+    "level": 3,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section discusses the performance of large language models (LLMs) on MedAgentBench, a benchmark for medical applications. Claude 3.5 Sonnet performs the best with a 69.67% overall success rate. Despite their potential, these LLMs are not yet reliable enough for healthcare settings. MedAgentBench tasks are split into two types: query tasks (information retrieval) and action tasks (medical record modifications). Most models perform better on query tasks. Common errors in models include not following instructions precisely, such as producing output in incorrect formats or including extra text when only a number is expected.",
+    "done_at": "2026-05-24T13:15:40"
+  },
+  "toc-16": {
+    "anchor": "toc-16",
+    "title": "Main results",
+    "level": 2,
+    "page_start": 6,
+    "page_end": 6,
+    "summary": "This section explains how different large language models (LLMs) performed on a medical test called MedAgentBench. The best model, Claude 3.5 Sonnet, had a success rate of 69.67%, but none of the models are ready for important medical tasks yet. The tasks in MedAgentBench are divided into query-based and action-based types, with most models doing better on the simpler, query-based tasks. A common problem is that models often do not follow instructions correctly, like giving more information than needed or using the wrong format.",
+    "done_at": "2026-05-24T13:15:41"
+  },
+  "toc-1": {
+    "anchor": "toc-1",
+    "title": "MedAgentBench",
+    "level": 1,
+    "page_start": 2,
+    "page_end": 2,
+    "summary": "MedAgentBench is a tool for testing AI models in healthcare. It has 300 tasks that simulate real medical situations to measure how well AI interacts with patient data. The tool organizes and processes patient information using standard formats to ensure proper handling and privacy. Testing involves strict settings where AI models must perform tasks accurately, but current models still make mistakes. While some models perform better on simpler tasks, none are yet reliable for critical medical use. Overall, MedAgentBench helps assess and improve AI capabilities in complex medical settings.",
+    "done_at": "2026-05-24T13:15:43"
+  },
+  "toc-19": {
+    "anchor": "toc-19",
+    "title": "Discussion",
+    "level": 1,
+    "page_start": 7,
+    "page_end": 9,
+    "summary": "The section discusses MedAgentBench, a new tool to help large language models (LLMs) in medical tasks. It aims to improve how these models work in medical settings. The authors showed that LLMs are good at answering questions but struggle more with tasks requiring decisions. The MedAgentBench dataset includes 300 tasks and 100 patient profiles, but it doesn't cover every real-world medical scenario and may have biases. Future work should address these limitations and explore advanced techniques to improve performance. The authors believe MedAgentBench will help develop better AI systems for healthcare.",
+    "done_at": "2026-05-24T13:15:44"
+  },
+  "toc-21": {
+    "anchor": "toc-21",
+    "title": "Screenshot of the interactive environment",
+    "level": 2,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "The section provides information on how to use prompts for an agent system that works with FHIR (Fast Healthcare Interoperability Resources) functions. It includes an example prompt that guides the agent to use specific GET and POST functions, which are methods to request data or send data in HTTP protocol. The prompt provides clear instructions on how to format these requests and requires that only specific responses be given. The screenshot in Figure 3 shows part of the interactive environment where these functionalities can be used. The system is designed to help medical professionals by using appropriate FHIR functions.",
+    "done_at": "2026-05-24T13:15:45"
+  },
+  "toc-22": {
+    "anchor": "toc-22",
+    "title": "Prompts for the agent system",
+    "level": 2,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "The appendix provides details about an interactive environment that follows the FHIR standard, which is used for handling healthcare information. A screenshot of the frontend of this environment is shown in Figure 3. The section also describes prompts for a system that helps users call functions using FHIR. There are instructions for making GET and POST requests, which are different ways to retrieve or send data. These instructions specify how users should format their requests using specific structures.",
+    "done_at": "2026-05-24T13:15:47"
+  },
+  "toc-23": {
+    "anchor": "toc-23",
+    "title": "Subgroup analysis based on difficulty level",
+    "level": 2,
+    "page_start": 11,
+    "page_end": 11,
+    "summary": "The section examines how different language models perform on tasks of varying difficulty levels (easy, medium, hard). Difficulty levels are based on the number of steps needed: easy (1 step), medium (2 steps), and hard (3 or more steps). Table 4 shows the success rates of different models on these tasks. Claude 3.5 Sonnet v2 had the highest overall success rate, particularly excelling in easy tasks. Gemini-1.5 Pro was best at handling the hard tasks. Models like Mistral v0.3 performed poorly across all difficulty levels.",
+    "done_at": "2026-05-24T13:15:48"
+  },
+  "toc-20": {
+    "anchor": "toc-20",
+    "title": "Appendix",
+    "level": 1,
+    "page_start": 10,
+    "page_end": 10,
+    "summary": "The appendix includes two main topics. First, it details an interactive environment for using FHIR functions, showing how to make GET and POST data requests. This environment helps healthcare professionals format and send data requests in a specific way, supported by a screenshot in Figure 3. Second, it explores the performance of different language models on tasks with varying difficulty levels, from easy to hard. The analysis shows which models succeed most and where they face challenges, with Claude 3.5 Sonnet v2 performing best overall.",
+    "done_at": "2026-05-24T13:15:49"
+  }
+}

@@ -1,0 +1,348 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-23T09:12:37",
+  "nodes": [
+    {
+      "id": "large_language_model_agent",
+      "label": "Large Language Model Agent",
+      "type": "architecture",
+      "aliases": [
+        "LLM Agent",
+        "Intelligent Agent"
+      ],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "An LLM Agent is an intelligent entity powered by large language models, capable of perceiving environments, reasoning about goals, and executing actions.",
+      "wiki_page": "large_language_model_agent.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "artificial_general_intelligence",
+      "label": "Artificial General Intelligence",
+      "type": "concept",
+      "aliases": [
+        "AGI"
+      ],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A form of AI that can understand, learn, and apply intelligence across a wide range of tasks, much like a human.",
+      "wiki_page": "artificial_general_intelligence.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "agent_construction",
+      "label": "Agent Construction",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "The foundational phase in developing LLM-based systems, focusing on profile definition, memory mechanisms, planning, and action execution.",
+      "wiki_page": "agent_construction.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "agent_collaboration",
+      "label": "Agent Collaboration",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "Methods enabling multiple agents to work together, including centralized, decentralized, and hybrid architectures.",
+      "wiki_page": "agent_collaboration.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "agent_evolution",
+      "label": "Agent Evolution",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "Mechanisms allowing agents to improve over time through optimization, co-evolution, and resource integration.",
+      "wiki_page": "agent_evolution.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "memory_mechanism",
+      "label": "Memory Mechanism",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A system's ability to store, organize, and retrieve information over time, enhancing short-term and long-term tasks.",
+      "wiki_page": "memory_mechanism.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "planning_capability",
+      "label": "Planning Capability",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "The ability of an agent to navigate complex tasks and problems through strategies like task decomposition and feedback-driven iteration.",
+      "wiki_page": "planning_capability.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "action_execution",
+      "label": "Action Execution",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "The process by which an agent executes planned actions in the real world, involving tool utilization and physical interaction.",
+      "wiki_page": "action_execution.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "role_based_coordination",
+      "label": "Role-Based Coordination",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A collaboration pattern where agents are assigned specific roles to achieve complex tasks through structured interactions.",
+      "wiki_page": "role_based_coordination.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "profile_definition",
+      "label": "Profile Definition",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "The process of establishing an agent's operational identity through attributes and behavioral patterns.",
+      "wiki_page": "profile_definition.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "retrieval_augmented_generation",
+      "label": "Retrieval-Augmented Generation",
+      "type": "method",
+      "aliases": [
+        "RAG"
+      ],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A technique combining knowledge retrieval with language model generation to enhance memory and context efficiency.",
+      "wiki_page": "retrieval_augmented_generation.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "feedback_driven_iteration",
+      "label": "Feedback-Driven Iteration",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A learning mechanism where an agent uses feedback from various sources to refine plans and improve performance.",
+      "wiki_page": "feedback_driven_iteration.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "multi_agent_system",
+      "label": "Multi-Agent System",
+      "type": "architecture",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A setup where multiple agents interact or collaborate to solve problems or complete tasks.",
+      "wiki_page": "multi_agent_system.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "centralized_control",
+      "label": "Centralized Control",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A collaborative approach where a single authority coordinates the actions of multiple agents.",
+      "wiki_page": "centralized_control.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "decentralized_cooperation",
+      "label": "Decentralized Cooperation",
+      "type": "mechanism",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "An approach where agents work collaboratively without a central authority, often using distributed decision-making.",
+      "wiki_page": "decentralized_cooperation.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "junyu_luo",
+      "label": "Junyu Luo",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "An author contributing to the study of LLM agent systems and methodologies.",
+      "wiki_page": "junyu_luo.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "dacheng_tao",
+      "label": "Dacheng Tao",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A key contributor and fellow of IEEE involved in AI and large language models research.",
+      "wiki_page": "dacheng_tao.md",
+      "added_at": "2026-05-23T09:12:37"
+    },
+    {
+      "id": "philip_s_yu",
+      "label": "Philip S. Yu",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "agent_survey"
+      ],
+      "summary": "A fellow of IEEE, known for contributions to AI agent research.",
+      "wiki_page": "philip_s_yu.md",
+      "added_at": "2026-05-23T09:12:37"
+    }
+  ],
+  "edges": [
+    {
+      "source": "large_language_model_agent",
+      "target": "artificial_general_intelligence",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "agent_construction",
+      "target": "large_language_model_agent",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "agent_collaboration",
+      "target": "large_language_model_agent",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "agent_evolution",
+      "target": "large_language_model_agent",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "profile_definition",
+      "target": "agent_construction",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "memory_mechanism",
+      "target": "agent_construction",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "planning_capability",
+      "target": "agent_construction",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "action_execution",
+      "target": "agent_construction",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "feedback_driven_iteration",
+      "target": "planning_capability",
+      "relation": "improves",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "retrieval_augmented_generation",
+      "target": "memory_mechanism",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "junyu_luo",
+      "target": "large_language_model_agent",
+      "relation": "proposed_by",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "dacheng_tao",
+      "target": "large_language_model_agent",
+      "relation": "proposed_by",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    },
+    {
+      "source": "philip_s_yu",
+      "target": "large_language_model_agent",
+      "relation": "proposed_by",
+      "weight": 1,
+      "papers": [
+        "agent_survey"
+      ]
+    }
+  ]
+}

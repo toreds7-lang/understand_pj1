@@ -1,0 +1,266 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-24T13:00:00",
+  "nodes": [
+    {
+      "id": "medagentbench",
+      "label": "MedAgentBench",
+      "type": "dataset",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "A benchmarking framework designed to evaluate the agent capabilities of large language models within medical record contexts.",
+      "wiki_page": "medagentbench.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "large_language_models",
+      "label": "Large Language Models",
+      "type": "concept",
+      "aliases": [
+        "LLMs"
+      ],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "Advanced AI systems that use deep learning techniques to understand, generate, and interpret human language.",
+      "wiki_page": "large_language_models.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "fhir",
+      "label": "FHIR",
+      "type": "standard",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "Fast Healthcare Interoperability Resources, a standard for electronic exchange of healthcare information.",
+      "wiki_page": "fhir.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "agent_orchestrator",
+      "label": "Agent Orchestrator",
+      "type": "architecture",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "A system component that manages interactions between the agent, the LLM provider, and the electronic medical record environment.",
+      "wiki_page": "agent_orchestrator.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "electronic_medical_record",
+      "label": "Electronic Medical Record",
+      "type": "concept",
+      "aliases": [
+        "EMR"
+      ],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "Digital versions of patients' paper charts that provide real-time, patient-centered records accessible instantly and securely to authorized users.",
+      "wiki_page": "electronic_medical_record.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "claude_35_sonnet_v2",
+      "label": "Claude 3.5 Sonnet v2",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "A state-of-the-art large language model evaluated as the best performer on the MedAgentBench dataset.",
+      "wiki_page": "claude_35_sonnet_v2.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "agentbench",
+      "label": "AgentBench",
+      "type": "dataset",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "A generic benchmark framework for evaluating agent capabilities in general applications.",
+      "wiki_page": "agentbench.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "health_interoperability",
+      "label": "Health Interoperability",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "The ability of different information technology systems and software applications to communicate, exchange data, and use the information that has been exchanged.",
+      "wiki_page": "health_interoperability.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "bfcl",
+      "label": "BFCL",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "A framework mentioned for agent orchestration inspiration in MedAgentBench.",
+      "wiki_page": "bfcl.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "james_zou",
+      "label": "James Zou",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "A researcher mentioned who has contributed to studies on agentic AI in healthcare.",
+      "wiki_page": "james_zou.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "andrew_y_ng",
+      "label": "Andrew Y. Ng",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "A notable computer scientist and author of the paper.",
+      "wiki_page": "andrew_y_ng.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "interactive_healthcare_environment",
+      "label": "Interactive Healthcare Environment",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "An environment that simulates real-world healthcare settings for AI agents to perform tasks interactively.",
+      "wiki_page": "interactive_healthcare_environment.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "administrative_task_automation",
+      "label": "Administrative Task Automation",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "The use of AI systems to reduce the administrative burden on healthcare staff by automating routine tasks.",
+      "wiki_page": "administrative_task_automation.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "agent_capabilities",
+      "label": "Agent Capabilities",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "The abilities of AI systems to perform tasks proactively by interpreting instructions, interacting with systems, and refining responses.",
+      "wiki_page": "agent_capabilities.md",
+      "added_at": "2026-05-24T13:00:00"
+    },
+    {
+      "id": "stanford_research_repository",
+      "label": "Stanford Research Repository",
+      "type": "dataset",
+      "aliases": [
+        "STARR"
+      ],
+      "papers": [
+        "medagenbench"
+      ],
+      "summary": "A clinical data warehouse used to extract deidentified patient data for MedAgentBench.",
+      "wiki_page": "stanford_research_repository.md",
+      "added_at": "2026-05-24T13:00:00"
+    }
+  ],
+  "edges": [
+    {
+      "source": "medagentbench",
+      "target": "large_language_models",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "medagenbench"
+      ]
+    },
+    {
+      "source": "medagentbench",
+      "target": "fhir",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "medagenbench"
+      ]
+    },
+    {
+      "source": "agent_orchestrator",
+      "target": "electronic_medical_record",
+      "relation": "interacts_with",
+      "weight": 1,
+      "papers": [
+        "medagenbench"
+      ]
+    },
+    {
+      "source": "claude_35_sonnet_v2",
+      "target": "medagentbench",
+      "relation": "evaluated_on",
+      "weight": 1,
+      "papers": [
+        "medagenbench"
+      ]
+    },
+    {
+      "source": "medagentbench",
+      "target": "interactive_healthcare_environment",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "medagenbench"
+      ]
+    },
+    {
+      "source": "james_zou",
+      "target": "agent_capabilities",
+      "relation": "proposed_by",
+      "weight": 1,
+      "papers": [
+        "medagenbench"
+      ]
+    },
+    {
+      "source": "bfcl",
+      "target": "agent_orchestrator",
+      "relation": "inspired",
+      "weight": 1,
+      "papers": [
+        "medagenbench"
+      ]
+    },
+    {
+      "source": "administrative_task_automation",
+      "target": "agent_capabilities",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "medagenbench"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,270 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-24T13:23:08",
+  "nodes": [
+    {
+      "id": "autogen",
+      "label": "AutoGen",
+      "type": "framework",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "AutoGen is an open-source framework for building LLM applications via multi-agent conversations, allowing for customizable and conversable agents.",
+      "wiki_page": "autogen.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "conversable_agent",
+      "label": "Conversable Agent",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "A conversable agent is an entity that can send and receive messages to interact with other agents, using LLMs, human inputs, or tools.",
+      "wiki_page": "conversable_agent.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "multi_agent_conversations",
+      "label": "Multi-Agent Conversations",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "Multi-agent conversations refer to communication among multiple agents to accomplish tasks through modular interactions.",
+      "wiki_page": "multi_agent_conversations.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "conversation_programming",
+      "label": "Conversation Programming",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "Conversation Programming is a paradigm in AutoGen that defines agent interactions and flows using natural and programming languages.",
+      "wiki_page": "conversation_programming.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "assistantagent",
+      "label": "AssistantAgent",
+      "type": "component",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "AssistantAgent is a pre-configured conversable agent in AutoGen, acting primarily as an AI assistant using LLMs.",
+      "wiki_page": "assistantagent.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "userproxyagent",
+      "label": "UserProxyAgent",
+      "type": "component",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "UserProxyAgent is a pre-configured agent in AutoGen, capable of integrating human input or executing code.",
+      "wiki_page": "userproxyagent.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "retrieval_augmented_generation",
+      "label": "Retrieval-Augmented Generation",
+      "type": "method",
+      "aliases": [
+        "RAG"
+      ],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "An approach for enhancing LLM capabilities by incorporating external documents for more effective output.",
+      "wiki_page": "retrieval_augmented_generation.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "groupchatmanager",
+      "label": "GroupChatManager",
+      "type": "component",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "GroupChatManager is an AutoGen component that manages dynamic multi-agent conversations by selecting speakers and broadcasting responses.",
+      "wiki_page": "groupchatmanager.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "ahmed_awadallah",
+      "label": "Ahmed Awadallah",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "Ahmed Awadallah is one of the authors of the paper, contributing to the development and research of the AutoGen framework.",
+      "wiki_page": "ahmed_awadallah.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "qingyun_wu",
+      "label": "Qingyun Wu",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "Qingyun Wu is an author of the paper, helping in the development and conceptualization of AutoGen.",
+      "wiki_page": "qingyun_wu.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "human_in_the_loop",
+      "label": "Human-in-the-loop",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "An approach where human input is integrated into the automated process, allowing for human oversight and decision-making.",
+      "wiki_page": "human_in_the_loop.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "llm",
+      "label": "LLM",
+      "type": "concept",
+      "aliases": [
+        "Large Language Model"
+      ],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "Large Language Models are neural network-based models that process and generate human-like text, used as the backbone for conversable agents.",
+      "wiki_page": "llm.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "math_problem_solving",
+      "label": "Math Problem Solving",
+      "type": "application",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "An application of AutoGen involving solving mathematical problems using LLM-powered agents.",
+      "wiki_page": "math_problem_solving.md",
+      "added_at": "2026-05-24T13:23:08"
+    },
+    {
+      "id": "alfworld",
+      "label": "ALFWorld",
+      "type": "dataset",
+      "aliases": [],
+      "papers": [
+        "autogen"
+      ],
+      "summary": "A testbed for evaluating conversational agent systems in reasoning and task performance.",
+      "wiki_page": "alfworld.md",
+      "added_at": "2026-05-24T13:23:08"
+    }
+  ],
+  "edges": [
+    {
+      "source": "autogen",
+      "target": "conversable_agent",
+      "relation": "introduces",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "autogen",
+      "target": "conversation_programming",
+      "relation": "introduces",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "conversable_agent",
+      "target": "llm",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "userproxyagent",
+      "target": "human_in_the_loop",
+      "relation": "enables",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "assistantagent",
+      "target": "llm",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "autogen",
+      "target": "retrieval_augmented_generation",
+      "relation": "supports",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "retrieval_augmented_generation",
+      "target": "llm",
+      "relation": "improves",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "autogen",
+      "target": "math_problem_solving",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "autogen",
+      "target": "groupchatmanager",
+      "relation": "introduces",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    },
+    {
+      "source": "math_problem_solving",
+      "target": "alfworld",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "autogen"
+      ]
+    }
+  ]
+}

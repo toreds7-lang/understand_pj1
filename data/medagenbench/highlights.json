@@ -1,0 +1,226 @@
+{
+  "0": {
+    "page_index": 0,
+    "keywords": [
+      "MedAgentBench",
+      "large language models",
+      "agent capabilities",
+      "healthcare staff shortages",
+      "standardized dataset",
+      "clinically-derived tasks",
+      "patient-specific",
+      "FHIR-compliant interactive environment",
+      "state-of-the-art LLMs",
+      "Claude 3.5 Sonnet v2",
+      "success rate of 69.67%",
+      "task categories",
+      "AI systems",
+      "clinical workflows",
+      "publicly available"
+    ],
+    "done_at": "2026-05-24T13:15:59"
+  },
+  "1": {
+    "page_index": 1,
+    "keywords": [
+      "MedAgentBench",
+      "agent orchestrator",
+      "LLM provider",
+      "electronic medical record environment",
+      "community-acquired pneumonia (CAP)",
+      "calculate personalized patient risk scores",
+      "Pseudomonas infection risk factors",
+      "local antibiogram information",
+      "AgentBench",
+      "AgentBoard",
+      "BFCL",
+      "tau-bench",
+      "MedQA",
+      "MedMCQA",
+      "CRAFT-MD",
+      "AgentClinic"
+    ],
+    "done_at": "2026-05-24T13:16:00"
+  },
+  "2": {
+    "page_index": 2,
+    "keywords": [
+      "MedAgentBench",
+      "large language models",
+      "agent capabilities",
+      "interactive healthcare environments",
+      "FHIR-compliant interactive environment",
+      "real-world EMR APIs",
+      "benchmark tasks",
+      "clinically-relevant tasks",
+      "autonomous interactions",
+      "licensed human clinicians",
+      "agent orchestrator",
+      "medical records database",
+      "computer agent automation",
+      "inpatient and outpatient medical scenarios",
+      "patient communication",
+      "patient information retrieval",
+      "test ordering",
+      "referral ordering",
+      "patient data aggregation and analysis"
+    ],
+    "done_at": "2026-05-24T13:16:02"
+  },
+  "3": {
+    "page_index": 3,
+    "keywords": [
+      "MedAgentBench",
+      "Patient information retrieval",
+      "Lab result retrieval",
+      "Patient data aggregation",
+      "Recording patient data",
+      "Test ordering",
+      "Referral ordering",
+      "Medication ordering",
+      "EHR system context",
+      "deidentified clinical data warehouse",
+      "STARR (STAnford Research Repository)",
+      "patient profiles"
+    ],
+    "done_at": "2026-05-24T13:16:03"
+  },
+  "4": {
+    "page_index": 4,
+    "keywords": [
+      "Unique individuals",
+      "Observation records",
+      "Procedure records",
+      "Condition records",
+      "MedicationRequest records",
+      "protected health information",
+      "STARR data warehouse",
+      "Faker",
+      "Observation resources",
+      "CPT code",
+      "ICD10 code",
+      "Condition resources",
+      "MedicationRequest resources",
+      "FHIR",
+      "HAPI FHIR JPA"
+    ],
+    "done_at": "2026-05-24T13:16:04"
+  },
+  "5": {
+    "page_index": 5,
+    "keywords": [
+      "EMR systems",
+      "Docker container",
+      "Google Cloud Platform",
+      "MedAgentBench",
+      "AgentBench",
+      "GET requests",
+      "task success rate",
+      "query-based tasks",
+      "action-based tasks",
+      "reference solutions",
+      "pass@1",
+      "state-of-the-art LLMs",
+      "GPT-4o",
+      "Gemini 2.0 Pro",
+      "Claude 3.5 Sonnet v2",
+      "DeepSeek-V3",
+      "Llama 3.3",
+      "BFCL",
+      "FHIR functions",
+      "JSON schemas",
+      "FHIR API documentation",
+      "Agent Orchestrator",
+      "Gemini models"
+    ],
+    "done_at": "2026-05-24T13:16:05"
+  },
+  "6": {
+    "page_index": 6,
+    "keywords": [
+      "Success rate (SR)",
+      "MedAgentBench",
+      "Claude 3.5 Sonnet v2",
+      "GPT-4o",
+      "DeepSeek-V3",
+      "Gemini-1.5 Pro",
+      "GPT-4o-mini",
+      "o3-mini",
+      "Qwen2.5",
+      "Llama 3.3",
+      "Gemini 2.0 Flash",
+      "Gemma2",
+      "Gemini 2.0 Pro",
+      "Mistral v0.3",
+      "memory-augmented decision-making",
+      "retrieval-augmented reasoning",
+      "8-round interaction cap",
+      "query SR",
+      "action SR",
+      "closed and open-weights LLMs",
+      "300 tasks in MedAgentBench",
+      "GET requests",
+      "POST requests",
+      "tool_code or json block"
+    ],
+    "done_at": "2026-05-24T13:16:07"
+  },
+  "7": {
+    "page_index": 7,
+    "keywords": [
+      "MedAgentBench",
+      "successful agent action trajectory",
+      "invalid agent action",
+      "LLM capability",
+      "interactive environment",
+      "Stanford Hospital records",
+      "query-based tasks",
+      "action-based tasks",
+      "broad evaluation suite",
+      "many-shot in-context learning",
+      "meta prompting",
+      "standardized evaluation framework"
+    ],
+    "done_at": "2026-05-24T13:16:08"
+  },
+  "8": {
+    "page_index": 8,
+    "keywords": [],
+    "done_at": "2026-05-24T13:16:09"
+  },
+  "9": {
+    "page_index": 9,
+    "keywords": [],
+    "done_at": "2026-05-24T13:16:09"
+  },
+  "10": {
+    "page_index": 10,
+    "keywords": [],
+    "done_at": "2026-05-24T13:16:10"
+  },
+  "11": {
+    "page_index": 11,
+    "keywords": [
+      "A.3 Subgroup analysis",
+      "difficulty levels",
+      "easy (1 step)",
+      "medium (2 steps)",
+      "hard (≥ 3 steps)",
+      "Table 4",
+      "success rate (SR)",
+      "state-of-the-art LLMs",
+      "MedAgentBench",
+      "Claude 3.5 Sonnet v2",
+      "GPT-4o",
+      "DeepSeek-V3",
+      "Gemini-1.5 Pro",
+      "o3-mini",
+      "Qwen2.5",
+      "Llama 3.3",
+      "Gemini 2.0 Flash",
+      "Gemma2",
+      "Mistral v0.3"
+    ],
+    "done_at": "2026-05-24T13:16:11"
+  }
+}

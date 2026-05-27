@@ -1,0 +1,11 @@
+Paper ID: {paper_id}
+
+{toc_section}
+
+=== Paper Text ===
+{pages_text}
+=== End Paper Text ===
+
+Extract concepts and relationships from this paper segment.
+Focus on concepts central to the paper's contribution.
+Return JSON only.

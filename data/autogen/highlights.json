@@ -1,0 +1,674 @@
+{
+  "0": {
+    "page_index": 0,
+    "keywords": [
+      "AutoGen",
+      "multi-agent conversation",
+      "Conversable agent",
+      "customizable",
+      "human inputs",
+      "conversation patterns",
+      "developers",
+      "open-source framework",
+      "empirical studies",
+      "natural language",
+      "computer code"
+    ],
+    "done_at": "2026-05-24T13:39:03"
+  },
+  "1": {
+    "page_index": 1,
+    "keywords": [
+      "Large language models (LLMs)",
+      "multi-agent conversations",
+      "chat-optimized LLMs",
+      "framework",
+      "multi-agent conversation framework",
+      "AutoGen",
+      "Customizable and conversable agents",
+      "conversation programming",
+      "GPT-4"
+    ],
+    "done_at": "2026-05-24T13:39:04"
+  },
+  "2": {
+    "page_index": 2,
+    "keywords": [
+      "AutoGen",
+      "multi-agent applications",
+      "conversable agents",
+      "conversation programming",
+      "Agent capabilities",
+      "LLMs",
+      "role playing",
+      "implicit state inference",
+      "progress making",
+      "error handling",
+      "user proxy agent",
+      "human-backed agents",
+      "tool-backed agents",
+      "ConversableAgent class",
+      "AssistantAgent",
+      "UserProxyAgent"
+    ],
+    "done_at": "2026-05-24T13:39:05"
+  },
+  "3": {
+    "page_index": 3,
+    "keywords": [
+      "ConversableAgent",
+      "Unified Conversation Interfaces",
+      "human_input_mode",
+      "sendreceive",
+      "generate_reply",
+      "DEFAULT_SYSTEM_MESSAGE",
+      "AutoGen",
+      "conversation programming",
+      "computation",
+      "control flow",
+      "conversation-centric",
+      "conversation-driven",
+      "conversation-centric computations",
+      "LLM inference calls",
+      "code execution"
+    ],
+    "done_at": "2026-05-24T13:39:06"
+  },
+  "4": {
+    "page_index": 4,
+    "keywords": [
+      "AutoGen",
+      "unified conversation interfaces",
+      "agent auto-reply mechanism",
+      "conversation-driven control",
+      "LLM inference",
+      "natural-language control",
+      "AssistantAgent",
+      "programming-language control",
+      "control transition",
+      "multi-agent conversations",
+      "customized generate reply function",
+      "dynamic group chat",
+      "GroupChatManager"
+    ],
+    "done_at": "2026-05-24T13:39:07"
+  },
+  "5": {
+    "page_index": 5,
+    "keywords": [
+      "AutoGen",
+      "math problem solving",
+      "Multi-Agent Debate",
+      "LangChain ReAct",
+      "GPT-4",
+      "ChatGPT + Code Interpreter",
+      "ChatGPT + Plugin",
+      "MATH dataset",
+      "human-in-the-loop problem-solving",
+      "UserProxyAgent",
+      "Retrieval-Augmented Generation",
+      "Retrieval-augmented Chat",
+      "Retrieval-augmented User Proxy agent",
+      "Retrieval-augmented Assistant agent",
+      "vector database"
+    ],
+    "done_at": "2026-05-24T13:39:08"
+  },
+  "6": {
+    "page_index": 6,
+    "keywords": [
+      "AutoGen",
+      "interactive retrieval",
+      "Retrieval-augmented Chat",
+      "Dense Passage Retrieval",
+      "Natural Questions dataset",
+      "DPR",
+      "GPT-3.5-turbo",
+      "three-agent system",
+      "context retriever",
+      "SentenceTransformers",
+      "ALFWorld",
+      "OptiGuide",
+      "multi-agent design",
+      "conversational design"
+    ],
+    "done_at": "2026-05-24T13:39:09"
+  },
+  "7": {
+    "page_index": 7,
+    "keywords": [
+      "AutoGen",
+      "ALFWorld",
+      "ReAct prompting",
+      "grounding agent",
+      "GPT-3.5-turbo",
+      "error loops",
+      "OptiGuide",
+      "multi-agent coding",
+      "Commander agent",
+      "Writer",
+      "Safeguard",
+      "ChatGPT+Code Interpreter",
+      "F-1 score"
+    ],
+    "done_at": "2026-05-24T13:39:14"
+  },
+  "8": {
+    "page_index": 8,
+    "keywords": [
+      "AutoGen",
+      "dynamic group chat",
+      "GroupChatManager",
+      "role-play style prompt",
+      "Conversational Chess",
+      "natural language interface game",
+      "AI-AI",
+      "AI-human",
+      "human-human",
+      "board agent",
+      "valid moves",
+      "game integrity",
+      "multi-agent cooperation",
+      "conversation programming",
+      "chat-optimized LLMs"
+    ],
+    "done_at": "2026-05-24T13:39:15"
+  },
+  "9": {
+    "page_index": 9,
+    "keywords": [
+      "multi-agent framework",
+      "optimal balance between automation and human control",
+      "agent topology",
+      "agent implementations",
+      "conversation patterns",
+      "LLM applications",
+      "Privacy and Data Protection",
+      "Bias and Fairness",
+      "Accountability and Transparency",
+      "Trust and Reliance",
+      "Unintended Consequences",
+      "function calls",
+      "Appendix B"
+    ],
+    "done_at": "2026-05-24T13:39:16"
+  },
+  "10": {
+    "page_index": 10,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:16"
+  },
+  "11": {
+    "page_index": 11,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:17"
+  },
+  "12": {
+    "page_index": 12,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:17"
+  },
+  "13": {
+    "page_index": 13,
+    "keywords": [
+      "LLM-based agent systems",
+      "AutoGen",
+      "single-agent paradigm",
+      "multi-agent systems",
+      "AutoGPT",
+      "ChatGPT+",
+      "LangChain Agents",
+      "ReAct agent",
+      "Transformers Agent",
+      "BabyAGI",
+      "static agent conversation pattern",
+      "dynamic conversation patterns",
+      "CAMEL",
+      "Inception-prompting technique",
+      "Multi-Agent Debate"
+    ],
+    "done_at": "2026-05-24T13:39:18"
+  },
+  "14": {
+    "page_index": 14,
+    "keywords": [
+      "MetaGPT",
+      "multi-agent conversation framework",
+      "automatic software development",
+      "AutoGen",
+      "Voyager",
+      "Generative Agents",
+      "Hong et al., 2023",
+      "Wang et al., 2023a",
+      "Park et al., 2023",
+      "static pattern",
+      "dynamic pattern",
+      "execution-capable",
+      "human involvement",
+      "conversation pattern",
+      "flexible conversation patterns"
+    ],
+    "done_at": "2026-05-24T13:39:19"
+  },
+  "15": {
+    "page_index": 15,
+    "keywords": [
+      "AutoGen",
+      "multi-agent conversations",
+      "dynamic multi-turn agent cooperation",
+      "Ease of use",
+      "Modularity",
+      "Programmability",
+      "Allowing human involvement",
+      "Collaborative/adversarial agent interactions",
+      "built-in agents",
+      "AssistantAgent",
+      "UserProxyAgent",
+      "two-agent chat",
+      "group chat setup",
+      "reuse built-in reply methods",
+      "GroupChatManager"
+    ],
+    "done_at": "2026-05-24T13:39:20"
+  },
+  "16": {
+    "page_index": 16,
+    "keywords": [
+      "human input mode",
+      "AutoGen agents",
+      "LangChain",
+      "LlamaIndex",
+      "Semantic Kernel",
+      "Gorilla",
+      "conversable agents",
+      "multi-agent conversation",
+      "flaml.tune",
+      "optimal multi-agent workflows",
+      "highly capable agents",
+      "CAMEL",
+      "complex multi-agent workflows",
+      "autonomous workflows",
+      "user proxy agent"
+    ],
+    "done_at": "2026-05-24T13:39:21"
+  },
+  "17": {
+    "page_index": 17,
+    "keywords": [
+      "AutoGen (v0.1.1)",
+      "built-in assistant agent",
+      "conversation programming via natural language",
+      "role play",
+      "control flow",
+      "output confine",
+      "facilitate automation",
+      "grounding",
+      "LLMs",
+      "GPT-4",
+      "GPT-3.5-turbo",
+      "implicit state inference"
+    ],
+    "done_at": "2026-05-24T13:39:22"
+  },
+  "18": {
+    "page_index": 18,
+    "keywords": [
+      "Autonomous Problem Solving",
+      "GPT-4",
+      "sympy",
+      "AutoGen",
+      "AutoGPT",
+      "MathSolverGPT",
+      "ChatGPT+Plugin",
+      "Wolfram Alpha plugin",
+      "ChatGPT+Code Interpreter",
+      "LangChain ReAct+Python",
+      "Multi-Agent Debate",
+      "BabyAGI",
+      "CAMEL",
+      "MetaGPT",
+      "MATH dataset"
+    ],
+    "done_at": "2026-05-24T13:39:23"
+  },
+  "19": {
+    "page_index": 19,
+    "keywords": [
+      "number theory issue",
+      "Table 2",
+      "MATH dataset",
+      "AutoGPT",
+      "`AutoGen`",
+      "GPT-4",
+      "problem-solving success rate",
+      "ChatGPT+Code Interpreter",
+      "ChatGPT+Plugin",
+      "LangChain agent",
+      "Wolfram Alpha plugin",
+      "Human-in-the-loop Problem Solving",
+      "LLM-based system",
+      "verbosity of the response",
+      "undesired behaviors"
+    ],
+    "done_at": "2026-05-24T13:39:24"
+  },
+  "20": {
+    "page_index": 20,
+    "keywords": [
+      "AutoGen",
+      "human input mode=‘ALWAYS’",
+      "ChatGPT+Code Interpreter",
+      "ChatGPT+Plugin",
+      "AutoGPT",
+      "Multi-User Problem Solving",
+      "student proxy agent",
+      "ask for expert function",
+      "function call feature of GPT",
+      "UserProxyAgent",
+      "AssistantAgent"
+    ],
+    "done_at": "2026-05-24T13:39:25"
+  },
+  "21": {
+    "page_index": 21,
+    "keywords": [
+      "Retrieval-augmented Chat",
+      "Retrieval-augmented User Proxy",
+      "Retrieval-augmented Assistant",
+      "vector database",
+      "LLM",
+      "code generation",
+      "Natural Questions dataset",
+      "Retrieval-Augmented Code Generation",
+      "interactive retrieval"
+    ],
+    "done_at": "2026-05-24T13:39:26"
+  },
+  "22": {
+    "page_index": 22,
+    "keywords": [
+      "retrieve augmented chatbot",
+      "UPDATE CONTEXT",
+      "Retrieval-augmented Chat",
+      "GPT-3.5-turbo",
+      "AutoGen W/O interactive retrieval",
+      "F1 score",
+      "Recall",
+      "Differences in the retrievers",
+      "all-MiniLM-L6-v2 model",
+      "Natural Questions dataset",
+      "FLAML",
+      "efficient AutoML",
+      "open-source Python library",
+      "Spark-related APIs",
+      "GPT-4"
+    ],
+    "done_at": "2026-05-24T13:39:27"
+  },
+  "23": {
+    "page_index": 23,
+    "keywords": [
+      "ALFWorld",
+      "AutoGen",
+      "two-agent design",
+      "three-agent design",
+      "assistant agent",
+      "executor agent",
+      "ALFWorld benchmark",
+      "grounding agent",
+      "commonsense reasoning",
+      "ReAct",
+      "text-completion task",
+      "few-shot prompting",
+      "BLEU metric",
+      "household environments"
+    ],
+    "done_at": "2026-05-24T13:39:28"
+  },
+  "24": {
+    "page_index": 24,
+    "keywords": [
+      "ALFChat",
+      "ALFChat (2 agents)",
+      "ALFChat(3 agents)",
+      "ReAct",
+      "grounding agent",
+      "task success rate",
+      "ALFWorld benchmark",
+      "external commonsense knowledge source",
+      "AutoGen",
+      "successfully completed",
+      "dialogue-completion tasks"
+    ],
+    "done_at": "2026-05-24T13:39:29"
+  },
+  "25": {
+    "page_index": 25,
+    "keywords": [
+      "OptiGuide",
+      "AutoGen",
+      "Commander",
+      "Writer",
+      "Safeguard",
+      "LLM-based assistant agents",
+      "user interactions",
+      "capture and retain valuable context",
+      "addConstr",
+      "total cost would increase by 10.5%",
+      "exception",
+      "security red flag",
+      "code execution failures",
+      "multi-agent interaction"
+    ],
+    "done_at": "2026-05-24T13:39:30"
+  },
+  "26": {
+    "page_index": 26,
+    "keywords": [
+      "ChatGPT + Code Interpreter",
+      "AutoGen-based OptiGuide",
+      "Gurobi",
+      "coffee supply chain scenario",
+      "problem-solving time",
+      "response time",
+      "user interactions",
+      "multi-agent design",
+      "OptiGuide application",
+      "collaborative and adversarial problem-solving",
+      "Commander and Writer",
+      "virtual adversarial checker",
+      "context-aware decision-making"
+    ],
+    "done_at": "2026-05-24T13:39:32"
+  },
+  "27": {
+    "page_index": 27,
+    "keywords": [
+      "AutoGen",
+      "dynamic group chat",
+      "GroupChatManager",
+      "four-agent dynamic group chat system",
+      "role-play speaker selection policy",
+      "user proxy",
+      "engineer",
+      "critic",
+      "code executor",
+      "two-agent system",
+      "task-based speaker selection policy",
+      "role-play prompt",
+      "GPT-3.5-turbo",
+      "GPT-4"
+    ],
+    "done_at": "2026-05-24T13:39:33"
+  },
+  "28": {
+    "page_index": 28,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:34"
+  },
+  "29": {
+    "page_index": 29,
+    "keywords": [
+      "Conversational Chess",
+      "AutoGen agent",
+      "board agent",
+      "LLM-empowered AI",
+      "human input",
+      "legal chess moves",
+      "natural language for communication",
+      "custom reply function",
+      "UCI",
+      "chat completion",
+      "register reply method"
+    ],
+    "done_at": "2026-05-24T13:39:34"
+  },
+  "30": {
+    "page_index": 30,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:35"
+  },
+  "31": {
+    "page_index": 31,
+    "keywords": [
+      "online decision making",
+      "browser interactions",
+      "AutoGen",
+      "MiniWobChat",
+      "MiniWob++ benchmark",
+      "assistant agent",
+      "executor agent",
+      "mouse and keyboard actions",
+      "AssistantAgent",
+      "UserProxyAgent",
+      "MiniWoB++ comprises browser interaction tasks",
+      "sequence of web manipulation actions",
+      "RCI",
+      "self-critiquing prompts",
+      "success rate of 52 _._ 8%"
+    ],
+    "done_at": "2026-05-24T13:39:37"
+  },
+  "32": {
+    "page_index": 32,
+    "keywords": [
+      "Auto-GPT",
+      "Complex rules",
+      "MiniWob++ benchmark",
+      "AutoGen",
+      "modularity and programmability",
+      "autonomous conversations",
+      "agent-environment interactions",
+      "AssistantAgent",
+      "decoupling of the execution and assistant agent",
+      "RCI",
+      "MiniWobChat",
+      "success rate",
+      "performance comparable to that of RCI",
+      "Table 7"
+    ],
+    "done_at": "2026-05-24T13:39:38"
+  },
+  "33": {
+    "page_index": 33,
+    "keywords": [
+      "autonomous solving process",
+      "ChatGPT + Plugin",
+      "AutoGen",
+      "LangChain ReAct",
+      "AutoGPT",
+      "Multi-Agent Debate",
+      "ChatGPT + Code Interpreter",
+      "OptiGuide problem",
+      "BabyAGI",
+      "CAMEL",
+      "MetaGPT",
+      "Wolfram Alpha"
+    ],
+    "done_at": "2026-05-24T13:39:39"
+  },
+  "34": {
+    "page_index": 34,
+    "keywords": [
+      "AutoGen",
+      "qualitative example",
+      "LangChain ReAct",
+      "sympy",
+      "simplify()",
+      "Scenario 1: Autonomous math problem-solving",
+      "decimal number",
+      "sqrt",
+      "Rational"
+    ],
+    "done_at": "2026-05-24T13:39:39"
+  },
+  "35": {
+    "page_index": 35,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:40"
+  },
+  "36": {
+    "page_index": 36,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:41"
+  },
+  "37": {
+    "page_index": 37,
+    "keywords": [
+      "ChatGPT+ Code Interpreter",
+      "What if the roasting cost is increased by 5% because of the potential salary increase",
+      "coffee.py",
+      "Gurobi solver",
+      "Download Modifed Coffee.py",
+      "Prompt Safeguard",
+      "Download Modifed Safe Coffee.py",
+      "Download Final Modifed Safe Coffee.py",
+      "Optimizer version 9.5.1 build v9.5.1rc2",
+      "Optimal cost: 2526.5",
+      "Original Cost: 2470",
+      "Modifed Cost (with 5% increase in roasting costs): 2526.5"
+    ],
+    "done_at": "2026-05-24T13:39:42"
+  },
+  "38": {
+    "page_index": 38,
+    "keywords": [
+      "autonomous math solving",
+      "ChatGPT+ Code Interpreter",
+      "simplified_fraction",
+      "AutoGen",
+      "OptiGuide",
+      "roasting cost",
+      "optimal total cost",
+      "distribution solution",
+      "supply chain"
+    ],
+    "done_at": "2026-05-24T13:39:43"
+  },
+  "39": {
+    "page_index": 39,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:47"
+  },
+  "40": {
+    "page_index": 40,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:47"
+  },
+  "41": {
+    "page_index": 41,
+    "keywords": [],
+    "done_at": "2026-05-24T13:39:49",
+    "error": "RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-GsGpFo8XzR8JW5mLFSNwdQ8i on tokens per min (TPM): Limit 30000, Used 29331, Requested 686. Please try again in 34ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}"
+  },
+  "42": {
+    "page_index": 42,
+    "keywords": [
+      "MiniWobChat",
+      "clickbutton-sequence",
+      "button ONE",
+      "button TWO"
+    ],
+    "done_at": "2026-05-24T13:39:50"
+  }
+}

@@ -1,0 +1,11 @@
+{history_section}
+
+=== Relevant Wiki Pages ===
+{wiki_context}
+=== End Wiki Pages ===
+
+=== Supporting Paper Excerpts ===
+{rag_context}
+=== End Paper Excerpts ===
+
+Question: {question}

@@ -1,0 +1,7 @@
+**What it shows**: Figure 4 presents an overview of real-world issues in Large Language Model (LLM) agent systems, categorized into three primary domains: security challenges, privacy concerns, and social impact considerations.
+
+**Key components**: The figure is divided into three sections: Security, Privacy, and Social Impact. Each section lists specific issues. The Security domain includes "Agent-centric Security" with items like "Adversarial Attacks" and "Model Collaboration," and "Data-centric Security" covering "External Data Attacks" and "Interaction Attacks." Privacy concerns include "Memorization Vulnerability" and "Intellectual Property Exploitation" with "Model Stealing Attacks" and "Prompt Stealing Attacks." Social Impact encompasses "Benefits" and "Ethical Concerns," addressing areas such as "Automation Enhancement" and "Bias and Discrimination."
+
+**What the paper concludes from it**: The paper emphasizes the need to address these real-world challenges to ensure responsible deployment of LLM agents. Security concerns cover threats to model components and data contamination. Privacy issues include vulnerabilities related to memorization and intellectual property. Social impact involves both the benefits of automation and ethical concerns around bias [page 10-11].
+
+**Caveats / limits**: The figure does not provide specific examples or detailed solutions for the listed issues. It serves as an overview to categorize broad challenges rather than delving into detailed explorations of each topic.

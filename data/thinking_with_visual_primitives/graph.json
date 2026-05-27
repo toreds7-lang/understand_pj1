@@ -1,0 +1,429 @@
+{
+  "version": 1,
+  "updated_at": "2026-05-23T13:07:24",
+  "nodes": [
+    {
+      "id": "multimodal_large_language_models",
+      "label": "Multimodal Large Language Models",
+      "type": "architecture",
+      "aliases": [
+        "MLLMs"
+      ],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "Models that combine large language models with visual components to understand and generate multimodal (text and visual) content.",
+      "wiki_page": "multimodal_large_language_models.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "chain_of_thought",
+      "label": "Chain-of-Thought",
+      "type": "mechanism",
+      "aliases": [
+        "CoT"
+      ],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "A reasoning approach that involves breaking down complex problems into a series of manageable steps or thoughts, typically applied within the linguistic domain.",
+      "wiki_page": "chain_of_thought.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "perception_gap",
+      "label": "Perception Gap",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "The discrepancy between visual perception and text-based reasoning in multimodal models.",
+      "wiki_page": "perception_gap.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "reference_gap",
+      "label": "Reference Gap",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "The inherent limitation of language to provide precise referential pointers in visual space, leading to failures in tasks needing spatial precision.",
+      "wiki_page": "reference_gap.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "thinking_with_visual_primitives",
+      "label": "Thinking with Visual Primitives",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "A reasoning framework that uses spatial markers like points and bounding boxes as fundamental elements of thought, integrating them directly into the cognitive process of a model.",
+      "wiki_page": "thinking_with_visual_primitives.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "visual_primitives",
+      "label": "Visual Primitives",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "Basic visual elements such as points and bounding boxes used within a model to ground reasoning in physical space.",
+      "wiki_page": "visual_primitives.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "compressed_sparse_attention",
+      "label": "Compressed Sparse Attention",
+      "type": "mechanism",
+      "aliases": [
+        "CSA"
+      ],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "An attention mechanism that compresses the key-value cache in transformer models to improve efficiency without sacrificing performance.",
+      "wiki_page": "compressed_sparse_attention.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "vision_transformer",
+      "label": "Vision Transformer",
+      "type": "architecture",
+      "aliases": [
+        "ViT"
+      ],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "A type of transformer model specifically designed for processing and interpreting visual data.",
+      "wiki_page": "vision_transformer.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "deepseek_v4_flash",
+      "label": "DeepSeek-V4-Flash",
+      "type": "architecture",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "An architecture involving a mixture-of-experts model with a large parameter count, used as a backbone in multimodal reasoning tasks.",
+      "wiki_page": "deepseek_v4_flash.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "bounding_box",
+      "label": "Bounding Box",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "A rectangular annotation around an object in an image, used to identify its location and scale.",
+      "wiki_page": "bounding_box.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "point",
+      "label": "Point",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "A coordinate in an image used for spatial referencing or tracking motion trajectories.",
+      "wiki_page": "point.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "dataset_curation",
+      "label": "Dataset Curation",
+      "type": "method",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "The process of collecting, filtering, and organizing data for training models, ensuring diversity and accuracy of the data.",
+      "wiki_page": "dataset_curation.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "large_scale_data",
+      "label": "Large-Scale Data",
+      "type": "dataset",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "A vast compilation of data, often sourced from the web, to provide a rich and varied training environment for models.",
+      "wiki_page": "large_scale_data.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "cold_start_data",
+      "label": "Cold-Start Data",
+      "type": "dataset",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "Initial set of data employed to bootstrap model training and fine-tuning, particularly in specialized scenarios.",
+      "wiki_page": "cold_start_data.md",
+      "added_at": "2026-05-23T13:05:49"
+    },
+    {
+      "id": "bounding_boxes",
+      "label": "Bounding Boxes",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "Rectangular shapes used to specify the location and scale of objects in images.",
+      "wiki_page": "bounding_boxes.md",
+      "added_at": "2026-05-23T13:07:24"
+    },
+    {
+      "id": "points",
+      "label": "Points",
+      "type": "concept",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "Simple coordinate markers used for spatial referencing in images.",
+      "wiki_page": "points.md",
+      "added_at": "2026-05-23T13:07:24"
+    },
+    {
+      "id": "dense_counting",
+      "label": "Dense Counting",
+      "type": "task",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "Counting the number of objects in an image, especially when objects are closely packed.",
+      "wiki_page": "dense_counting.md",
+      "added_at": "2026-05-23T13:07:24"
+    },
+    {
+      "id": "spatial_reasoning",
+      "label": "Spatial Reasoning",
+      "type": "task",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "The ability to reason about spatial relationships and objects within a visual scene.",
+      "wiki_page": "spatial_reasoning.md",
+      "added_at": "2026-05-23T13:07:24"
+    },
+    {
+      "id": "general_visual_question_answering",
+      "label": "General Visual Question Answering",
+      "type": "task",
+      "aliases": [
+        "VQA"
+      ],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "A task where models answer questions based on an understanding of visual input.",
+      "wiki_page": "general_visual_question_answering.md",
+      "added_at": "2026-05-23T13:07:24"
+    },
+    {
+      "id": "gang_zeng",
+      "label": "Gang Zeng",
+      "type": "person",
+      "aliases": [],
+      "papers": [
+        "thinking_with_visual_primitives"
+      ],
+      "summary": "A core contributor to the research on multimodal intelligence and visual reasoning systems.",
+      "wiki_page": "gang_zeng.md",
+      "added_at": "2026-05-23T13:07:24"
+    }
+  ],
+  "edges": [
+    {
+      "source": "thinking_with_visual_primitives",
+      "target": "visual_primitives",
+      "relation": "uses",
+      "weight": 2,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "thinking_with_visual_primitives",
+      "target": "multimodal_large_language_models",
+      "relation": "extends",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "reference_gap",
+      "target": "chain_of_thought",
+      "relation": "is_a",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "compressed_sparse_attention",
+      "target": "thinking_with_visual_primitives",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "vision_transformer",
+      "target": "deepseek_v4_flash",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "dataset_curation",
+      "target": "large_scale_data",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "visual_primitives",
+      "target": "bounding_box",
+      "relation": "is_a",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "visual_primitives",
+      "target": "point",
+      "relation": "is_a",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "multimodal_large_language_models",
+      "target": "chain_of_thought",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "thinking_with_visual_primitives",
+      "target": "compressed_sparse_attention",
+      "relation": "uses",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "thinking_with_visual_primitives",
+      "target": "vision_transformer",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "deepseek_v4_flash",
+      "target": "thinking_with_visual_primitives",
+      "relation": "part_of",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "thinking_with_visual_primitives",
+      "target": "reference_gap",
+      "relation": "addresses",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "bounding_boxes",
+      "target": "visual_primitives",
+      "relation": "is_a",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "points",
+      "target": "visual_primitives",
+      "relation": "is_a",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "thinking_with_visual_primitives",
+      "target": "dense_counting",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "thinking_with_visual_primitives",
+      "target": "spatial_reasoning",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "thinking_with_visual_primitives",
+      "target": "general_visual_question_answering",
+      "relation": "evaluates_on",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    },
+    {
+      "source": "gang_zeng",
+      "target": "thinking_with_visual_primitives",
+      "relation": "proposed_by",
+      "weight": 1,
+      "papers": [
+        "thinking_with_visual_primitives"
+      ]
+    }
+  ]
+}
