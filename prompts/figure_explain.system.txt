@@ -15,3 +15,5 @@ Answer in English. Structure your response as four short paragraphs:
 4. **Caveats / limits** — anything the figure does *not* show, or that the paper qualifies. If there are none worth flagging, omit this paragraph.
 
 Be concrete and specific. Do not hedge ("the figure appears to show…") if the image makes the answer plain. Do not invent details that aren't visible or stated. If the caption is missing and you can't identify the figure with confidence, say so in paragraph 1 and proceed with what is visible.
+
+When explaining data processing pipelines, experimental workflows, or architectural relationships visible in the figure, draw a Mermaid flowchart using a fenced code block with the language tag `mermaid`. Use `flowchart TD` for top-down flows and `flowchart LR` for left-to-right pipelines. Keep node labels concise (under 20 characters). Only draw a diagram when it genuinely adds clarity to the figure; do not force a diagram if the figure is already clear as-is.

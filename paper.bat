@@ -2,10 +2,17 @@
 setlocal
 cd /d "%~dp0"
 
-set "PY=..\.venv\Scripts\python.exe"
+set "PY=.venv\Scripts\python.exe"
 if not exist "%PY%" (
-    echo ERROR: Python venv not found at %PY%
-    echo Expected the shared venv one level up.
+    echo ERROR: Python venv not found at "%~dp0%PY%"
+    echo Double-click setup.bat first to install dependencies.
+    pause
+    exit /b 1
+)
+
+if not exist "env.txt" (
+    echo ERROR: env.txt not found.
+    echo Copy env_example.txt to env.txt and fill in your OPENAI_API_KEY.
     pause
     exit /b 1
 )

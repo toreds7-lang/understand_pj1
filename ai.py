@@ -86,9 +86,19 @@ def chat_stream(
             context = _format_context(hits) if hits else (page_markdown or "")
         scope_note = f"You must answer using only page {page_index + 1}."
     else:
-        hits = index.topk(message, k=5)
-        context = _format_context(hits)
-        scope_note = "Use the most relevant excerpts; cite the pages you used."
+        section = index.find_section_page(message)
+        if section is not None:
+            hits = index.topk(message, k=5, page_filter=section["page"])
+            context = _format_context(hits)
+            scope_note = (
+                f"The question refers to the '{section['title']}' section, which begins "
+                f"on page {section['page'] + 1}. Answer using those excerpts and "
+                f"cite [page {section['page'] + 1}]."
+            )
+        else:
+            hits = index.topk(message, k=5)
+            context = _format_context(hits)
+            scope_note = "Use the most relevant excerpts; cite the pages you used."
 
     history_text = _format_history(history, n_pairs=3)
     user_msg = _load("chat.user.txt").format(

@@ -4,9 +4,12 @@
 <meta charset="utf-8">
 <title>Paper viewer</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/atom-one-dark.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <style>
 :root {
   --bg: #1e1e1e;
@@ -248,6 +251,26 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 #popup .pop-close { position: absolute; top: 4px; right: 8px; cursor: pointer;
   color: var(--muted); font-size: 16px; line-height: 1; }
 
+/* ── Shortcuts modal (F1) ──────────────────────────────────────────────── */
+#shortcuts-overlay { position: fixed; inset: 0; z-index: 10000; display: none;
+  align-items: center; justify-content: center; background: rgba(0,0,0,0.5); }
+#shortcuts-overlay.open { display: flex; }
+#shortcuts-modal { position: relative; background: var(--panel);
+  border: 1px solid var(--accent); border-radius: 8px; padding: 18px 22px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.5); max-width: 520px; width: 90%;
+  max-height: 80vh; overflow-y: auto; }
+#shortcuts-modal h2 { font-size: 15px; margin: 0 0 12px; color: var(--text); }
+#shortcuts-modal .pop-close { position: absolute; top: 8px; right: 12px;
+  cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; }
+#shortcuts-modal .pop-close:hover { color: var(--text); }
+.shortcuts-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.shortcuts-table td { padding: 5px 8px; vertical-align: top; }
+.shortcuts-table td:first-child { white-space: nowrap; width: 1%; }
+.shortcuts-table td:last-child { color: var(--muted); }
+.shortcuts-table kbd { display: inline-block; background: var(--panel-2);
+  border: 1px solid var(--border); border-radius: 3px; padding: 1px 6px;
+  font-family: inherit; font-size: 11px; color: var(--text); }
+
 /* ── Open PDF button + picker modal ────────────────────────────────────── */
 .open-pdf-btn { margin-top: 8px; background: var(--panel-2); color: var(--text);
   border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px;
@@ -334,6 +357,10 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
   font: inherit; min-height: 32px; max-height: 80px; }
 #wiki-send { background: var(--accent); color: #1e1e1e; border: 0;
   border-radius: 4px; padding: 0 12px; cursor: pointer; font-weight: 600; font-size: 12px; }
+#wiki-send:disabled { opacity: 0.5; cursor: not-allowed; }
+#wiki-clear { background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 4px; padding: 0 10px; cursor: pointer; font-size: 12px; }
+#wiki-clear:hover { border-color: var(--accent); color: var(--accent); }
 .node-architecture { fill: #4ec9b0; }
 .node-mechanism    { fill: #569cd6; }
 .node-concept      { fill: #9cdcfe; }
@@ -349,6 +376,64 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 .link.highlighted { stroke: var(--accent); stroke-opacity: 0.9; }
 .link-label { fill: var(--muted); font-size: 9px; pointer-events: none; }
 #graph-controls { display: flex; flex-direction: column; gap: 6px; }
+
+/* ── Mermaid diagrams ──────────────────────────────────────────────────── */
+.mermaid-wrapper {
+  background: #111827;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px;
+  margin: 0.5em 0;
+  overflow-x: auto;
+  text-align: center;
+  position: relative;
+}
+.mermaid-wrapper svg { max-width: 100%; height: auto; }
+
+/* ── Code block copy buttons ────────────────────────────────────────────── */
+.msg .body pre,
+#pop-body pre {
+  position: relative;
+}
+.copy-code-btn {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: var(--panel-2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 2px 8px; font-size: 11px;
+  font-family: inherit;
+  cursor: pointer; opacity: 0; transition: opacity 0.15s; z-index: 1;
+}
+.msg .body pre:hover .copy-code-btn,
+#pop-body pre:hover .copy-code-btn { opacity: 1; }
+.copy-code-btn:hover { background: var(--panel); color: var(--text); }
+.copy-code-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+/* ── Message action buttons (on assistant messages) ─────────────────────── */
+.msg-action-bar {
+  display: flex; gap: 4px;
+  margin-top: 6px;
+  justify-content: flex-end;
+}
+.msg-action-btn {
+  background: var(--panel-2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 2px 8px; font-size: 11px;
+  font-family: inherit; cursor: pointer;
+}
+.msg-action-btn:hover { color: var(--text); border-color: var(--muted); }
+.msg-action-btn.copied { color: var(--accent); border-color: var(--accent); }
+.msg-action-btn.playing { color: var(--accent); border-color: var(--accent); }
+#popup .pop-tts { position: absolute; top: 4px; right: 28px; }
+
+/* ── Streaming cursor ────────────────────────────────────────────────────── */
+.stream-cursor {
+  display: inline-block; width: 2px; height: 1em;
+  background: var(--accent); margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink-cur 1s step-end infinite;
+}
+@keyframes blink-cur { 50% { opacity: 0; } }
 </style>
 </head>
 <body>
@@ -371,14 +456,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
   <div class="section">
     <h2>Shortcuts</h2>
     <div style="font-size:12px;color:var(--muted)">
-      <b>Ctrl+D</b> define selected word<br>
-      <b>Ctrl+E</b> explain selected sentence<br>
-      <b>Dbl-click</b> figure, then <b>Ctrl+I</b> explain it<br>
-      <b>Esc</b> close popup<br>
-      <b>Ctrl+1</b> toggle Paper section<br>
-      <b>Ctrl+2..5</b> toggle Outline / Markdown / Chat / PDF panes<br>
-      <b>Ctrl+6</b> toggle Knowledge Graph panel<br>
-      <b>Ctrl+G</b> focus graph (collapse other panes)
+      Press <b>F1</b> for the full shortcut list.
     </div>
   </div>
 </aside>
@@ -481,6 +559,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
         <div id="wiki-input-row">
           <textarea id="wiki-input" placeholder="Ask about concepts across papers…"></textarea>
           <button id="wiki-send">Ask</button>
+          <button id="wiki-clear" title="Clear chat history">Clear</button>
         </div>
       </div>
     </div>
@@ -489,9 +568,30 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 
 <div id="popup" role="dialog" aria-live="polite">
   <span class="pop-close" onclick="closePopup()">×</span>
+  <button class="msg-action-btn pop-tts" id="pop-tts" style="display:none;">🔊 Play</button>
   <div class="pop-head" id="pop-head"></div>
   <div class="pop-target" id="pop-target"></div>
   <div class="pop-body" id="pop-body"></div>
+</div>
+
+<div id="shortcuts-overlay" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+  <div id="shortcuts-modal">
+    <span class="pop-close" onclick="closeShortcuts()">×</span>
+    <h2>Keyboard shortcuts</h2>
+    <table class="shortcuts-table">
+      <tr><td><kbd>F1</kbd></td><td>show / hide this shortcut list</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>define selected word</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>explain selected sentence</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>read selected text aloud (press again to stop)</td></tr>
+      <tr><td><kbd>Dbl-click</kbd> + <kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>select figure, then explain it</td></tr>
+      <tr><td><kbd>Esc</kbd></td><td>close popup</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>1</kbd></td><td>toggle Paper section</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>2</kbd>..<kbd>5</kbd></td><td>toggle Outline / Markdown / Chat / PDF panes</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>6</kbd></td><td>toggle Knowledge Graph panel</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>focus graph (collapse other panes)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>reset all panels to default</td></tr>
+    </table>
+  </div>
 </div>
 
 <div id="picker-overlay" role="dialog" aria-modal="true">
@@ -534,6 +634,17 @@ const katexOpts = {
   ],
 };
 window.katexOpts = katexOpts;
+
+/* ── Mermaid initialization ───────────────────────────────────────────────── */
+if (window.mermaid) {
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    securityLevel: 'loose',
+    fontSize: 13,
+    suppressErrorRendering: true,
+  });
+}
 
 let paperData = null;
 let currentPageIdx = 0;       // single source of truth for visible page
@@ -598,7 +709,16 @@ document.addEventListener("mouseup", captureSelection);
 document.addEventListener("keyup", e => { if (!e.ctrlKey) captureSelection(); });
 
 document.addEventListener("keydown", async e => {
+  if (e.key === "F1") {
+    e.preventDefault();
+    toggleShortcuts();
+    return;
+  }
   if (e.key === "Escape") {
+    if (document.getElementById("shortcuts-overlay").classList.contains("open")) {
+      closeShortcuts();
+      return;
+    }
     const popOpen = document.getElementById("popup").style.display === "block";
     if (popOpen) { closePopup(); }
     else {
@@ -610,7 +730,13 @@ document.addEventListener("keydown", async e => {
     return;
   }
   if (!e.ctrlKey) return;
-  if (e.key === "d" || e.key === "D") {
+  if (e.key === "s" || e.key === "S") {
+    e.preventDefault();                       // block the browser Save dialog
+    const sel = window.getSelection().toString().trim();
+    const text = sel || lastSelection.text;
+    if (!text) { TTS.stop(); return; }        // nothing selected: stop if mid-read
+    TTS.speakSelection(text);
+  } else if (e.key === "d" || e.key === "D") {
     e.preventDefault();
     const sel = window.getSelection().toString().trim();
     const text = sel || lastSelection.text;
@@ -664,10 +790,19 @@ async function runFigureExplain(fig) {
       const { done, value } = await reader.read();
       if (done) break;
       acc += decoder.decode(value, { stream: true });
-      bodyEl.innerHTML = marked.parse(acc);
+      bodyEl.innerHTML = processMermaidBlocks(marked.parse(fixMdSpaces(acc))) + '<span class="stream-cursor"></span>';
+      bodyEl.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+      addCopyButtons(bodyEl);
       renderMathInElement(bodyEl, katexOpts);
       document.getElementById("chat-log").scrollTop = 1e9;
     }
+    // Stream finished — finalize
+    bodyEl.innerHTML = processMermaidBlocks(marked.parse(fixMdSpaces(acc)));
+    bodyEl.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+    addCopyButtons(bodyEl);
+    renderMathInElement(bodyEl, katexOpts);
+    renderMermaid(bodyEl);
+    addMsgActions(bodyEl, acc);
   } catch (err) {
     bodyEl.textContent = "Network error: " + err.message;
   }
@@ -678,6 +813,10 @@ function openPopup(label, target) {
   document.getElementById("pop-head").textContent = label;
   document.getElementById("pop-target").textContent = target;
   document.getElementById("pop-body").innerHTML = "<i>thinking…</i>";
+  const popTts = document.getElementById("pop-tts");
+  TTS.stop();
+  popTts.style.display = "none";
+  popTts.onclick = null;
   const sel = window.getSelection();
   let x = 80, y = 80;
   if (sel && sel.rangeCount) {
@@ -687,7 +826,18 @@ function openPopup(label, target) {
   }
   pop.style.left = x + "px"; pop.style.top = y + "px"; pop.style.display = "block";
 }
-window.closePopup = () => { document.getElementById("popup").style.display = "none"; };
+window.closePopup = () => { TTS.stop(); document.getElementById("popup").style.display = "none"; };
+
+window.closeShortcuts = () => {
+  document.getElementById("shortcuts-overlay").classList.remove("open");
+};
+window.toggleShortcuts = () => {
+  document.getElementById("shortcuts-overlay").classList.toggle("open");
+};
+// Click on backdrop (outside the modal) closes it.
+document.getElementById("shortcuts-overlay").addEventListener("click", e => {
+  if (e.target.id === "shortcuts-overlay") closeShortcuts();
+});
 
 async function runAction(label, url, body) {
   openPopup(label, body.word || body.sentence);
@@ -706,8 +856,21 @@ async function runAction(label, url, body) {
       const { done, value } = await reader.read();
       if (done) break;
       acc += decoder.decode(value, { stream: true });
-      popBody.innerHTML = marked.parse(acc);
+      popBody.innerHTML = processMermaidBlocks(marked.parse(fixMdSpaces(acc))) + '<span class="stream-cursor"></span>';
+      popBody.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+      addCopyButtons(popBody);
       renderMathInElement(popBody, katexOpts);
+    }
+    // Stream finished — finalize (popup version: no Mermaid or action buttons)
+    popBody.innerHTML = marked.parse(fixMdSpaces(acc));
+    popBody.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+    addCopyButtons(popBody);
+    renderMathInElement(popBody, katexOpts);
+    if (TTS.supported && acc.trim()) {
+      const popTts = document.getElementById("pop-tts");
+      TTS.setBtnState(popTts, false);
+      popTts.style.display = "";
+      popTts.onclick = () => TTS.toggle(acc, popTts);
     }
   } catch (err) {
     popBody.textContent = "Network error: " + err.message;
@@ -1210,6 +1373,287 @@ function setScope(s) {
   }
 }
 
+/* ── Utility functions for chat rendering ──────────────────────────────── */
+
+function processMermaidBlocks(html) {
+  // Convert <pre><code class="language-mermaid">...code...</code></pre> to mermaid-wrapper
+  return html.replace(
+    /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,
+    function(match, code) {
+      const escaped = code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+      return '<div class="mermaid-wrapper"><div class="mermaid">' + escaped + '</div></div>';
+    }
+  );
+}
+
+function fixMdSpaces(md) {
+  // Collapse "** bold **" → "**bold**" so marked renders correctly
+  return md.replace(/\*\*[ \t]+((?:[^\n*]|\*(?!\*))+?)[ \t]+\*\*/g, '**$1**');
+}
+
+/* ── Text-to-speech (Web Speech API) ───────────────────────────────────── */
+// On-demand narration of an AI answer. Markdown is stripped to plain text,
+// then split into sentence-sized chunks: SpeechSynthesis silently truncates
+// long utterances in Chrome, so chunking keeps long answers intact and lets
+// Stop interrupt cleanly. One playback at a time across the whole viewer.
+const TTS = (function () {
+  const synth = window.speechSynthesis;
+  const supported = !!synth;
+  let queue = [];        // pending sentence chunks
+  let activeBtn = null;  // button currently showing the Stop state
+  let speaking = false;
+  let primed = false;    // whether the engine has been warmed up
+
+  // Voices load asynchronously in Chrome; touch them early so the first
+  // real utterance isn't delayed waiting on them.
+  if (supported) {
+    synth.getVoices();
+    synth.addEventListener("voiceschanged", () => synth.getVoices());
+  }
+
+  function stripMarkdown(md) {
+    let t = md || "";
+    t = t.replace(/```[\s\S]*?```/g, ". ");          // fenced code blocks
+    t = t.replace(/~~~[\s\S]*?~~~/g, ". ");
+    t = t.replace(/`([^`]+)`/g, "$1");                // inline code
+    t = t.replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1");   // images -> alt
+    t = t.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");    // links -> text
+    t = t.replace(/^\s{0,3}#{1,6}\s+/gm, "");         // headings
+    t = t.replace(/^\s{0,3}>\s?/gm, "");              // blockquotes
+    t = t.replace(/^\s{0,3}([-*+]|\d+[.)])\s+/gm, ""); // list markers
+    t = t.replace(/^\s*\|?[\s:|-]*\|[\s:|-]*\|?\s*$/gm, ""); // table rules
+    t = t.replace(/\|/g, " ");                        // table cell separators
+    t = t.replace(/^\s*([-*_]\s*){3,}$/gm, ". ");      // horizontal rules
+    t = t.replace(/(\*\*|__)(.*?)\1/g, "$2");          // bold
+    t = t.replace(/(\*|_)(.*?)\1/g, "$2");             // italic
+    t = t.replace(/~~(.*?)~~/g, "$2");                 // strikethrough
+    t = t.replace(/\$\$[\s\S]*?\$\$/g, " equation. ");  // block math
+    t = t.replace(/\$[^$\n]+\$/g, " expression ");      // inline math
+    t = t.replace(/\n{2,}/g, ". ");                    // paragraph breaks -> pause
+    t = t.replace(/\s+/g, " ").trim();
+    return t;
+  }
+
+  function splitSentences(text) {
+    const MAX = 220;
+    const sentences = text.match(/[^.!?。！？]+[.!?。！？]+|\S[^.!?。！？]*$/g) || [];
+    const chunks = [];
+    sentences.forEach(function (s) {
+      s = s.trim();
+      while (s.length > MAX) {                         // hard-wrap over-long sentences
+        let cut = s.lastIndexOf(" ", MAX);
+        if (cut < 40) cut = MAX;
+        chunks.push(s.slice(0, cut).trim());
+        s = s.slice(cut).trim();
+      }
+      if (s) chunks.push(s);
+    });
+    return chunks;
+  }
+
+  function setBtnState(btn, playing) {
+    if (!btn) return;
+    btn.textContent = playing ? "⏹ Stop" : "🔊 Play";
+    btn.classList.toggle("playing", playing);
+  }
+
+  function finish() {
+    speaking = false;
+    setBtnState(activeBtn, false);
+    activeBtn = null;
+  }
+
+  function speakNext() {
+    if (!queue.length) { finish(); return; }
+    const text = queue.shift();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = /[ㄱ-힝]/.test(text) ? "ko-KR" : "en-US"; // Hangul -> Korean voice
+    u.rate = 1.0;
+    u.onend = speakNext;
+    u.onerror = speakNext;
+    synth.speak(u);
+  }
+
+  function stop() {
+    queue = [];
+    if (supported) synth.cancel();
+    finish();
+  }
+
+  // Chrome drops the very first utterance after page load until the engine
+  // has spoken once. Push a silent utterance to warm it up so no real text
+  // is lost on the first play.
+  function prime() {
+    if (primed) return;
+    primed = true;
+    const u = new SpeechSynthesisUtterance(" ");
+    u.volume = 0;
+    synth.speak(u);
+  }
+
+  // Begin a fresh narration of `markdown`, optionally tied to `btn`.
+  function play(markdown, btn) {
+    const chunks = splitSentences(stripMarkdown(markdown));
+    if (!chunks.length) return;
+    setBtnState(activeBtn, false);             // reset any previously-playing button
+    // Only cancel when something is live: cancelling an idle engine can make
+    // the next speak() be ignored.
+    if (synth.speaking || synth.pending) synth.cancel();
+    prime();                                   // warm up once (no-op afterwards)
+    queue = chunks;
+    speaking = true;
+    activeBtn = btn;
+    setBtnState(btn, true);
+    // Defer the first real utterance one tick: Chrome silently drops text
+    // queued in the same tick as cancel(), which would start playback
+    // mid-paragraph.
+    setTimeout(speakNext, 80);
+  }
+
+  // Start narrating `markdown`; clicking the same button again stops it.
+  function toggle(markdown, btn) {
+    if (!supported) { alert("This browser has no speech synthesis support."); return; }
+    if (speaking && activeBtn === btn) { stop(); return; }
+    play(markdown, btn);
+  }
+
+  // Keyboard entry point: toggles globally. Speaks `markdown` if idle,
+  // otherwise stops whatever is currently playing (button or selection).
+  function speakSelection(markdown) {
+    if (!supported) return;
+    if (speaking) { stop(); return; }
+    play(markdown, null);
+  }
+
+  window.addEventListener("beforeunload", stop);
+  return { toggle, speakSelection, stop, setBtnState, supported };
+})();
+
+function addCopyButtons(root) {
+  root.querySelectorAll('pre > code').forEach(function(codeEl) {
+    const pre = codeEl.parentElement;
+    if (pre.querySelector('.copy-code-btn')) return;
+    const btn = document.createElement('button');
+    btn.className = 'copy-code-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', function() {
+      navigator.clipboard.writeText(codeEl.textContent).then(() => {
+        btn.textContent = '✓';
+        btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+      });
+    });
+    pre.appendChild(btn);
+  });
+}
+
+function addMsgActions(bodyEl, rawMarkdown) {
+  // Only add once
+  if (bodyEl.parentElement.querySelector('.msg-action-bar')) return;
+  const bar = document.createElement('div');
+  bar.className = 'msg-action-bar';
+
+  const mdBtn = document.createElement('button');
+  mdBtn.className = 'msg-action-btn';
+  mdBtn.textContent = 'Copy MD';
+  mdBtn.addEventListener('click', function() {
+    navigator.clipboard.writeText(rawMarkdown).then(() => {
+      mdBtn.textContent = '✓';
+      mdBtn.classList.add('copied');
+      setTimeout(() => { mdBtn.textContent = 'Copy MD'; mdBtn.classList.remove('copied'); }, 1500);
+    });
+  });
+
+  const txtBtn = document.createElement('button');
+  txtBtn.className = 'msg-action-btn';
+  txtBtn.textContent = 'Copy Text';
+  txtBtn.addEventListener('click', function() {
+    navigator.clipboard.writeText(bodyEl.innerText).then(() => {
+      txtBtn.textContent = '✓';
+      txtBtn.classList.add('copied');
+      setTimeout(() => { txtBtn.textContent = 'Copy Text'; txtBtn.classList.remove('copied'); }, 1500);
+    });
+  });
+
+  bar.appendChild(mdBtn);
+  bar.appendChild(txtBtn);
+
+  if (TTS.supported) {
+    const ttsBtn = document.createElement('button');
+    ttsBtn.className = 'msg-action-btn tts-btn';
+    TTS.setBtnState(ttsBtn, false);
+    ttsBtn.addEventListener('click', function () {
+      TTS.toggle(rawMarkdown, ttsBtn);
+    });
+    bar.appendChild(ttsBtn);
+  }
+
+  // Insert after bodyEl (as next sibling inside .msg div)
+  bodyEl.parentElement.appendChild(bar);
+}
+
+function _wrapMermaidText(text, maxLen) {
+  if (text.length <= maxLen) return text;
+  const words = text.split(' ');
+  let result = '', line = '';
+  for (let i = 0; i < words.length; i++) {
+    const candidate = line ? line + ' ' + words[i] : words[i];
+    if (candidate.length > maxLen && line) {
+      result += (result ? '<br/>' : '') + line;
+      line = words[i];
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) result += (result ? '<br/>' : '') + line;
+  return result;
+}
+
+function _wrapMermaidLabels(src) {
+  const MAX = 14;
+  src = src.replace(/\["([^"<>]+?)"\]/g, (m, t) => '["' + _wrapMermaidText(t, MAX) + '"]');
+  src = src.replace(/\("([^"<>]+?)"\)/g, (m, t) => '("' + _wrapMermaidText(t, MAX) + '")');
+  src = src.replace(/\[([^\[\]"<>]{3,}?)\]/g, (m, t) => '[' + _wrapMermaidText(t, MAX) + ']');
+  src = src.replace(/\(([^\(\)"<>]{3,}?)\)/g, (m, t) => '(' + _wrapMermaidText(t, MAX) + ')');
+  return src;
+}
+
+function renderMermaid(root) {
+  if (!window.mermaid) return;
+  const nodes = root.querySelectorAll('.mermaid:not([data-processed])');
+  if (!nodes.length) return;
+  nodes.forEach(function(el) {
+    const code = _wrapMermaidLabels(el.textContent);
+    const id = 'mermaid-' + Math.random().toString(36).slice(2);
+    el.setAttribute('data-processed', 'true');
+
+    function hideWrapper() {
+      const wrapper = el.closest('.mermaid-wrapper');
+      if (wrapper) wrapper.style.display = 'none';
+    }
+
+    let parsePromise;
+    try {
+      parsePromise = mermaid.parse(code, { suppressErrors: true });
+    } catch (e) {
+      hideWrapper(); return;
+    }
+    Promise.resolve(parsePromise).then(function(parseResult) {
+      if (parseResult === false || parseResult === null || parseResult === undefined) {
+        hideWrapper(); return null;
+      }
+      return mermaid.render(id, code);
+    }).then(function(result) {
+      if (!result || !result.svg) return;
+      if (result.svg.indexOf('Syntax error') !== -1 ||
+          result.svg.indexOf('aria-roledescription="error"') !== -1) {
+        hideWrapper(); return;
+      }
+      el.innerHTML = result.svg;
+    }).catch(function() { hideWrapper(); });
+  });
+}
+
 function appendMsg(role, html, scopeChip = null) {
   const log = document.getElementById("chat-log");
   const m = document.createElement("div");
@@ -1257,10 +1701,19 @@ async function sendChat() {
       const { done, value } = await reader.read();
       if (done) break;
       acc += decoder.decode(value, { stream: true });
-      bodyEl.innerHTML = marked.parse(acc);
+      bodyEl.innerHTML = processMermaidBlocks(marked.parse(fixMdSpaces(acc))) + '<span class="stream-cursor"></span>';
+      bodyEl.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+      addCopyButtons(bodyEl);
       renderMathInElement(bodyEl, katexOpts);
       document.getElementById("chat-log").scrollTop = 1e9;
     }
+    // Stream finished — finalize
+    bodyEl.innerHTML = processMermaidBlocks(marked.parse(fixMdSpaces(acc)));
+    bodyEl.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+    addCopyButtons(bodyEl);
+    renderMathInElement(bodyEl, katexOpts);
+    renderMermaid(bodyEl);
+    addMsgActions(bodyEl, acc);
     chatHistory.push({ role: "assistant", content: acc });
   } catch (err) {
     bodyEl.textContent = "Network error: " + err.message;
@@ -1322,6 +1775,7 @@ function setupLayout() {
       case "5": togglePanelById("right"); break;
       case "6": toggleGraphPanel(); break;
       case "g": case "G": collapseAllExceptGraph(); break;
+      case "r": case "R": resetPanelsToDefault(); break;
       default: return;
     }
     e.preventDefault();
@@ -1370,106 +1824,256 @@ function setupLayout() {
     }
   }
 
-  // Horizontal splitter drag (inside #middle).
+  function resetPanelsToDefault() {
+    // Reset all panels to their default state
+    const defaultStates = {
+      left: { basis: "220px", collapsed: false },
+      middle: { basis: null, collapsed: false, flexFill: true },
+      chat: { basis: "360px", collapsed: false },
+      right: { basis: null, collapsed: false, flexFill: true },
+      graph: { basis: null, collapsed: false, flexFill: true, display: "none" },
+    };
+
+    Object.entries(defaultStates).forEach(([panelId, state]) => {
+      const panel = document.getElementById(panelId);
+      if (!panel) return;
+
+      // Remove collapsed state
+      panel.classList.remove("collapsed");
+      panel.classList.remove("_dragging_expanded");
+
+      // Reset flex layout
+      if (state.flexFill) {
+        panel.classList.add("flex-fill");
+        panel.style.flex = "";
+      } else {
+        panel.classList.remove("flex-fill");
+        panel.style.flex = "0 0 auto";
+      }
+
+      // Reset basis
+      if (state.basis) {
+        panel.style.flexBasis = state.basis;
+      } else {
+        panel.style.flexBasis = "";
+      }
+
+      // Reset display for graph
+      if (panelId === "graph") {
+        panel.style.display = state.display;
+        const graphSplitter = document.getElementById("graph-splitter");
+        if (graphSplitter) graphSplitter.style.display = state.display;
+      }
+    });
+
+    // Reset middle panel internal split
+    const middleMd = document.getElementById("middle-md");
+    const middleSummary = document.getElementById("middle-summary");
+    if (middleMd && middleSummary) {
+      middleMd.style.flex = "";
+      middleSummary.style.flex = "";
+      middleMd.style.height = "";
+      middleSummary.style.height = "";
+    }
+
+    // Reset graph internal split
+    const graphWikiSidebar = document.getElementById("graph-wiki-sidebar");
+    const graphRight = document.getElementById("graph-right");
+    const graphCanvasWrap = document.getElementById("graph-canvas-wrap");
+    const wikiQaSection = document.getElementById("wiki-qa-section");
+    if (graphWikiSidebar && graphRight) {
+      graphWikiSidebar.style.flex = "0 0 280px";
+      graphRight.style.flex = "1";
+      graphWikiSidebar.style.width = "";
+    }
+    if (graphCanvasWrap && wikiQaSection) {
+      graphCanvasWrap.style.flex = "";
+      wikiQaSection.style.flex = "";
+      graphCanvasWrap.style.height = "";
+      wikiQaSection.style.height = "";
+    }
+  }
+
+  // Horizontal splitter drag (inside #middle) — allows resizing even when collapsed.
   document.querySelectorAll(".hsplitter").forEach(sp => {
     sp.addEventListener("mousedown", e => {
       e.preventDefault();
       const top = document.getElementById(sp.dataset.top);
       const bot = document.getElementById(sp.dataset.bottom);
       if (!top || !bot) return;
+
       const startY = e.clientY;
-      const tH = top.getBoundingClientRect().height;
-      const bH = bot.getBoundingClientRect().height;
+      const tCollapsed = top.classList.contains("collapsed");
+      const bCollapsed = bot.classList.contains("collapsed");
+
+      let tH = top.getBoundingClientRect().height;
+      let bH = bot.getBoundingClientRect().height;
+
       sp.classList.add("dragging");
       document.body.classList.add("resizing-v");
+
       function onMove(ev) {
         const dy = ev.clientY - startY;
+
+        // Auto-expand collapsed panels on first drag
+        if (tCollapsed && !top.classList.contains("_dragging_expanded")) {
+          top.classList.remove("collapsed");
+          top.classList.add("_dragging_expanded");
+          tH = top.getBoundingClientRect().height;
+        }
+        if (bCollapsed && !bot.classList.contains("_dragging_expanded")) {
+          bot.classList.remove("collapsed");
+          bot.classList.add("_dragging_expanded");
+          bH = bot.getBoundingClientRect().height;
+        }
+
         const newT = Math.max(60, tH + dy);
         const newB = Math.max(60, bH - dy);
+
         if (newT <= 60 && dy < 0) return;
         if (newB <= 60 && dy > 0) return;
+
         top.style.flex = "0 0 auto";
         bot.style.flex = "0 0 auto";
         top.style.height = newT + "px";
         bot.style.height = newB + "px";
       }
+
       function onUp() {
         sp.classList.remove("dragging");
         document.body.classList.remove("resizing-v");
+        top.classList.remove("_dragging_expanded");
+        bot.classList.remove("_dragging_expanded");
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
       }
+
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
     });
   });
 
-  // Splitter drag.
+  // Splitter drag — allows resizing even when panels are collapsed.
   document.querySelectorAll(".splitter").forEach(sp => {
     sp.addEventListener("mousedown", e => {
       e.preventDefault();
       const left = document.getElementById(sp.dataset.left);
       const right = document.getElementById(sp.dataset.right);
       if (!left || !right) return;
-      // If either neighbour is collapsed, drag does nothing.
-      if (left.classList.contains("collapsed") || right.classList.contains("collapsed")) return;
 
       const startX = e.clientX;
-      const lRect = left.getBoundingClientRect();
-      const rRect = right.getBoundingClientRect();
+      const lCollapsed = left.classList.contains("collapsed");
+      const rCollapsed = right.classList.contains("collapsed");
+
+      // Save original states to restore on drag end
+      const lOriginalBasis = left.style.flexBasis || getComputedStyle(left).flexBasis;
+      const rOriginalBasis = right.style.flexBasis || getComputedStyle(right).flexBasis;
+
+      // Get actual rect (collapsed panels are 28px, but we'll expand them during drag)
+      let lRect = left.getBoundingClientRect();
+      let rRect = right.getBoundingClientRect();
+
       const lFill = left.classList.contains("flex-fill");
       const rFill = right.classList.contains("flex-fill");
+
       sp.classList.add("dragging");
       document.body.classList.add("resizing");
 
       function onMove(ev) {
         const dx = ev.clientX - startX;
+
+        // Auto-expand collapsed panels on first drag
+        if (lCollapsed && !left.classList.contains("_dragging_expanded")) {
+          left.classList.remove("collapsed");
+          left.classList.add("_dragging_expanded");
+          // Reset rect after uncollapsing
+          lRect = left.getBoundingClientRect();
+        }
+        if (rCollapsed && !right.classList.contains("_dragging_expanded")) {
+          right.classList.remove("collapsed");
+          right.classList.add("_dragging_expanded");
+          // Reset rect after uncollapsing
+          rRect = right.getBoundingClientRect();
+        }
+
         const newL = Math.max(80, lRect.width + dx);
         const newR = Math.max(80, rRect.width - dx);
+
         // If width clamped on either side, abort this frame.
         if (newL <= 80 && dx < 0) return;
         if (newR <= 80 && dx > 0) return;
+
         // Convert fill panels to fixed so explicit basis works during drag.
-        if (lFill) { left.classList.remove("flex-fill"); left.style.flex = "0 0 auto"; }
-        if (rFill) { right.classList.remove("flex-fill"); right.style.flex = "0 0 auto"; }
+        if (lFill && left.classList.contains("flex-fill")) {
+          left.classList.remove("flex-fill");
+          left.style.flex = "0 0 auto";
+        }
+        if (rFill && right.classList.contains("flex-fill")) {
+          right.classList.remove("flex-fill");
+          right.style.flex = "0 0 auto";
+        }
+
         left.style.flexBasis = newL + "px";
         right.style.flexBasis = newR + "px";
       }
+
       function onUp() {
         sp.classList.remove("dragging");
         document.body.classList.remove("resizing");
+        left.classList.remove("_dragging_expanded");
+        right.classList.remove("_dragging_expanded");
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
       }
+
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
     });
   });
 
-  // Right panel resize handle (drag right edge to expand/shrink).
+  // Right panel resize handle (drag right edge to expand/shrink) — works with collapsed panels.
   const rightResizeHandle = document.getElementById("right-resize-handle");
   if (rightResizeHandle) {
     rightResizeHandle.addEventListener("mousedown", e => {
       e.preventDefault();
       const right = document.getElementById("right");
       if (!right) return;
+
       const startX = e.clientX;
-      const rRect = right.getBoundingClientRect();
+      const rCollapsed = right.classList.contains("collapsed");
+
+      let rRect = right.getBoundingClientRect();
       const rFill = right.classList.contains("flex-fill");
       document.body.classList.add("resizing");
 
       function onMove(ev) {
         const dx = ev.clientX - startX;
+
+        // Auto-expand collapsed panel on first drag
+        if (rCollapsed && !right.classList.contains("_dragging_expanded")) {
+          right.classList.remove("collapsed");
+          right.classList.add("_dragging_expanded");
+          rRect = right.getBoundingClientRect();
+        }
+
         const newR = Math.max(80, rRect.width + dx);
         if (newR <= 80 && dx < 0) return;
-        if (rFill) { right.classList.remove("flex-fill"); right.style.flex = "0 0 auto"; }
+
+        if (rFill && right.classList.contains("flex-fill")) {
+          right.classList.remove("flex-fill");
+          right.style.flex = "0 0 auto";
+        }
+
         right.style.flexBasis = newR + "px";
       }
+
       function onUp() {
         document.body.classList.remove("resizing");
+        right.classList.remove("_dragging_expanded");
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
       }
+
       document.addEventListener("mousemove", onMove);
       document.addEventListener("mouseup", onUp);
     });
@@ -1875,6 +2479,10 @@ async function load() {
   document.getElementById("wiki-input")?.addEventListener("keydown", e => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendWikiChat(); }
   });
+  document.getElementById("wiki-clear")?.addEventListener("click", () => {
+    wikiHistory = [];
+    document.getElementById("wiki-chat-log").innerHTML = "";
+  });
   document.getElementById("wiki-page-content")?.setAttribute("tabindex", "0");
 }
 
@@ -2104,19 +2712,78 @@ async function sendWikiChat() {
       const { done, value } = await reader.read();
       if (done) break;
       acc += decoder.decode(value, { stream: true });
-      bodyEl.innerHTML = marked.parse(acc);
+      bodyEl.innerHTML = processMermaidBlocks(marked.parse(fixMdSpaces(acc))) + '<span class="stream-cursor"></span>';
+      bodyEl.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+      addCopyButtons(bodyEl);
       renderMathInElement(bodyEl, katexOpts);
       log.scrollTop = log.scrollHeight;
     }
+    // Stream finished — finalize
+    bodyEl.innerHTML = processMermaidBlocks(marked.parse(fixMdSpaces(acc)));
+    bodyEl.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+    addCopyButtons(bodyEl);
+    renderMathInElement(bodyEl, katexOpts);
+    renderMermaid(bodyEl);
+    addMsgActions(bodyEl, acc);
     wikiHistory.push({ role: "assistant", content: acc });
   } catch (err) {
     bodyEl.textContent = "Network error: " + err.message;
   }
 }
 
+function configureMd() {
+  if (!window.marked) return;
+  if (!window.hljs) return;
+  // Guard: only configure once
+  if (marked._viewerConfigured) return;
+  marked._viewerConfigured = true;
+
+  // Configure marked with hljs highlight
+  marked.setOptions({
+    breaks: true,
+    gfm: true,
+    highlight: function(code, lang) {
+      if (window.hljs) {
+        if (lang && window.hljs.getLanguage(lang)) {
+          try { return window.hljs.highlight(code, { language: lang }).value; } catch(_) {}
+        }
+        try { return window.hljs.highlightAuto(code).value; } catch(_) {}
+      }
+      return code;
+    },
+  });
+}
+
 function boot() {
-  if (window.marked && window.renderMathInElement) { setupLayout(); setupPicker(); load(); }
-  else setTimeout(boot, 30);
+  if (window.marked && window.renderMathInElement) {
+    // Configure marked with safe highlight function (hljs optional)
+    configureMd();
+    setupLayout(); setupPicker(); load();
+
+    // Set up Mermaid error suppression observer only after page is initialized
+    if (window.mermaid) {
+      function _isMermaidErrorSvg(node) {
+        if (!node || node.nodeType !== 1) return false;
+        if (node.tagName !== 'SVG' && node.tagName !== 'svg') return false;
+        const html = node.outerHTML || '';
+        return html.indexOf('Syntax error') !== -1 ||
+               html.indexOf('aria-roledescription="error"') !== -1;
+      }
+      new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+          m.addedNodes.forEach(function(node) {
+            if (_isMermaidErrorSvg(node)) {
+              const wrapper = node.closest && node.closest('.mermaid-wrapper');
+              if (wrapper) wrapper.style.display = 'none';
+              else node.remove();
+            }
+          });
+        });
+      }).observe(document.body, { childList: true, subtree: true });
+    }
+  } else {
+    setTimeout(boot, 30);
+  }
 }
 window.addEventListener("DOMContentLoaded", boot);
 </script>
