@@ -11,7 +11,7 @@ from typing import Any, Callable, Iterator
 
 import llm_client
 
-_PROMPTS_DIR = Path(__file__).parent / "prompts"
+_PROMPTS_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent) / "prompts"
 _CACHE_NAME = "toc_summaries.json"
 
 

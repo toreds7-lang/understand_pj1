@@ -11,7 +11,8 @@ from typing import Any, Iterator
 import llm_client
 from config import DATA_DIR
 
-_PROMPTS_DIR = Path(__file__).parent / "prompts"
+import sys
+_PROMPTS_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent) / "prompts"
 _MAX_EXTRACT_CHARS = 20000
 
 

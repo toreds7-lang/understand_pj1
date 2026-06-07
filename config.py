@@ -1,8 +1,14 @@
 """Load env.txt and expose typed constants."""
 import os
+import sys
 from pathlib import Path
 
-_ENV_PATH = Path(__file__).parent / "env.txt"
+if getattr(sys, "frozen", False):
+    _BASE = Path(sys.executable).parent
+else:
+    _BASE = Path(__file__).parent
+
+_ENV_PATH = _BASE / "env.txt"
 
 
 def _load_env(path: Path) -> None:
@@ -27,4 +33,7 @@ VISION_BASE_URL: str  = os.getenv("VISION_BASE_URL", "")
 EMBEDDING_MODEL: str  = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 EMBEDDING_BASE_URL: str = os.getenv("EMBEDDING_BASE_URL", "")
 
-DATA_DIR: Path = Path(__file__).parent / "data"
+# How to turn PDF pages into markdown: "text" (pymupdf4llm) or "vision" (vision LLM).
+PDF_EXTRACT_MODE: str = os.getenv("PDF_EXTRACT_MODE", "text").strip().lower()
+
+DATA_DIR: Path = _BASE / "data"

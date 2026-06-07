@@ -11,7 +11,8 @@ from typing import Iterator
 import llm_client
 from rag import RagIndex
 
-_PROMPTS_DIR = Path(__file__).parent / "prompts"
+import sys
+_PROMPTS_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent) / "prompts"
 
 
 def _load(name: str) -> str:

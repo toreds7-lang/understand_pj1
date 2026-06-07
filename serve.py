@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
@@ -27,7 +27,10 @@ from rag import RagIndex
 import graph as graph_module
 import wiki as wiki_module
 
-ROOT = Path(__file__).parent
+if getattr(sys, "frozen", False):
+    ROOT = Path(sys.executable).parent
+else:
+    ROOT = Path(__file__).parent
 _CACHE_FILE = ROOT / ".last_paper_id"
 
 
@@ -53,12 +56,11 @@ def _save_cached_paper_id(paper_id: str) -> None:
         pass
 
 
-def _pick_paper_id(arg: str | None) -> str:
+def _pick_paper_id(arg: str | None) -> str | None:
     if arg:
         return arg
     if not DATA_DIR.exists():
-        print(f"ERROR: no data directory at {DATA_DIR}. Run run.py first.", file=sys.stderr)
-        sys.exit(1)
+        return None
     candidates = [d.name for d in sorted(DATA_DIR.iterdir()) if d.is_dir()
                   and (d / "paper.json").exists()]
 
@@ -70,8 +72,7 @@ def _pick_paper_id(arg: str | None) -> str:
     if len(candidates) == 1:
         return candidates[0]
     if not candidates:
-        print(f"ERROR: no processed papers under {DATA_DIR}. Run run.py first.", file=sys.stderr)
-        sys.exit(1)
+        return None
 
     # Multiple papers: show interactive menu
     print(f"\nFound {len(candidates)} papers. Choose one:", file=sys.stderr)
@@ -173,9 +174,9 @@ def _list_papers() -> list[dict]:
     return out
 
 
-def build_app(initial_paper_id: str) -> FastAPI:
+def build_app(initial_paper_id: str | None) -> FastAPI:
     app = FastAPI()
-    app.state.current = _load_context(initial_paper_id)
+    app.state.current = _load_context(initial_paper_id) if initial_paper_id else None
     app.state.swap_lock = threading.Lock()
     app.state.upload_lock = threading.Lock()
 
@@ -223,7 +224,8 @@ def build_app(initial_paper_id: str) -> FastAPI:
     @app.get("/api/papers")
     def api_papers() -> Any:
         from fastapi.responses import JSONResponse
-        return JSONResponse({"papers": _list_papers(), "current": cur().paper_id}, headers=NO_STORE)
+        ctx = app.state.current
+        return JSONResponse({"papers": _list_papers(), "current": ctx.paper_id if ctx else None}, headers=NO_STORE)
 
     class DefineBody(BaseModel):
         word: str
@@ -345,8 +347,11 @@ def build_app(initial_paper_id: str) -> FastAPI:
                 yield json.dumps(rec, ensure_ascii=False) + "\n"
         return StreamingResponse(gen(), media_type="application/x-ndjson")
 
+    class ReprocessBody(BaseModel):
+        extract_mode: str | None = None
+
     @app.post("/api/reprocess")
-    def api_reprocess() -> StreamingResponse:
+    def api_reprocess(body: ReprocessBody = ReprocessBody()) -> StreamingResponse:
         """Re-run the extraction pipeline on the current paper's source.pdf with
         force=True, then hot-swap the in-memory context. Streams NDJSON progress."""
         if not app.state.upload_lock.acquire(blocking=False):
@@ -354,6 +359,7 @@ def build_app(initial_paper_id: str) -> FastAPI:
         ctx = cur()
         paper_id = ctx.paper_id
         pdf_path = ctx.pdf_path
+        extract_mode = body.extract_mode
 
         q: queue.Queue = queue.Queue()
 
@@ -379,7 +385,7 @@ def build_app(initial_paper_id: str) -> FastAPI:
             try:
                 tee = _Tee()
                 with redirect_stdout(tee), redirect_stderr(tee):
-                    run_pipeline.run(str(pdf_path), force=True)
+                    run_pipeline.run(str(pdf_path), force=True, extract_mode=extract_mode)
                 tee.flush()
             except SystemExit as e:
                 err = f"pipeline exited: code={e.code}"
@@ -416,7 +422,10 @@ def build_app(initial_paper_id: str) -> FastAPI:
         return StreamingResponse(gen(), media_type="application/x-ndjson")
 
     @app.post("/api/upload-pdf")
-    async def api_upload_pdf(file: UploadFile = File(...)) -> StreamingResponse:
+    async def api_upload_pdf(
+        file: UploadFile = File(...),
+        extract_mode: str = Form("text"),
+    ) -> StreamingResponse:
         if not app.state.upload_lock.acquire(blocking=False):
             raise HTTPException(409, "another upload is already in progress")
         try:
@@ -463,7 +472,7 @@ def build_app(initial_paper_id: str) -> FastAPI:
                 out_tee = _Tee("log")
                 err_tee = _Tee("log")
                 with redirect_stdout(out_tee), redirect_stderr(err_tee):
-                    run_pipeline.run(str(tmp_path), force=False)
+                    run_pipeline.run(str(tmp_path), force=False, extract_mode=extract_mode)
                 out_tee.flush(); err_tee.flush()
             except SystemExit as e:
                 err = f"pipeline exited: code={e.code}"
@@ -698,13 +707,15 @@ def main() -> None:
     args = parser.parse_args()
 
     paper_id = _pick_paper_id(args.paper_id)
-    _save_cached_paper_id(paper_id)
+    if paper_id:
+        _save_cached_paper_id(paper_id)
     app = build_app(paper_id)
 
     if not args.no_open:
         threading.Timer(1.2, lambda: webbrowser.open(f"http://127.0.0.1:{args.port}")).start()
 
-    print(f"Serving '{paper_id}' at http://127.0.0.1:{args.port}", file=sys.stderr)
+    label = f"'{paper_id}'" if paper_id else "no paper (upload one via the UI)"
+    print(f"Serving {label} at http://127.0.0.1:{args.port}", file=sys.stderr)
     uvicorn.run(app, host="127.0.0.1", port=args.port, log_level="info")
 
 

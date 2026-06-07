@@ -444,8 +444,11 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
   <div class="section" id="paper-section">
     <h2>Paper</h2>
     <div id="paper-id">loading…</div>
-    <button id="open-pdf-btn" class="open-pdf-btn">PDF 열기</button>
-    <button id="reprocess-btn" class="open-pdf-btn" title="Re-run extraction on this paper (figure bboxes, captions, RAG index). Equivalent to: run.py <pdf> --force.">재처리 (--force)</button>
+    <button id="open-pdf-btn" class="open-pdf-btn">Open PDF</button>
+    <button id="reprocess-btn" class="open-pdf-btn" title="Re-run extraction on this paper (figure bboxes, captions, RAG index). Equivalent to: run.py <pdf> --force.">Reprocess (--force)</button>
+    <label style="display:block;font-size:12px;color:var(--muted);margin-top:4px;">
+      <input type="checkbox" id="reprocess-vision"> Read with vision LLM (vision)
+    </label>
     <button id="open-graph-btn" class="open-pdf-btn" style="margin-top:8px">Knowledge Graph</button>
     <div id="reprocess-status"></div>
   </div>
@@ -597,20 +600,23 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 <div id="picker-overlay" role="dialog" aria-modal="true">
   <div id="picker-card">
     <div class="picker-head">
-      <h3>PDF 열기</h3>
+      <h3>Open PDF</h3>
       <button class="picker-close" id="picker-close" title="Close">×</button>
     </div>
     <div class="picker-body">
       <div class="picker-section">
-        <h4>기존 논문</h4>
+        <h4>Existing papers</h4>
         <ul id="picker-list"><li class="empty">loading…</li></ul>
       </div>
       <div class="picker-section">
-        <h4>새 PDF 업로드</h4>
+        <h4>Upload new PDF</h4>
         <div class="upload-row">
           <input type="file" id="picker-file" accept="application/pdf">
-          <button id="picker-upload-btn">처리 시작</button>
+          <button id="picker-upload-btn">Start processing</button>
         </div>
+        <label class="upload-row" style="font-size:12px;color:var(--muted);margin-top:6px;">
+          <input type="checkbox" id="picker-vision"> Read with vision LLM (vision)
+        </label>
         <div id="picker-log"></div>
       </div>
     </div>
@@ -1463,11 +1469,23 @@ const TTS = (function () {
     activeBtn = null;
   }
 
+  function pickVoice(lang) {
+    const voices = synth.getVoices();
+    if (lang === "ko-KR") return voices.find(v => v.lang === "ko-KR") || null;
+    // Prefer female English voices: Google UK Female > Google US > Zira > any en-US
+    return voices.find(v => v.name === "Google UK English Female")
+        || voices.find(v => v.name === "Google US English")
+        || voices.find(v => /Zira/i.test(v.name))
+        || voices.find(v => v.lang === "en-US")
+        || null;
+  }
+
   function speakNext() {
     if (!queue.length) { finish(); return; }
     const text = queue.shift();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = /[ㄱ-힝]/.test(text) ? "ko-KR" : "en-US"; // Hangul -> Korean voice
+    u.lang = /[ㄱ-힝]/.test(text) ? "ko-KR" : "en-US";
+    u.voice = pickVoice(u.lang);
     u.rate = 1.0;
     u.onend = speakNext;
     u.onerror = speakNext;
@@ -2113,7 +2131,7 @@ async function refreshPickerList() {
     const data = await resp.json();
     list.innerHTML = "";
     if (!data.papers || !data.papers.length) {
-      list.innerHTML = `<li class="empty">처리된 논문이 없습니다.</li>`;
+      list.innerHTML = `<li class="empty">No processed papers yet.</li>`;
       return;
     }
     for (const p of data.papers) {
@@ -2125,7 +2143,7 @@ async function refreshPickerList() {
       list.appendChild(li);
     }
   } catch (err) {
-    list.innerHTML = `<li class="empty">불러오기 실패: ${escapeHtml(err.message)}</li>`;
+    list.innerHTML = `<li class="empty">Failed to load: ${escapeHtml(err.message)}</li>`;
   }
 }
 
@@ -2145,15 +2163,17 @@ async function uploadPdf() {
   const fileInput = document.getElementById("picker-file");
   const btn = document.getElementById("picker-upload-btn");
   const file = fileInput.files && fileInput.files[0];
-  if (!file) { pickerLog("PDF 파일을 선택해주세요.", "err"); return; }
+  if (!file) { pickerLog("Please select a PDF file.", "err"); return; }
   if (!file.name.toLowerCase().endsWith(".pdf")) {
-    pickerLog("PDF 파일만 업로드 가능합니다.", "err"); return;
+    pickerLog("Only PDF files can be uploaded.", "err"); return;
   }
   clearPickerLog();
   pickerLog(`uploading ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)…`);
   btn.disabled = true;
   const fd = new FormData();
   fd.append("file", file, file.name);
+  fd.append("extract_mode",
+    document.getElementById("picker-vision").checked ? "vision" : "text");
   try {
     const resp = await fetch("/api/upload-pdf", { method: "POST", body: fd });
     if (!resp.ok || !resp.body) {
@@ -2207,7 +2227,7 @@ async function reprocessCurrent() {
   if (!confirm("Re-extract this paper with --force? This rebuilds figure bboxes, captions, and the RAG index.")) return;
   btn.disabled = true; openBtn.disabled = true;
   const origLabel = btn.textContent;
-  btn.textContent = "재처리 중…";
+  btn.textContent = "Reprocessing…";
   status.classList.add("show");
   status.innerHTML = "";
   const log = (msg, cls) => {
@@ -2218,7 +2238,13 @@ async function reprocessCurrent() {
     status.scrollTop = status.scrollHeight;
   };
   try {
-    const resp = await fetch("/api/reprocess", { method: "POST" });
+    const extractMode =
+      document.getElementById("reprocess-vision").checked ? "vision" : "text";
+    const resp = await fetch("/api/reprocess", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ extract_mode: extractMode }),
+    });
     if (!resp.ok || !resp.body) {
       log(`Error: HTTP ${resp.status}`, "err");
       btn.disabled = false; openBtn.disabled = false; btn.textContent = origLabel;

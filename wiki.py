@@ -12,7 +12,8 @@ import llm_client
 from config import DATA_DIR
 from rag import RagIndex
 
-_PROMPTS_DIR = Path(__file__).parent / "prompts"
+import sys
+_PROMPTS_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent) / "prompts"
 
 
 def _wiki_dir(paper_id: str) -> Path:

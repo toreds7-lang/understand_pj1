@@ -11,7 +11,7 @@ from typing import Any, Iterator
 
 import llm_client
 
-_PROMPTS_DIR = Path(__file__).parent / "prompts"
+_PROMPTS_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent) / "prompts"
 _CACHE_NAME = "highlights.json"
 _MAX_PAGE_CHARS = 12000
 

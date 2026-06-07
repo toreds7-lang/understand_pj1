@@ -5,18 +5,22 @@ import shutil
 import sys
 from pathlib import Path
 
-from config import DATA_DIR
+from config import DATA_DIR, PDF_EXTRACT_MODE
 from extract import extract_pdf
 from toc import build_toc
 from pipeline import summarize_pages
 from rag import build_index
 
 
-def run(pdf_path: str, force: bool = False) -> None:
+def run(pdf_path: str, force: bool = False, extract_mode: str | None = None) -> None:
     src = Path(pdf_path).resolve()
     if not src.exists():
         print(f"ERROR: PDF not found: {src}", file=sys.stderr)
         sys.exit(1)
+
+    mode = (extract_mode or PDF_EXTRACT_MODE or "text").strip().lower()
+    if mode not in ("text", "vision"):
+        mode = "text"
 
     paper_id = src.stem.lower().replace(" ", "_")
     data_dir = DATA_DIR / paper_id
@@ -31,7 +35,8 @@ def run(pdf_path: str, force: bool = False) -> None:
     if not dst_pdf.exists() or force:
         shutil.copy2(src, dst_pdf)
 
-    payload = extract_pdf(dst_pdf, data_dir)
+    print(f"Extraction mode: {mode}")
+    payload = extract_pdf(dst_pdf, data_dir, mode)
     summarize_pages(payload["pages"])
     payload["toc"] = build_toc(dst_pdf)
     payload["paper_id"] = paper_id
@@ -49,8 +54,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="PDF -> paper.json via PDF libraries")
     parser.add_argument("pdf_path", help="Path to the input PDF")
     parser.add_argument("--force", action="store_true", help="Reprocess even if paper.json exists")
+    parser.add_argument("--extract-mode", choices=["text", "vision"], default=None,
+                        help="How to read pages into markdown (default: PDF_EXTRACT_MODE env or 'text')")
+    parser.add_argument("--vision", action="store_true",
+                        help="Shortcut for --extract-mode vision")
     args = parser.parse_args()
-    run(args.pdf_path, force=args.force)
+    mode = "vision" if args.vision else args.extract_mode
+    run(args.pdf_path, force=args.force, extract_mode=mode)
 
 
 if __name__ == "__main__":

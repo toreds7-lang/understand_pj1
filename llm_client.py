@@ -76,6 +76,25 @@ def stream_messages(messages: list[dict], model: str = LLM_MODEL):
             yield token
 
 
+def vision_chat(
+    system: str,
+    user_text: str,
+    image_b64: str,
+    mime: str = "image/png",
+    model: str = VISION_MODEL,
+) -> str:
+    """Non-streaming multimodal completion: one image plus a text instruction.
+    Uses the dedicated vision model/endpoint (VISION_MODEL / VISION_BASE_URL)."""
+    llm = _get_vision_llm(model)
+    human = HumanMessage(content=[
+        {"type": "text", "text": user_text},
+        {"type": "image_url",
+         "image_url": {"url": f"data:{mime};base64,{image_b64}"}},
+    ])
+    result = llm.invoke([SystemMessage(content=system), human])
+    return result.content or ""
+
+
 def stream_vision_messages(messages: list[dict], model: str = VISION_MODEL):
     """Multimodal variant: messages may contain content lists with
     {'type': 'image_url', 'image_url': {...}} entries. Uses the dedicated

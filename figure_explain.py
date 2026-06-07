@@ -17,7 +17,7 @@ import llm_client
 from extract import _find_caption_blocks
 
 
-_PROMPTS_DIR = Path(__file__).parent / "prompts"
+_PROMPTS_DIR = (Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent) / "prompts"
 _FIG_REF_RE = re.compile(r"\b(?:Figure|Fig\.?)\s*(\d+)\b", re.IGNORECASE)
 _ID_SAFE_RE = re.compile(r"^[A-Za-z0-9_\-]+$")
 

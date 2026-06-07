@@ -7,6 +7,7 @@ Strategy:
 """
 from __future__ import annotations
 
+import base64
 import re
 import sys
 from pathlib import Path
@@ -15,6 +16,8 @@ from typing import Any
 import fitz  # PyMuPDF
 import pdfplumber
 import pymupdf4llm
+
+import llm_client
 
 
 # ---------------------------------------------------------------------------
@@ -42,6 +45,47 @@ def _markdown_per_page(pdf_path: Path, num_pages: int) -> list[str]:
         if 0 <= idx < num_pages:
             by_index[idx] = text
     return by_index
+
+
+# ---------------------------------------------------------------------------
+# vision-LLM markdown pass
+# ---------------------------------------------------------------------------
+
+_PROMPTS_DIR = (
+    Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+) / "prompts"
+
+
+def _render_page_png_b64(page, zoom: float = 2.0) -> str:
+    """Render a full page to a PNG and return it base64-encoded."""
+    pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+    return base64.b64encode(pix.tobytes("png")).decode("ascii")
+
+
+def _markdown_per_page_vision(pdf_path: Path, num_pages: int) -> list[str | None]:
+    """Transcribe each page to markdown with the vision LLM. Returns one entry
+    per page; an entry is None when extraction failed or returned nothing so the
+    caller can fall back to the text pass for just those pages."""
+    system = (_PROMPTS_DIR / "extract_vision.system.txt").read_text(encoding="utf-8").strip()
+    user = "Transcribe this page to GitHub-Flavored Markdown."
+    out: list[str | None] = [None] * num_pages
+    doc = fitz.open(str(pdf_path))
+    try:
+        for i, page in enumerate(doc):
+            if i >= num_pages:
+                break
+            try:
+                b64 = _render_page_png_b64(page)
+                md = (llm_client.vision_chat(system, user, b64) or "").strip()
+            except Exception as exc:
+                print(f"[extract] page {i}: vision extraction failed: {exc}", file=sys.stderr)
+                md = ""
+            out[i] = md if md else None
+            if out[i] is not None:
+                print(f"[extract] page {i}: vision markdown ({len(md)} chars)", file=sys.stderr)
+    finally:
+        doc.close()
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -300,15 +344,32 @@ def _extract_figures(
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def extract_pdf(pdf_path: Path, data_dir: Path) -> dict[str, Any]:
+def extract_pdf(pdf_path: Path, data_dir: Path, mode: str = "text") -> dict[str, Any]:
     """Extract structured per-page content. Returns a partial paper.json dict
-    (without summaries / toc — those are filled by the pipeline)."""
+    (without summaries / toc — those are filled by the pipeline).
+
+    mode="text"   -> page markdown via pymupdf4llm (default).
+    mode="vision" -> page markdown via the vision LLM, falling back to pymupdf4llm
+                     for any page the vision model fails on.
+    """
     doc = fitz.open(str(pdf_path))
     num_pages = doc.page_count
     doc.close()
 
-    print(f"[extract] {num_pages} pages — running pymupdf4llm", file=sys.stderr)
-    page_markdowns = _markdown_per_page(pdf_path, num_pages)
+    if mode == "vision":
+        print(f"[extract] {num_pages} pages — running vision LLM", file=sys.stderr)
+        vision_md = _markdown_per_page_vision(pdf_path, num_pages)
+        missing = [i for i, md in enumerate(vision_md) if md is None]
+        if missing:
+            print(f"[extract] vision failed on {len(missing)} page(s); "
+                  f"falling back to pymupdf4llm for those", file=sys.stderr)
+            text_md = _markdown_per_page(pdf_path, num_pages)
+            for i in missing:
+                vision_md[i] = text_md[i]
+        page_markdowns = [md or "" for md in vision_md]
+    else:
+        print(f"[extract] {num_pages} pages — running pymupdf4llm", file=sys.stderr)
+        page_markdowns = _markdown_per_page(pdf_path, num_pages)
 
     print(f"[extract] refining tables with pdfplumber", file=sys.stderr)
     page_tables = _refine_tables_per_page(pdf_path, page_markdowns)
