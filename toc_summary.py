@@ -189,8 +189,11 @@ def _parent_input(node: Node, pages: list[dict[str, Any]],
     return out
 
 
-def _record(node: Node, summary: str) -> dict[str, Any]:
-    return {
+_SUMMARY_ERROR_PREFIX = "[summary error:"
+
+
+def _record(node: Node, summary: str, error: str | None = None) -> dict[str, Any]:
+    rec: dict[str, Any] = {
         "anchor": node.anchor,
         "title": node.title,
         "level": node.level,
@@ -199,6 +202,20 @@ def _record(node: Node, summary: str) -> dict[str, Any]:
         "summary": summary,
         "done_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
     }
+    if error:
+        rec["error"] = error
+    return rec
+
+
+def _is_failed(entry: dict[str, Any] | None) -> bool:
+    """True if a node has no usable summary yet (never summarized, or the last
+    attempt errored), so a manual re-run should (re)process it."""
+    if not entry:
+        return True
+    if entry.get("error"):
+        return True
+    s = (entry.get("summary") or "").strip()
+    return not s or s.startswith(_SUMMARY_ERROR_PREFIX)
 
 
 def summarize_node(
@@ -207,15 +224,26 @@ def summarize_node(
     cache: dict[str, dict[str, Any]],
     data_dir: Path,
     on_done: Callable[[dict[str, Any]], None] | None = None,
+    dirty: set[str] | None = None,
 ) -> Iterator[dict[str, Any]]:
     """Post-order: recursively summarize children, then this node. Yields each
     completed record as `{anchor, title, level, page_start, page_end, summary,
-    done_at}`. Cache is written after each completion."""
+    done_at}`. Cache is written after each completion.
+
+    Resumable by default: a node that already has a good summary is skipped, so
+    re-running only retries nodes that are missing or errored. A parent is also
+    re-summarized when any of its children were (re)computed in this run (their
+    anchors are collected in `dirty`), so a parent that previously folded in a
+    failed child's "(no summary)" bullet is refreshed once the child recovers."""
+    if dirty is None:
+        dirty = set()
+
     # Children first
     for c in node.children:
-        yield from summarize_node(c, pages, cache, data_dir, on_done)
+        yield from summarize_node(c, pages, cache, data_dir, on_done, dirty)
 
-    if node.anchor in cache and cache[node.anchor].get("summary"):
+    child_changed = any(c.anchor in dirty for c in node.children)
+    if not _is_failed(cache.get(node.anchor)) and not child_changed:
         return
 
     if node.children:
@@ -228,16 +256,22 @@ def summarize_node(
             user = f"Section: {node.title}\n\n[no text available for pages " \
                    f"{node.page_start + 1}–{node.page_end + 1}]"
 
+    error: str | None = None
     try:
         summary = llm_client.chat(system, user)
     except Exception as exc:
-        summary = f"[summary error: {exc}]"
+        summary = f"{_SUMMARY_ERROR_PREFIX} {exc}]"
+        error = f"{type(exc).__name__}: {exc}"
         print(f"[toc_summary] error on {node.anchor} ({node.title}): {exc}",
               file=sys.stderr)
 
-    rec = _record(node, summary)
+    rec = _record(node, summary, error=error)
     cache[node.anchor] = rec
     save_cache(data_dir, cache)
+    # Only a successful (re)compute should cascade to ancestors; a failed node
+    # stays in the failed set and is retried (with its parent) on the next run.
+    if error is None:
+        dirty.add(node.anchor)
     if on_done is not None:
         on_done(rec)
     yield rec
@@ -249,5 +283,6 @@ def summarize_all(
     cache: dict[str, dict[str, Any]],
     data_dir: Path,
 ) -> Iterator[dict[str, Any]]:
+    dirty: set[str] = set()
     for r in roots:
-        yield from summarize_node(r, pages, cache, data_dir)
+        yield from summarize_node(r, pages, cache, data_dir, dirty=dirty)

@@ -15,17 +15,40 @@ _SUMMARY_SYSTEM = (
     "Use Markdown. Do NOT add a heading; output just the summary text."
 )
 
+# Marker written into a page's summary when the LLM call fails. A re-run
+# treats summaries starting with this prefix as "not done" and retries them.
+_SUMMARY_ERROR_PREFIX = "[summary error:"
 
-def summarize_pages(pages: list[dict[str, Any]]) -> None:
-    """Fill 'summary' field on each page in-place."""
+
+def _is_failed_summary(summary: str | None) -> bool:
+    """True if a page has no usable summary yet (never summarized, or the last
+    attempt errored), so a manual re-run should (re)process it."""
+    s = (summary or "").strip()
+    return not s or s.startswith(_SUMMARY_ERROR_PREFIX)
+
+
+def summarize_pages(pages: list[dict[str, Any]], force: bool = False) -> None:
+    """Fill 'summary' field on each page in-place.
+
+    By default this is resumable: a page that already has a good summary is
+    skipped, so re-running only retries pages that are empty or errored — the
+    "retry failed only" behavior. Pass force=True to re-summarize every page
+    (e.g. after changing the prompt)."""
+    done = skipped = failed = 0
     for p in pages:
         md = p.get("markdown", "")
         if not md.strip():
             p["summary"] = ""
             continue
+        if not force and not _is_failed_summary(p.get("summary")):
+            skipped += 1
+            continue
         try:
             p["summary"] = llm_client.chat(_SUMMARY_SYSTEM, f"Page content:\n\n{md}")
+            done += 1
         except Exception as exc:
-            p["summary"] = f"[summary error: {exc}]"
+            p["summary"] = f"{_SUMMARY_ERROR_PREFIX} {exc}]"
+            failed += 1
             print(f"[pipeline] summary error on page {p['index']}: {exc}", file=sys.stderr)
-    print(f"[pipeline] summarized {len(pages)} pages", file=sys.stderr)
+    print(f"[pipeline] summarized {done} page(s), skipped {skipped} already-good, "
+          f"{failed} failed (of {len(pages)} total)", file=sys.stderr)

@@ -374,6 +374,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 .node text { fill: var(--text); font-size: 11px; pointer-events: none; }
 .link { stroke: var(--border); stroke-opacity: 0.5; }
 .link.highlighted { stroke: var(--accent); stroke-opacity: 0.9; }
+.link-arrow { fill: context-stroke; }
 .link-label { fill: var(--muted); font-size: 9px; pointer-events: none; }
 #graph-controls { display: flex; flex-direction: column; gap: 6px; }
 
@@ -449,6 +450,12 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
     <label style="display:block;font-size:12px;color:var(--muted);margin-top:4px;">
       <input type="checkbox" id="reprocess-vision"> Read with vision LLM (vision)
     </label>
+    <label style="display:block;font-size:12px;color:var(--muted);margin-top:2px;">
+      <input type="checkbox" id="reprocess-ocr-only"> OCR only (vision LLM — markdown only, add summaries/RAG later)
+    </label>
+    <button id="summarize-pages-btn" class="open-pdf-btn" style="margin-top:8px" title="Generate per-page summaries from the existing OCR markdown (no re-OCR). Retries only pages that are missing or errored; re-press after a server hiccup.">Generate page summaries</button>
+    <button id="build-rag-btn" class="open-pdf-btn" title="Build the RAG index from the existing OCR markdown (no re-OCR). Enables chat retrieval.">Build RAG index</button>
+    <button id="reocr-failed-btn" class="open-pdf-btn" title="Re-run the vision LLM only on pages that fell back to text extraction. Good pages are left untouched; safe to repeat after a server hiccup.">Re-OCR failed pages</button>
     <button id="open-graph-btn" class="open-pdf-btn" style="margin-top:8px">Knowledge Graph</button>
     <div id="reprocess-status"></div>
   </div>
@@ -616,6 +623,9 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
         </div>
         <label class="upload-row" style="font-size:12px;color:var(--muted);margin-top:6px;">
           <input type="checkbox" id="picker-vision"> Read with vision LLM (vision)
+        </label>
+        <label class="upload-row" style="font-size:12px;color:var(--muted);margin-top:4px;">
+          <input type="checkbox" id="picker-ocr-only"> OCR only (vision LLM — markdown only, add summaries/RAG later)
         </label>
         <div id="picker-log"></div>
       </div>
@@ -2159,6 +2169,39 @@ function closePicker() {
   document.getElementById("picker-overlay").classList.remove("show");
 }
 
+// Read an NDJSON progress stream. Calls onLog(msg, cls?) for each {msg}/error
+// record and returns {okFlag, finalPaperId} from the terminating {done} record.
+async function streamNdjson(resp, onLog) {
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  let okFlag = false;
+  let finalPaperId = null;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    let nl;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (!line) continue;
+      try {
+        const rec = JSON.parse(line);
+        if (rec.done) {
+          okFlag = !!rec.ok;
+          finalPaperId = rec.paper_id || null;
+        } else if (rec.stage === "error") {
+          onLog(`[error] ${rec.msg || ""}`, "err");
+        } else if (rec.msg) {
+          onLog(rec.msg);
+        }
+      } catch (_) { /* ignore */ }
+    }
+  }
+  return { okFlag, finalPaperId };
+}
+
 async function uploadPdf() {
   const fileInput = document.getElementById("picker-file");
   const btn = document.getElementById("picker-upload-btn");
@@ -2170,10 +2213,13 @@ async function uploadPdf() {
   clearPickerLog();
   pickerLog(`uploading ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)…`);
   btn.disabled = true;
+  const ocrOnly = document.getElementById("picker-ocr-only").checked;
   const fd = new FormData();
   fd.append("file", file, file.name);
+  // OCR-only implies vision; otherwise honor the vision checkbox.
   fd.append("extract_mode",
-    document.getElementById("picker-vision").checked ? "vision" : "text");
+    (ocrOnly || document.getElementById("picker-vision").checked) ? "vision" : "text");
+  fd.append("ocr_only", ocrOnly ? "1" : "");
   try {
     const resp = await fetch("/api/upload-pdf", { method: "POST", body: fd });
     if (!resp.ok || !resp.body) {
@@ -2181,35 +2227,9 @@ async function uploadPdf() {
       btn.disabled = false;
       return;
     }
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = "";
-    let finalPaperId = null;
-    let okFlag = false;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      let nl;
-      while ((nl = buf.indexOf("\n")) >= 0) {
-        const line = buf.slice(0, nl).trim();
-        buf = buf.slice(nl + 1);
-        if (!line) continue;
-        try {
-          const rec = JSON.parse(line);
-          if (rec.done) {
-            okFlag = !!rec.ok;
-            finalPaperId = rec.paper_id || null;
-            if (okFlag) pickerLog(`done — switching to '${finalPaperId}'`, "ok");
-          } else if (rec.stage === "error") {
-            pickerLog(`[error] ${rec.msg || ""}`, "err");
-          } else if (rec.msg) {
-            pickerLog(rec.msg);
-          }
-        } catch (_) { /* ignore */ }
-      }
-    }
+    const { okFlag, finalPaperId } = await streamNdjson(resp, pickerLog);
     if (okFlag && finalPaperId) {
+      pickerLog(`done — switching to '${finalPaperId}'`, "ok");
       setTimeout(() => gotoPaper(finalPaperId), 400);
     } else {
       btn.disabled = false;
@@ -2220,14 +2240,19 @@ async function uploadPdf() {
   }
 }
 
-async function reprocessCurrent() {
-  const btn = document.getElementById("reprocess-btn");
+// Run a Paper-section streaming job (reprocess / summarize / build-rag) that
+// reports into #reprocess-status and reloads the paper on success.
+async function runPaperJob({ url, body, confirmMsg, busyLabel, btnId }) {
+  const btn = document.getElementById(btnId);
   const openBtn = document.getElementById("open-pdf-btn");
   const status = document.getElementById("reprocess-status");
-  if (!confirm("Re-extract this paper with --force? This rebuilds figure bboxes, captions, and the RAG index.")) return;
-  btn.disabled = true; openBtn.disabled = true;
+  if (confirmMsg && !confirm(confirmMsg)) return;
+  const jobBtns = ["reprocess-btn", "summarize-pages-btn", "build-rag-btn", "reocr-failed-btn"]
+    .map(id => document.getElementById(id)).filter(Boolean);
+  jobBtns.forEach(b => b.disabled = true);
+  openBtn.disabled = true;
   const origLabel = btn.textContent;
-  btn.textContent = "Reprocessing…";
+  btn.textContent = busyLabel;
   status.classList.add("show");
   status.innerHTML = "";
   const log = (msg, cls) => {
@@ -2237,61 +2262,79 @@ async function reprocessCurrent() {
     status.appendChild(line);
     status.scrollTop = status.scrollHeight;
   };
+  const reset = () => {
+    jobBtns.forEach(b => b.disabled = false);
+    openBtn.disabled = false;
+    btn.textContent = origLabel;
+  };
   try {
-    const extractMode =
-      document.getElementById("reprocess-vision").checked ? "vision" : "text";
-    const resp = await fetch("/api/reprocess", {
+    const resp = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ extract_mode: extractMode }),
+      body: JSON.stringify(body || {}),
     });
     if (!resp.ok || !resp.body) {
       log(`Error: HTTP ${resp.status}`, "err");
-      btn.disabled = false; openBtn.disabled = false; btn.textContent = origLabel;
+      reset();
       return;
     }
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buf = "";
-    let okFlag = false;
-    let finalPaperId = null;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buf += decoder.decode(value, { stream: true });
-      let nl;
-      while ((nl = buf.indexOf("\n")) >= 0) {
-        const line = buf.slice(0, nl).trim();
-        buf = buf.slice(nl + 1);
-        if (!line) continue;
-        try {
-          const rec = JSON.parse(line);
-          if (rec.done) {
-            okFlag = !!rec.ok;
-            finalPaperId = rec.paper_id || null;
-            if (okFlag) log(`done — reloading '${finalPaperId}'`, "ok");
-          } else if (rec.stage === "error") {
-            log(`[error] ${rec.msg || ""}`, "err");
-          } else if (rec.msg) {
-            log(rec.msg);
-          }
-        } catch (_) { /* ignore */ }
-      }
-    }
+    const { okFlag, finalPaperId } = await streamNdjson(resp, log);
     if (okFlag && finalPaperId) {
+      log(`done — reloading '${finalPaperId}'`, "ok");
       setTimeout(() => gotoPaper(finalPaperId), 500);
     } else {
-      btn.disabled = false; openBtn.disabled = false; btn.textContent = origLabel;
+      reset();
     }
   } catch (err) {
     log("Network error: " + err.message, "err");
-    btn.disabled = false; openBtn.disabled = false; btn.textContent = origLabel;
+    reset();
   }
+}
+
+function reprocessCurrent() {
+  const ocrOnly = document.getElementById("reprocess-ocr-only").checked;
+  // OCR-only implies vision; otherwise honor the vision checkbox.
+  const extractMode =
+    (ocrOnly || document.getElementById("reprocess-vision").checked) ? "vision" : "text";
+  return runPaperJob({
+    url: "/api/reprocess",
+    body: { extract_mode: extractMode, ocr_only: ocrOnly },
+    confirmMsg: "Re-extract this paper with --force? This rebuilds figure bboxes, captions, and the RAG index.",
+    busyLabel: "Reprocessing…",
+    btnId: "reprocess-btn",
+  });
+}
+
+function summarizePages() {
+  return runPaperJob({
+    url: "/api/summarize-pages",
+    busyLabel: "Summarizing…",
+    btnId: "summarize-pages-btn",
+  });
+}
+
+function buildRag() {
+  return runPaperJob({
+    url: "/api/build-rag",
+    busyLabel: "Building RAG…",
+    btnId: "build-rag-btn",
+  });
+}
+
+function reocrFailed() {
+  return runPaperJob({
+    url: "/api/reocr-failed",
+    busyLabel: "Re-OCR…",
+    btnId: "reocr-failed-btn",
+  });
 }
 
 function setupPicker() {
   document.getElementById("open-pdf-btn").addEventListener("click", openPicker);
   document.getElementById("reprocess-btn").addEventListener("click", reprocessCurrent);
+  document.getElementById("summarize-pages-btn").addEventListener("click", summarizePages);
+  document.getElementById("build-rag-btn").addEventListener("click", buildRag);
+  document.getElementById("reocr-failed-btn").addEventListener("click", reocrFailed);
   document.getElementById("picker-close").addEventListener("click", closePicker);
   document.getElementById("picker-overlay").addEventListener("click", e => {
     if (e.target.id === "picker-overlay") closePicker();
@@ -2550,6 +2593,21 @@ function renderForceGraph(d3, data) {
   const svg = d3.select("#graph-svg")
     .attr("viewBox", [0, 0, W, H]);
 
+  // Arrowhead marker so directed edges (source -> target) read as directional.
+  // refX sits the tip at the line endpoint; fill: context-stroke (CSS) makes the
+  // arrow inherit the line's stroke colour, so highlighted edges get accent arrows too.
+  svg.append("defs").append("marker")
+    .attr("id", "graph-arrow")
+    .attr("viewBox", "0 -5 10 10")
+    .attr("refX", 10)
+    .attr("refY", 0)
+    .attr("markerWidth", 3.5)
+    .attr("markerHeight", 3.5)
+    .attr("orient", "auto")
+    .append("path")
+    .attr("class", "link-arrow")
+    .attr("d", "M0,-5L10,0L0,5");
+
   const g = svg.append("g");
   svg.call(d3.zoom().scaleExtent([0.1, 8]).on("zoom", ({transform}) => {
     g.attr("transform", transform);
@@ -2561,6 +2619,7 @@ function renderForceGraph(d3, data) {
   const link = g.append("g").selectAll("line")
     .data(data.edges).join("line")
     .attr("class", "link")
+    .attr("marker-end", "url(#graph-arrow)")
     .style("stroke-width", edgeWidth);
 
   const linkLabel = g.append("g").selectAll("text")
@@ -2612,7 +2671,16 @@ function renderForceGraph(d3, data) {
     .on("tick", () => {
       link
         .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+        .attr("x2", d => {
+          const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          return d.target.x - (dx / dist) * (radius(d.target) + 2);
+        })
+        .attr("y2", d => {
+          const dx = d.target.x - d.source.x, dy = d.target.y - d.source.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          return d.target.y - (dy / dist) * (radius(d.target) + 2);
+        });
       linkLabel
         .attr("x", d => (d.source.x + d.target.x) / 2)
         .attr("y", d => (d.source.y + d.target.y) / 2);

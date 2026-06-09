@@ -19,9 +19,12 @@ from pydantic import BaseModel
 
 from config import DATA_DIR
 import ai
+import extract
 import figure_explain
 import highlights
 import run as run_pipeline
+import pipeline
+import rag
 import toc_summary
 from rag import RagIndex
 import graph as graph_module
@@ -347,20 +350,11 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
                 yield json.dumps(rec, ensure_ascii=False) + "\n"
         return StreamingResponse(gen(), media_type="application/x-ndjson")
 
-    class ReprocessBody(BaseModel):
-        extract_mode: str | None = None
-
-    @app.post("/api/reprocess")
-    def api_reprocess(body: ReprocessBody = ReprocessBody()) -> StreamingResponse:
-        """Re-run the extraction pipeline on the current paper's source.pdf with
-        force=True, then hot-swap the in-memory context. Streams NDJSON progress."""
-        if not app.state.upload_lock.acquire(blocking=False):
-            raise HTTPException(409, "another reprocess/upload is already in progress")
-        ctx = cur()
-        paper_id = ctx.paper_id
-        pdf_path = ctx.pdf_path
-        extract_mode = body.extract_mode
-
+    def _stream_job(start_msg: str, job_fn, reload_paper_id: str | None) -> StreamingResponse:
+        """Run job_fn() in a worker thread with stdout/stderr tee'd to an NDJSON
+        progress stream. On success, hot-swap the in-memory context to
+        reload_paper_id (if given). The caller must already hold
+        app.state.upload_lock; it is released when the stream finishes."""
         q: queue.Queue = queue.Queue()
 
         class _Tee(io.TextIOBase):
@@ -385,7 +379,7 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
             try:
                 tee = _Tee()
                 with redirect_stdout(tee), redirect_stderr(tee):
-                    run_pipeline.run(str(pdf_path), force=True, extract_mode=extract_mode)
+                    job_fn()
                 tee.flush()
             except SystemExit as e:
                 err = f"pipeline exited: code={e.code}"
@@ -397,7 +391,7 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
         def gen():
             t = threading.Thread(target=worker, daemon=True)
             t.start()
-            yield json.dumps({"stage": "start", "msg": f"reprocessing {paper_id} (force=True)"}) + "\n"
+            yield json.dumps({"stage": "start", "msg": start_msg}) + "\n"
             try:
                 while True:
                     rec = q.get()
@@ -408,9 +402,10 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
                             yield json.dumps({"done": True, "ok": False}) + "\n"
                         else:
                             try:
-                                with app.state.swap_lock:
-                                    app.state.current = _load_context(paper_id)
-                                yield json.dumps({"done": True, "ok": True, "paper_id": paper_id}) + "\n"
+                                if reload_paper_id is not None:
+                                    with app.state.swap_lock:
+                                        app.state.current = _load_context(reload_paper_id)
+                                yield json.dumps({"done": True, "ok": True, "paper_id": reload_paper_id}) + "\n"
                             except Exception as e:
                                 yield json.dumps({"stage": "error", "msg": f"reload failed: {e}"}) + "\n"
                                 yield json.dumps({"done": True, "ok": False}) + "\n"
@@ -421,10 +416,104 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
 
         return StreamingResponse(gen(), media_type="application/x-ndjson")
 
+    class ReprocessBody(BaseModel):
+        extract_mode: str | None = None
+        ocr_only: bool = False
+
+    @app.post("/api/reprocess")
+    def api_reprocess(body: ReprocessBody = ReprocessBody()) -> StreamingResponse:
+        """Re-run the extraction pipeline on the current paper's source.pdf with
+        force=True, then hot-swap the in-memory context. Streams NDJSON progress."""
+        ctx = cur()
+        if not app.state.upload_lock.acquire(blocking=False):
+            raise HTTPException(409, "another reprocess/upload is already in progress")
+        paper_id = ctx.paper_id
+        pdf_path = ctx.pdf_path
+        extract_mode = body.extract_mode
+        ocr_only = bool(body.ocr_only)
+        return _stream_job(
+            f"reprocessing {paper_id} (force=True)",
+            lambda: run_pipeline.run(str(pdf_path), force=True,
+                                     extract_mode=extract_mode, ocr_only=ocr_only),
+            reload_paper_id=paper_id,
+        )
+
+    class SummarizeBody(BaseModel):
+        force: bool = False
+
+    @app.post("/api/summarize-pages")
+    def api_summarize_pages(body: SummarizeBody = SummarizeBody()) -> StreamingResponse:
+        """Generate per-page summaries for the current paper from its existing
+        markdown (no re-extraction / no re-OCR), persist to paper.json, then
+        hot-swap the in-memory context. Streams NDJSON progress.
+
+        Resumable by default: pages that already have a good summary are skipped,
+        so re-running only retries empty/errored pages. Pass force=true to
+        re-summarize every page."""
+        ctx = cur()
+        if not app.state.upload_lock.acquire(blocking=False):
+            raise HTTPException(409, "another job is already in progress")
+        paper_id = ctx.paper_id
+        paper_json_path = ctx.data_dir / "paper.json"
+        force = bool(body.force)
+
+        def job():
+            paper = json.loads(paper_json_path.read_text(encoding="utf-8"))
+            pipeline.summarize_pages(paper.get("pages", []), force=force)
+            paper_json_path.write_text(
+                json.dumps(paper, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+
+        label = f"summarizing pages for {paper_id}{' (force)' if force else ' (failed only)'}"
+        return _stream_job(label, job, reload_paper_id=paper_id)
+
+    @app.post("/api/build-rag")
+    def api_build_rag() -> StreamingResponse:
+        """Build the RAG embedding index for the current paper from its existing
+        markdown (no re-extraction / no re-OCR), then hot-swap the in-memory
+        context so chat retrieval works. Streams NDJSON progress."""
+        ctx = cur()
+        if not app.state.upload_lock.acquire(blocking=False):
+            raise HTTPException(409, "another job is already in progress")
+        paper_id = ctx.paper_id
+        data_dir = ctx.data_dir
+        paper_json_path = data_dir / "paper.json"
+
+        def job():
+            paper = json.loads(paper_json_path.read_text(encoding="utf-8"))
+            rag.build_index(paper.get("pages", []), data_dir)
+
+        return _stream_job(f"building RAG index for {paper_id}", job, reload_paper_id=paper_id)
+
+    @app.post("/api/reocr-failed")
+    def api_reocr_failed() -> StreamingResponse:
+        """Re-run the vision LLM only on pages that previously fell back to text
+        extraction (extract_method == 'text-fallback'), persist to paper.json,
+        then hot-swap the in-memory context. Leaves already-good pages and their
+        summaries untouched, so it is safe to call repeatedly. Streams NDJSON
+        progress."""
+        ctx = cur()
+        if not app.state.upload_lock.acquire(blocking=False):
+            raise HTTPException(409, "another job is already in progress")
+        paper_id = ctx.paper_id
+        pdf_path = ctx.pdf_path
+        paper_json_path = ctx.data_dir / "paper.json"
+
+        def job():
+            paper = json.loads(paper_json_path.read_text(encoding="utf-8"))
+            fixed = extract.reocr_failed_pages(pdf_path, paper.get("pages", []))
+            if fixed:
+                paper_json_path.write_text(
+                    json.dumps(paper, ensure_ascii=False, indent=2), encoding="utf-8"
+                )
+
+        return _stream_job(f"re-OCR failed pages for {paper_id}", job, reload_paper_id=paper_id)
+
     @app.post("/api/upload-pdf")
     async def api_upload_pdf(
         file: UploadFile = File(...),
         extract_mode: str = Form("text"),
+        ocr_only: str = Form(""),
     ) -> StreamingResponse:
         if not app.state.upload_lock.acquire(blocking=False):
             raise HTTPException(409, "another upload is already in progress")
@@ -472,7 +561,8 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
                 out_tee = _Tee("log")
                 err_tee = _Tee("log")
                 with redirect_stdout(out_tee), redirect_stderr(err_tee):
-                    run_pipeline.run(str(tmp_path), force=False, extract_mode=extract_mode)
+                    run_pipeline.run(str(tmp_path), force=False,
+                                     extract_mode=extract_mode, ocr_only=bool(ocr_only))
                 out_tee.flush(); err_tee.flush()
             except SystemExit as e:
                 err = f"pipeline exited: code={e.code}"

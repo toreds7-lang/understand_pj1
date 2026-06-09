@@ -82,7 +82,10 @@ def highlight_page(
 ) -> dict[str, Any]:
     key = str(page_idx)
     existing = cache.get(key)
-    if existing and isinstance(existing.get("keywords"), list):
+    # Resumable: skip a page that already succeeded. A record carrying an
+    # `error` field is a failed attempt, so leave it eligible for retry on a
+    # re-run. (A genuinely empty keyword list with no error counts as done.)
+    if existing and isinstance(existing.get("keywords"), list) and not existing.get("error"):
         return existing
 
     md = (pages[page_idx].get("markdown") or "").strip()

@@ -55,6 +55,12 @@ _PROMPTS_DIR = (
     Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 ) / "prompts"
 
+_VISION_USER = "Transcribe this page to GitHub-Flavored Markdown."
+
+
+def _vision_system() -> str:
+    return (_PROMPTS_DIR / "extract_vision.system.txt").read_text(encoding="utf-8").strip()
+
 
 def _render_page_png_b64(page, zoom: float = 2.0) -> str:
     """Render a full page to a PNG and return it base64-encoded."""
@@ -62,30 +68,45 @@ def _render_page_png_b64(page, zoom: float = 2.0) -> str:
     return base64.b64encode(pix.tobytes("png")).decode("ascii")
 
 
-def _markdown_per_page_vision(pdf_path: Path, num_pages: int) -> list[str | None]:
-    """Transcribe each page to markdown with the vision LLM. Returns one entry
-    per page; an entry is None when extraction failed or returned nothing so the
-    caller can fall back to the text pass for just those pages."""
-    system = (_PROMPTS_DIR / "extract_vision.system.txt").read_text(encoding="utf-8").strip()
-    user = "Transcribe this page to GitHub-Flavored Markdown."
+def _vision_page_markdown(page, system: str, user: str) -> tuple[str | None, str | None]:
+    """Render one page and transcribe it with the vision LLM. Returns
+    (markdown, error): markdown is None on failure or empty output, and error is
+    a message string when the attempt failed (None on success)."""
+    try:
+        b64 = _render_page_png_b64(page)
+        md = (llm_client.vision_chat(system, user, b64) or "").strip()
+    except Exception as exc:
+        return None, f"{type(exc).__name__}: {exc}"
+    if not md:
+        return None, "vision returned empty output"
+    return md, None
+
+
+def _markdown_per_page_vision(
+    pdf_path: Path, num_pages: int
+) -> tuple[list[str | None], list[str | None]]:
+    """Transcribe each page to markdown with the vision LLM. Returns
+    (markdowns, errors): a markdown entry is None when extraction failed or
+    returned nothing so the caller can fall back to the text pass for just those
+    pages, and the matching errors entry carries why it failed."""
+    system = _vision_system()
     out: list[str | None] = [None] * num_pages
+    errors: list[str | None] = [None] * num_pages
     doc = fitz.open(str(pdf_path))
     try:
         for i, page in enumerate(doc):
             if i >= num_pages:
                 break
-            try:
-                b64 = _render_page_png_b64(page)
-                md = (llm_client.vision_chat(system, user, b64) or "").strip()
-            except Exception as exc:
-                print(f"[extract] page {i}: vision extraction failed: {exc}", file=sys.stderr)
-                md = ""
-            out[i] = md if md else None
-            if out[i] is not None:
+            md, err = _vision_page_markdown(page, system, _VISION_USER)
+            out[i] = md
+            errors[i] = err
+            if md is not None:
                 print(f"[extract] page {i}: vision markdown ({len(md)} chars)", file=sys.stderr)
+            else:
+                print(f"[extract] page {i}: vision extraction failed: {err}", file=sys.stderr)
     finally:
         doc.close()
-    return out
+    return out, errors
 
 
 # ---------------------------------------------------------------------------
@@ -344,21 +365,32 @@ def _extract_figures(
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def extract_pdf(pdf_path: Path, data_dir: Path, mode: str = "text") -> dict[str, Any]:
+def extract_pdf(pdf_path: Path, data_dir: Path, mode: str = "text",
+                ocr_only: bool = False) -> dict[str, Any]:
     """Extract structured per-page content. Returns a partial paper.json dict
     (without summaries / toc — those are filled by the pipeline).
 
     mode="text"   -> page markdown via pymupdf4llm (default).
     mode="vision" -> page markdown via the vision LLM, falling back to pymupdf4llm
                      for any page the vision model fails on.
+    ocr_only=True -> stop after the page-markdown pass: skip the pdfplumber table
+                     refinement and fitz figure extraction (figures/tables stay
+                     empty). Pairs with mode="vision" for a pure vision-OCR run.
     """
     doc = fitz.open(str(pdf_path))
     num_pages = doc.page_count
     doc.close()
 
+    # Per-page provenance: "vision" (transcribed by the vision LLM), "text"
+    # (pure pymupdf4llm run), or "text-fallback" (vision was tried but failed,
+    # so we fell back to text). reocr_failed_pages() retries the last kind.
+    extract_methods: list[str]
+    extract_errors: list[str | None]
     if mode == "vision":
         print(f"[extract] {num_pages} pages — running vision LLM", file=sys.stderr)
-        vision_md = _markdown_per_page_vision(pdf_path, num_pages)
+        vision_md, vision_err = _markdown_per_page_vision(pdf_path, num_pages)
+        extract_methods = ["vision"] * num_pages
+        extract_errors = [None] * num_pages
         missing = [i for i, md in enumerate(vision_md) if md is None]
         if missing:
             print(f"[extract] vision failed on {len(missing)} page(s); "
@@ -366,25 +398,82 @@ def extract_pdf(pdf_path: Path, data_dir: Path, mode: str = "text") -> dict[str,
             text_md = _markdown_per_page(pdf_path, num_pages)
             for i in missing:
                 vision_md[i] = text_md[i]
+                extract_methods[i] = "text-fallback"
+                extract_errors[i] = vision_err[i]
         page_markdowns = [md or "" for md in vision_md]
     else:
         print(f"[extract] {num_pages} pages — running pymupdf4llm", file=sys.stderr)
         page_markdowns = _markdown_per_page(pdf_path, num_pages)
+        extract_methods = ["text"] * num_pages
+        extract_errors = [None] * num_pages
 
-    print(f"[extract] refining tables with pdfplumber", file=sys.stderr)
-    page_tables = _refine_tables_per_page(pdf_path, page_markdowns)
+    if ocr_only:
+        print(f"[extract] ocr-only — skipping table refinement and figure extraction",
+              file=sys.stderr)
+        page_tables: list[list[dict[str, Any]]] = [[] for _ in page_markdowns]
+        page_figures: list[list[dict[str, Any]]] = [[] for _ in page_markdowns]
+    else:
+        print(f"[extract] refining tables with pdfplumber", file=sys.stderr)
+        page_tables = _refine_tables_per_page(pdf_path, page_markdowns)
 
-    print(f"[extract] extracting figures with fitz", file=sys.stderr)
-    figures_dir = data_dir / "figures"
-    page_figures = _extract_figures(pdf_path, figures_dir, page_markdowns)
+        print(f"[extract] extracting figures with fitz", file=sys.stderr)
+        figures_dir = data_dir / "figures"
+        page_figures = _extract_figures(pdf_path, figures_dir, page_markdowns)
 
     pages = []
     for i in range(num_pages):
-        pages.append({
+        page_rec: dict[str, Any] = {
             "index": i,
             "markdown": page_markdowns[i],
             "summary": "",
             "figures": page_figures[i],
             "tables": page_tables[i],
-        })
+            "extract_method": extract_methods[i],
+        }
+        if extract_errors[i]:
+            page_rec["extract_error"] = extract_errors[i]
+        pages.append(page_rec)
     return {"num_pages": num_pages, "pages": pages}
+
+
+def reocr_failed_pages(pdf_path: Path, pages: list[dict[str, Any]]) -> int:
+    """Re-run the vision LLM only on pages that previously fell back to text
+    (extract_method == 'text-fallback'), patching their markdown and status in
+    place. Returns how many pages were successfully re-OCR'd.
+
+    Pages already transcribed by vision and pages from a pure text-mode run
+    (extract_method == 'text') are left untouched — this targets failures only,
+    so it is safe to call repeatedly until no fallback pages remain."""
+    targets = [p for p in pages if p.get("extract_method") == "text-fallback"]
+    if not targets:
+        print("[extract] re-OCR: no failed (text-fallback) pages to retry", file=sys.stderr)
+        return 0
+
+    print(f"[extract] re-OCR: retrying {len(targets)} failed page(s) with vision LLM",
+          file=sys.stderr)
+    system = _vision_system()
+    fixed = 0
+    doc = fitz.open(str(pdf_path))
+    try:
+        page_count = doc.page_count
+        for p in targets:
+            i = int(p.get("index", -1))
+            if not (0 <= i < page_count):
+                print(f"[extract] re-OCR: page index {i} out of range — skipping",
+                      file=sys.stderr)
+                continue
+            md, err = _vision_page_markdown(doc[i], system, _VISION_USER)
+            if md is None:
+                p["extract_error"] = err
+                print(f"[extract] re-OCR page {i}: still failing: {err}", file=sys.stderr)
+                continue
+            p["markdown"] = md
+            p["extract_method"] = "vision"
+            p.pop("extract_error", None)
+            fixed += 1
+            print(f"[extract] re-OCR page {i}: vision markdown ({len(md)} chars)",
+                  file=sys.stderr)
+    finally:
+        doc.close()
+    print(f"[extract] re-OCR: fixed {fixed}/{len(targets)} page(s)", file=sys.stderr)
+    return fixed

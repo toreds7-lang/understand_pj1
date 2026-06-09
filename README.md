@@ -1,8 +1,9 @@
 # Paper Read Project — PDF library viewer
 
-OCR-free academic paper reader. Extracts text/tables/figures with PDF libraries
-(no vision model), renders the original PDF in the browser with **real text
-selection** (PDF.js), and lets you ask questions about the paper via RAG chat.
+Academic paper reader. Extracts text/tables/figures with PDF libraries — or,
+optionally, transcribes each page with a **vision LLM** — renders the original
+PDF in the browser with **real text selection** (PDF.js), and lets you ask
+questions about the paper via RAG chat.
 
 ## Architecture
 
@@ -132,9 +133,19 @@ When `This page` is active, each user message in the transcript shows a
 | POST   | `/api/explain`             | `{sentence, before, after}` → streaming `text/plain` markdown.     |
 | POST   | `/api/chat`                | `{message, history, scope, page_index}` → streaming markdown.      |
 | POST   | `/api/figure-explain`      | `{figure_id}` → streaming markdown; vision-grounded, cached on disk. |
+| POST   | `/api/summarize-pages`     | `{force?}` → NDJSON. Summarizes pages with missing/errored summaries (all pages if `force:true`). |
+| POST   | `/api/reocr-failed`        | → NDJSON. Re-runs vision OCR **only** on `text-fallback` pages.    |
+| POST   | `/api/reprocess`           | `{extract_mode?, ocr_only?}` → NDJSON. Full re-extraction (like `--force`). |
+| POST   | `/api/build-rag`           | → NDJSON. (Re)builds the RAG index from existing markdown.        |
+| POST   | `/api/toc-summarize-all`   | → NDJSON. Summarizes TOC sections; retries only failed on re-run.  |
+| POST   | `/api/toc-summarize-node`  | `{anchor}` → NDJSON. Summarizes one TOC subtree.                  |
+| POST   | `/api/highlight-all`       | → NDJSON. Extracts keywords per page; retries only failed on re-run. |
 
 `scope` is `"paper"` (default) or `"page"`. When `"page"`, `page_index` is
-required and 0-indexed.
+required and 0-indexed. The job endpoints (`summarize-pages`, `reocr-failed`,
+`reprocess`, `build-rag`, `toc-summarize-*`, `highlight-all`) stream
+`application/x-ndjson` progress lines and hot-swap the in-memory paper on
+success — see **Failure recovery** below.
 
 ## File layout
 
@@ -168,6 +179,60 @@ re-extract (e.g. after changing extraction logic):
 This rewrites everything **except** the copied `source.pdf` (which is
 overwritten too if `--force` is set).
 
+## Failure recovery — retrying failed LLM steps
+
+The LLM-backed steps — **vision OCR**, **page summaries**, **TOC summaries**,
+and keyword **highlights** — can fail intermittently when the LLM endpoint
+times out or rate-limits (most common against a self-hosted `LLM_BASE_URL` /
+`VISION_BASE_URL`). These steps are **resumable**: a failure is recorded
+distinctly from a success, so **re-running the same action retries only the
+failed units and leaves good work untouched**. Press the button again after a
+hiccup and it converges — no full reprocess, no re-paying for pages that
+already succeeded.
+
+### What a re-run does, per step
+
+| Step | Skips (already good) | Retries (failed) | State on disk |
+| ---- | -------------------- | ---------------- | ------------- |
+| Page summaries | pages with a real summary | empty or `[summary error: …]` pages | `paper.json → pages[].summary` |
+| TOC summaries | nodes with a real summary | nodes with an `error` — **and** refreshes any parent section whose child just recovered | `toc_summaries.json` |
+| Highlights | pages with keywords and no error | pages whose cached record has an `error` | `highlights.json` |
+| Vision OCR | pages already read by vision | pages that fell back to text (`extract_method == "text-fallback"`) | `paper.json → pages[].extract_method` |
+
+### From the viewer (Paper panel)
+
+- **Generate page summaries** — re-press to summarize only the missing/errored
+  pages. (Use `{"force": true}` on `/api/summarize-pages` for a full redo, e.g.
+  after changing the summary prompt.)
+- **Re-OCR failed pages** — re-runs the vision LLM only on pages that fell back
+  to text; good pages and their summaries are left untouched. Safe to repeat.
+- **TOC summarize** / **Highlight** — re-press to retry only the failed
+  sections / pages.
+
+Each streams live progress into the status box and reloads the paper when done.
+
+### Per-page extraction provenance
+
+Every page in `paper.json` carries an `extract_method`:
+
+- `vision` — transcribed by the vision LLM (`VISION_MODEL` / `VISION_BASE_URL`).
+- `text` — plain `pymupdf4llm` run (vision was never requested).
+- `text-fallback` — vision was attempted but failed, so the page fell back to
+  text; an `extract_error` field records why. **Re-OCR failed pages** targets
+  exactly these.
+
+> Papers processed before this field existed have no `extract_method`, so
+> **Re-OCR failed pages** finds nothing to retry until one `Reprocess (--force)`
+> in vision mode re-tags them.
+
+### Design note
+
+There is **no** automatic retry / backoff / rate limiter in the client —
+retries are **manual and on demand** (re-press the button). This is deliberate:
+the instability is typically the self-hosted LLM server rather than a billing
+rate limit, and on-demand retry keeps you in control of when calls are
+re-issued.
+
 ## Troubleshooting
 
 - **Selection doesn't highlight in the PDF column** — the textLayer rendering
@@ -179,6 +244,11 @@ overwritten too if `--force` is set).
   `paper.json → toc` directly; you may need a different PDF or a tweak to
   `toc.py` thresholds.
 - **`Already processed`** — pass `--force` to `run.py`.
+- **`[summary error: …]`, missing summaries, or pages stuck on text after a
+  vision run** — the LLM endpoint timed out or rate-limited mid-run. Nothing is
+  lost: re-press **Generate page summaries**, **TOC summarize**, **Highlight**,
+  or **Re-OCR failed pages** and only the failed units are retried (see
+  **Failure recovery** above).
 - **Chat returns "excerpts do not contain the answer"** — retrieval missed.
   Try `Whole paper` scope, or rephrase using terms that appear verbatim in
   the paper. If consistently failing, check `rag.json` to confirm chunks
