@@ -284,6 +284,12 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 #reprocess-status.show { display: block; }
 #reprocess-status .err { color: #f48771; }
 #reprocess-status .ok { color: var(--accent); }
+#reprocess-status .job-progress { margin: 3px 0; }
+#reprocess-status .job-progress-bar { height: 6px; border-radius: 3px;
+  background: #2a2a2a; border: 1px solid var(--border); overflow: hidden; }
+#reprocess-status .job-progress-fill { height: 100%; width: 0;
+  background: var(--accent); transition: width 0.2s ease; }
+#reprocess-status .job-progress-label { margin-top: 2px; color: var(--accent); }
 
 #picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55);
   display: none; align-items: center; justify-content: center; z-index: 10000; }
@@ -592,6 +598,8 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <tr><td><kbd>F1</kbd></td><td>show / hide this shortcut list</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>define selected word</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>E</kbd></td><td>explain selected sentence</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td><td>grammar breakdown of selected sentence</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>M</kbd></td><td>rewrite selection in simpler English</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>read selected text aloud (press again to stop)</td></tr>
       <tr><td><kbd>Dbl-click</kbd> + <kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>select figure, then explain it</td></tr>
       <tr><td><kbd>Esc</kbd></td><td>close popup</td></tr>
@@ -599,7 +607,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <tr><td><kbd>Ctrl</kbd>+<kbd>2</kbd>..<kbd>5</kbd></td><td>toggle Outline / Markdown / Chat / PDF panes</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>6</kbd></td><td>toggle Knowledge Graph panel</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>focus graph (collapse other panes)</td></tr>
-      <tr><td><kbd>Ctrl</kbd>+<kbd>R</kbd></td><td>reset all panels to default</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>reset all panels to default (panel sizes are otherwise remembered)</td></tr>
     </table>
   </div>
 </div>
@@ -768,6 +776,22 @@ document.addEventListener("keydown", async e => {
     console.log("Ctrl+E pressed. Selected:", sel, "lastSelection:", lastSelection);
     if (!text) return;
     await runAction("explain", "/api/explain", {
+      sentence: text, before: lastSelection.before || "", after: lastSelection.after || "",
+    });
+  } else if (e.key === "b" || e.key === "B") {
+    e.preventDefault();
+    const sel = window.getSelection().toString().trim();
+    const text = sel || lastSelection.text;
+    if (!text) return;
+    await runAction("grammar breakdown", "/api/grammar", {
+      sentence: text, before: lastSelection.before || "", after: lastSelection.after || "",
+    });
+  } else if (e.key === "m" || e.key === "M") {
+    e.preventDefault();
+    const sel = window.getSelection().toString().trim();
+    const text = sel || lastSelection.text;
+    if (!text) return;
+    await runAction("simpler English", "/api/paraphrase", {
       sentence: text, before: lastSelection.before || "", after: lastSelection.after || "",
     });
   } else if (e.key === "i" || e.key === "I") {
@@ -1760,6 +1784,68 @@ document.getElementById("chat-clear").addEventListener("click", () => {
 
 /* ── Layout: splitters + collapse ─────────────────────────────────────── */
 function setupLayout() {
+  // Persisted layout — panels keep their size/collapsed state across reloads.
+  // Without this, any reload (including the automatic one after a summarize /
+  // reprocess job finishes) snaps every panel back to its HTML default, which
+  // looks like the panels "resizing themselves" while the user did nothing.
+  const LAYOUT_KEY = "viewer.layout.v1";
+  const LAYOUT_PANELS = ["left", "middle", "chat", "right"];
+
+  function saveLayout() {
+    try {
+      const data = { panels: {} };
+      LAYOUT_PANELS.forEach(id => {
+        const p = document.getElementById(id);
+        if (!p) return;
+        data.panels[id] = {
+          basis: p.style.flexBasis || "",
+          flex: p.style.flex || "",
+          fill: p.classList.contains("flex-fill"),
+          collapsed: p.classList.contains("collapsed"),
+        };
+      });
+      const mm = document.getElementById("middle-md");
+      const ms = document.getElementById("middle-summary");
+      if (mm && ms && mm.style.height) {
+        data.middleSplit = {
+          mdH: mm.style.height, mdFlex: mm.style.flex,
+          sumH: ms.style.height, sumFlex: ms.style.flex,
+        };
+      }
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify(data));
+    } catch (_) { /* storage unavailable — non-fatal */ }
+  }
+
+  function restoreLayout() {
+    let data;
+    try { data = JSON.parse(localStorage.getItem(LAYOUT_KEY) || "null"); }
+    catch (_) { data = null; }
+    if (!data || !data.panels) return;
+    Object.entries(data.panels).forEach(([id, s]) => {
+      const p = document.getElementById(id);
+      if (!p) return;
+      p.classList.toggle("flex-fill", !!s.fill);
+      if (s.flex) p.style.flex = s.flex;
+      if (s.basis) p.style.flexBasis = s.basis;
+      // Keep enough state that expanding a restored-collapsed panel resizes back.
+      if (s.basis) p.dataset.prevBasis = s.basis;
+      p.dataset.prevFlex = s.fill ? "fill" : "fixed";
+      if (s.collapsed) p.classList.add("collapsed");
+    });
+    if (data.middleSplit) {
+      const mm = document.getElementById("middle-md");
+      const ms = document.getElementById("middle-summary");
+      if (mm && ms) {
+        mm.style.flex = data.middleSplit.mdFlex || "0 0 auto";
+        ms.style.flex = data.middleSplit.sumFlex || "0 0 auto";
+        mm.style.height = data.middleSplit.mdH || "";
+        ms.style.height = data.middleSplit.sumH || "";
+      }
+    }
+  }
+
+  restoreLayout();
+
   // Collapse / expand toggles.
   document.querySelectorAll(".collapse-btn, .collapsed-label").forEach(el => {
     el.addEventListener("click", () => {
@@ -1774,6 +1860,7 @@ function setupLayout() {
       if (!collapsing && panel.dataset.prevFlex === "fixed" && panel.dataset.prevBasis) {
         panel.style.flexBasis = panel.dataset.prevBasis;
       }
+      saveLayout();
     });
   });
 
@@ -1803,7 +1890,8 @@ function setupLayout() {
       case "5": togglePanelById("right"); break;
       case "6": toggleGraphPanel(); break;
       case "g": case "G": collapseAllExceptGraph(); break;
-      case "r": case "R": resetPanelsToDefault(); break;
+      // Reset is on Ctrl+0 (not Ctrl+R) so the browser's reload stays usable.
+      case "0": resetPanelsToDefault(); break;
       default: return;
     }
     e.preventDefault();
@@ -1853,6 +1941,8 @@ function setupLayout() {
   }
 
   function resetPanelsToDefault() {
+    // Drop the saved layout so the reset survives the next reload too.
+    try { localStorage.removeItem(LAYOUT_KEY); } catch (_) {}
     // Reset all panels to their default state
     const defaultStates = {
       left: { basis: "220px", collapsed: false },
@@ -1974,6 +2064,7 @@ function setupLayout() {
         bot.classList.remove("_dragging_expanded");
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
+        saveLayout();
       }
 
       document.addEventListener("mousemove", onMove);
@@ -2052,6 +2143,7 @@ function setupLayout() {
         right.classList.remove("_dragging_expanded");
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
+        saveLayout();
       }
 
       document.addEventListener("mousemove", onMove);
@@ -2100,6 +2192,7 @@ function setupLayout() {
         right.classList.remove("_dragging_expanded");
         document.removeEventListener("mousemove", onMove);
         document.removeEventListener("mouseup", onUp);
+        saveLayout();
       }
 
       document.addEventListener("mousemove", onMove);
@@ -2255,7 +2348,25 @@ async function runPaperJob({ url, body, confirmMsg, busyLabel, btnId }) {
   btn.textContent = busyLabel;
   status.classList.add("show");
   status.innerHTML = "";
+  let progressEl = null;  // single in-place "[pipeline] progress N/M (P%)" line
   const log = (msg, cls) => {
+    const m = !cls && /^\[pipeline\] progress (\d+)\/(\d+) \((\d+)%\)/.exec(msg);
+    if (m) {
+      const [, doneN, totalN, pct] = m;
+      if (!progressEl) {
+        progressEl = document.createElement("div");
+        progressEl.className = "job-progress";
+        progressEl.innerHTML =
+          '<div class="job-progress-bar"><div class="job-progress-fill"></div></div>' +
+          '<div class="job-progress-label"></div>';
+        status.appendChild(progressEl);
+      }
+      progressEl.querySelector(".job-progress-fill").style.width = pct + "%";
+      progressEl.querySelector(".job-progress-label").textContent =
+        `Processing… ${pct}% (${doneN}/${totalN} pages)`;
+      status.scrollTop = status.scrollHeight;
+      return;
+    }
     const line = document.createElement("div");
     if (cls) line.className = cls;
     line.textContent = msg;

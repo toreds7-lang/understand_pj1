@@ -39,6 +39,28 @@ def explain_stream(sentence: str, before: str, after: str) -> Iterator[str]:
     ])
 
 
+def grammar_stream(sentence: str, before: str, after: str) -> Iterator[str]:
+    """Break a selected sentence into its grammatical parts for an English learner."""
+    user = _load("grammar.user.txt").format(
+        sentence=sentence.strip(), before=before.strip(), after=after.strip()
+    )
+    yield from llm_client.stream_messages([
+        {"role": "system", "content": _load("grammar.system.txt")},
+        {"role": "user", "content": user},
+    ])
+
+
+def paraphrase_stream(sentence: str, before: str, after: str) -> Iterator[str]:
+    """Rewrite a hard sentence/paragraph in simpler English, keeping the meaning."""
+    user = _load("paraphrase.user.txt").format(
+        sentence=sentence.strip(), before=before.strip(), after=after.strip()
+    )
+    yield from llm_client.stream_messages([
+        {"role": "system", "content": _load("paraphrase.system.txt")},
+        {"role": "user", "content": user},
+    ])
+
+
 def _format_context(snippets: list[dict]) -> str:
     parts = []
     for s in snippets:

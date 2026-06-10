@@ -8,6 +8,10 @@ Editable prompt templates loaded at runtime by `ai.py`. Edit any file and save �
 | `define.user.txt` | Ctrl+D | `{word}`, `{before}`, `{after}` |
 | `explain.system.txt` | Ctrl+E (explain sentence) | — |
 | `explain.user.txt` | Ctrl+E | `{sentence}`, `{before}`, `{after}` |
+| `grammar.system.txt` | Ctrl+B (grammar breakdown) | — |
+| `grammar.user.txt` | Ctrl+B | `{sentence}`, `{before}`, `{after}` |
+| `paraphrase.system.txt` | Ctrl+M (rewrite simpler) | — |
+| `paraphrase.user.txt` | Ctrl+M | `{sentence}`, `{before}`, `{after}` |
 | `chat.system.txt` | RAG chat | — |
 | `chat.user.txt` | RAG chat | `{scope_note}`, `{context}`, `{question}` |
 

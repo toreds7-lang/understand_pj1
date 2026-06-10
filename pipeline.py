@@ -35,6 +35,18 @@ def summarize_pages(pages: list[dict[str, Any]], force: bool = False) -> None:
     "retry failed only" behavior. Pass force=True to re-summarize every page
     (e.g. after changing the prompt)."""
     done = skipped = failed = 0
+    # Pages that this run will actually summarize (mirrors the skip logic in the
+    # loop below). Used so the progress percentage reaches 100% on completion.
+    total = sum(
+        1 for p in pages
+        if p.get("markdown", "").strip()
+        and (force or _is_failed_summary(p.get("summary")))
+    )
+    if total == 0:
+        # Nothing to do (all pages already summarized) — emit a single 100% tick
+        # so the UI shows the bar complete instead of never moving.
+        print("[pipeline] progress 0/0 (100%)")
+    processed = 0
     for p in pages:
         md = p.get("markdown", "")
         if not md.strip():
@@ -50,5 +62,10 @@ def summarize_pages(pages: list[dict[str, Any]], force: bool = False) -> None:
             p["summary"] = f"{_SUMMARY_ERROR_PREFIX} {exc}]"
             failed += 1
             print(f"[pipeline] summary error on page {p['index']}: {exc}", file=sys.stderr)
+        processed += 1
+        pct = round(100 * processed / total) if total else 100
+        # Progress line consumed in-place by the viewer's status box (and the tee
+        # in serve._stream_job). Keep the "[pipeline] progress N/M (P%)" shape.
+        print(f"[pipeline] progress {processed}/{total} ({pct}%)")
     print(f"[pipeline] summarized {done} page(s), skipped {skipped} already-good, "
           f"{failed} failed (of {len(pages)} total)", file=sys.stderr)

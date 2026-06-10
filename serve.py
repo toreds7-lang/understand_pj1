@@ -264,6 +264,24 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
             media_type="text/plain; charset=utf-8",
         )
 
+    @app.post("/api/grammar")
+    def api_grammar(body: ExplainBody) -> StreamingResponse:
+        if not body.sentence.strip():
+            raise HTTPException(400, "sentence is empty")
+        return StreamingResponse(
+            ai.grammar_stream(body.sentence, body.before, body.after),
+            media_type="text/plain; charset=utf-8",
+        )
+
+    @app.post("/api/paraphrase")
+    def api_paraphrase(body: ExplainBody) -> StreamingResponse:
+        if not body.sentence.strip():
+            raise HTTPException(400, "sentence is empty")
+        return StreamingResponse(
+            ai.paraphrase_stream(body.sentence, body.before, body.after),
+            media_type="text/plain; charset=utf-8",
+        )
+
     @app.post("/api/chat")
     def api_chat(body: ChatBody) -> StreamingResponse:
         ctx = cur()
