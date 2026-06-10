@@ -1,0 +1,7 @@
+Rewrite this text from a web article in simpler English, keeping the same meaning.
+
+Context before: {before}
+Text to rewrite: {sentence}
+Context after: {after}
+
+Write the simpler version.

@@ -1,0 +1,7 @@
+Break down the grammar of the selected sentence as it is used in this web article.
+
+Context before (up to 2 sentences): {before}
+Selected sentence: {sentence}
+Context after (up to 2 sentences): {after}
+
+Write the grammar breakdown.
