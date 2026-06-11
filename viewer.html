@@ -250,6 +250,10 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 #popup .pop-body { font-size: 13px; line-height: 1.5; }
 #popup .pop-close { position: absolute; top: 4px; right: 8px; cursor: pointer;
   color: var(--muted); font-size: 16px; line-height: 1; }
+#popup { scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+#popup::-webkit-scrollbar { width: 10px; }
+#popup::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 5px; }
+#popup::-webkit-scrollbar-track { background: transparent; }
 
 /* ── Shortcuts modal (F1) ──────────────────────────────────────────────── */
 #shortcuts-overlay { position: fixed; inset: 0; z-index: 10000; display: none;
@@ -862,9 +866,21 @@ function openPopup(label, target) {
   if (sel && sel.rangeCount) {
     const rect = sel.getRangeAt(0).getBoundingClientRect();
     x = Math.min(window.innerWidth - 460, Math.max(20, rect.right + 12));
-    y = Math.min(window.innerHeight - 200, Math.max(20, rect.top));
+    y = Math.max(20, rect.top);
   }
-  pop.style.left = x + "px"; pop.style.top = y + "px"; pop.style.display = "block";
+  // Clamp height so the popup always fits on screen and its scrollbar stays
+  // visible. Without this, a tall popup anchored low extends below the
+  // viewport, hiding both the bottom text and the scrollbar.
+  const margin = 16;
+  const desiredMax = Math.round(window.innerHeight * 0.6);
+  let maxH = window.innerHeight - y - margin;
+  if (maxH < desiredMax) {
+    y = Math.max(margin, window.innerHeight - margin - desiredMax);
+    maxH = window.innerHeight - y - margin;
+  }
+  pop.style.left = x + "px"; pop.style.top = y + "px";
+  pop.style.maxHeight = maxH + "px";
+  pop.style.display = "block";
 }
 window.closePopup = () => { TTS.stop(); document.getElementById("popup").style.display = "none"; };
 
