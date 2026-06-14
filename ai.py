@@ -91,6 +91,16 @@ def _format_history(history: list[dict], n_pairs: int = 3) -> str:
     return "\n\n".join(lines)
 
 
+def _building_notice(build_status: str | None) -> str:
+    """One-line notice shown when whole-paper chat falls back to vector RAG because the
+    GraphRAG index isn't ready yet."""
+    if build_status == "failed":
+        return ("> ⚠️ The knowledge-graph index for this paper failed to build — answering "
+                "from vector search. Use **Rebuild index** to retry.\n\n")
+    return ("> ⏳ Building this paper's knowledge graph (one-time). Answering from vector "
+            "search meanwhile…\n\n")
+
+
 def chat_stream(
     index: RagIndex,
     message: str,
@@ -98,9 +108,16 @@ def chat_stream(
     scope: str = "paper",
     page_index: int | None = None,
     page_markdown: str | None = None,
+    graphrag_engine: object | None = None,
+    build_status: str | None = None,
 ) -> Iterator[str]:
-    """RAG chat. scope='paper' searches all chunks; scope='page' restricts to
-    a single page (using its full markdown if short, else top-k within page)."""
+    """RAG chat.
+
+    scope='page' restricts to a single page (full markdown if short, else top-k within
+    the page). scope='paper' (whole paper) runs the agentic GraphRAG pipeline when the
+    paper's per-paper index is ready (``graphrag_engine`` provided); until then it
+    degrades to the original vector top-k path so chat always answers.
+    """
     if scope == "page" and page_index is not None:
         if page_markdown and len(page_markdown) <= 8000:
             context = f"[page {page_index + 1}]\n{page_markdown.strip()}"
@@ -109,6 +126,13 @@ def chat_stream(
             context = _format_context(hits) if hits else (page_markdown or "")
         scope_note = f"You must answer using only page {page_index + 1}."
     else:
+        # Whole-paper: agentic GraphRAG when the index is ready.
+        if graphrag_engine is not None:
+            import agentic_rag  # lazy: pulls in graphrag only when actually used
+            yield from agentic_rag.stream_with_trace(message, graphrag_engine)
+            return
+        # Index not ready (building / failed) -> notice + vector fallback.
+        yield _building_notice(build_status)
         section = index.find_section_page(message)
         if section is not None:
             hits = index.topk(message, k=5, page_filter=section["page"])

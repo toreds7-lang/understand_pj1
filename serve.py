@@ -29,6 +29,7 @@ import toc_summary
 from rag import RagIndex
 import graph as graph_module
 import wiki as wiki_module
+import graphrag_manager
 
 if getattr(sys, "frozen", False):
     ROOT = Path(sys.executable).parent
@@ -113,6 +114,10 @@ class PaperContext:
     toc_roots: list
     toc_cache: dict
 
+    def graphrag_engine(self):
+        """The paper's GraphRAGQA engine if its index is built, else None."""
+        return graphrag_manager.get_engine(self.paper_id)
+
 
 def _normalize_figures_shape(paper: dict) -> None:
     """Old paper.json had pages[].figures as ['figures/foo.png', ...]. Wrap into
@@ -151,6 +156,12 @@ def _load_context(paper_id: str) -> PaperContext:
     rag_index = RagIndex(data_dir)
     toc_roots = toc_summary.build_tree(paper.get("toc", []), len(paper.get("pages", [])))
     toc_cache = toc_summary.load_cache(data_dir)
+    # Kick off the one-time agentic-GraphRAG index build in the background if this paper
+    # doesn't have one yet. Whole-paper chat degrades to vector RAG until it's ready.
+    try:
+        graphrag_manager.build_async(paper_id, paper)
+    except Exception as e:  # noqa: BLE001 — never let index setup block paper loading
+        print(f"WARN: graphrag build_async failed for '{paper_id}': {e}", file=sys.stderr)
     return PaperContext(
         paper_id=paper_id, data_dir=data_dir, pdf_path=pdf_path,
         paper=paper, rag_index=rag_index, toc_roots=toc_roots, toc_cache=toc_cache,
@@ -289,16 +300,38 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
             raise HTTPException(400, "message is empty")
         scope = body.scope if body.scope in ("paper", "page") else "paper"
         page_md = None
+        engine = None
+        build_status = None
         if scope == "page":
             if body.page_index is None or not (0 <= body.page_index < len(ctx.paper["pages"])):
                 raise HTTPException(400, "page_index out of range")
             page_md = ctx.paper["pages"][body.page_index]["markdown"]
+        else:
+            # Whole-paper scope: hand the agentic flow its GraphRAG engine if it's ready,
+            # otherwise pass the build status so chat can show a notice + fall back.
+            engine = ctx.graphrag_engine()
+            if engine is None:
+                build_status = graphrag_manager.read_status(ctx.paper_id).get("state")
         return StreamingResponse(
             ai.chat_stream(
-                ctx.rag_index, body.message, body.history, scope, body.page_index, page_md
+                ctx.rag_index, body.message, body.history, scope, body.page_index, page_md,
+                graphrag_engine=engine, build_status=build_status,
             ),
             media_type="text/plain; charset=utf-8",
         )
+
+    @app.get("/api/graphrag-status")
+    def api_graphrag_status() -> dict:
+        ctx = cur()
+        return graphrag_manager.read_status(ctx.paper_id)
+
+    @app.post("/api/graphrag-build")
+    def api_graphrag_build() -> dict:
+        """Manually (re)build the current paper's agentic-GraphRAG index. Matches the
+        user's preference for press-to-retry recovery over silent auto-retry."""
+        ctx = cur()
+        started = graphrag_manager.build_async(ctx.paper_id, ctx.paper)
+        return {"started": started, **graphrag_manager.read_status(ctx.paper_id)}
 
     class FigureExplainBody(BaseModel):
         figure_id: str | None = None

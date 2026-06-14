@@ -40,6 +40,7 @@ and `data/` are **not** embedded — they stay editable beside the exe.
    Copy-Item env.txt dist\
    Copy-Item viewer.html dist\
    Copy-Item -Recurse prompts dist\
+   Copy-Item -Recurse graphrag_template dist\   # GraphRAG settings/prompts template (editable)
    ```
 
 3. Copy your processed papers folder beside the exe:
@@ -56,7 +57,8 @@ and `data/` are **not** embedded — they stay editable beside the exe.
    ├── env.txt            API key / model config (edit this)
    ├── viewer.html        the browser UI
    ├── prompts/           prompt templates (edit these)
-   └── data/              processed papers (paper.json, source.pdf, figures/)
+   ├── graphrag_template/ GraphRAG settings + index/query prompts (copied per paper on first build)
+   └── data/              processed papers (paper.json, source.pdf, figures/, graphrag/)
    ```
 
 ## Run
@@ -100,9 +102,34 @@ load files from the **exe's directory** (`Path(sys.executable).parent`):
 - **Entry point**: `serve.py`
 - **Hidden imports**: all local modules (`ai`, `config`, `figure_explain`,
   `highlights`, `run`, `toc_summary`, `toc`, `rag`, `graph`, `wiki`, `extract`,
-  `pipeline`, `llm_client`) plus all `uvicorn` submodules (dynamically loaded at
-  startup).
+  `pipeline`, `llm_client`, plus `agentic_rag`, `graphrag_manager`, `graphrag_qa.*`)
+  plus all `uvicorn` submodules (dynamically loaded at startup).
 - **One-file mode**: everything packed into a single `.exe`.
+
+### Agentic GraphRAG bundling (whole-paper chat)
+
+Whole-paper chat runs Microsoft **GraphRAG 3.1.0** in-process. GraphRAG is a
+multi-package namespace install with native deps, so the spec `collect_all`s the full
+stack (`graphrag`, `graphrag_cache/chunking/common/input/llm/storage/vectors`,
+`lancedb`, `pyarrow`, `litellm`, `graspologic_native`, `spacy`/`thinc`/`blis`,
+`networkx`, …) and `copy_metadata`s the packages that read their own version at runtime.
+
+- **tiktoken cache**: GraphRAG tokenizes with `o200k_base`, which tiktoken normally
+  *downloads* on first use — fatal for an offline exe. The repo ships a pre-warmed
+  `tiktoken_cache/` (bundled into the exe and pointed at by the `rthook_graphrag.py`
+  runtime hook via `TIKTOKEN_CACHE_DIR`). Regenerate it after a tiktoken upgrade with:
+
+  ```powershell
+  $env:TIKTOKEN_CACHE_DIR="$PWD\tiktoken_cache"
+  ..\..\.venv\Scripts\python -c "import tiktoken; [tiktoken.get_encoding(e).encode('x') for e in ('o200k_base','cl100k_base')]"
+  ```
+
+- **First-run index build**: opening a paper kicks off a one-time GraphRAG index build
+  in the background (`data/<paper_id>/graphrag/`). Whole-paper chat falls back to vector
+  search until it finishes; the chat header shows an **Indexing… / Graph ready / Index
+  failed** pill and a **Rebuild index** button (`/api/graphrag-build`). Builds make many
+  LLM calls — on a flaky/self-hosted LLM they can partially fail; press **Rebuild index**
+  to retry.
 
 ## Troubleshooting
 
@@ -115,3 +142,11 @@ load files from the **exe's directory** (`Path(sys.executable).parent`):
   (`data/<paper_id>/paper.json`) sits next to the exe (step 3).
 - **Antivirus flags the exe** — PyInstaller one-file binaries are sometimes
   false-positived; the `build\` artifacts and source remain available for inspection.
+- **GraphRAG `PackageNotFoundError` / `importlib.metadata` errors** — a package's
+  dist-info wasn't bundled; add it to the `copy_metadata(...)` loop in the spec.
+- **tiktoken tries to download / `Connection error` during whole-paper chat** — the
+  bundled `tiktoken_cache/` is missing or stale; regenerate it (above) and rebuild, or
+  drop a `tiktoken_cache/` folder next to the exe (the runtime hook picks it up).
+- **`lancedb`/`pyarrow` native import error in the exe** — ensure those packages were
+  installed in the build venv before packaging; `collect_all` only bundles what's
+  installed.

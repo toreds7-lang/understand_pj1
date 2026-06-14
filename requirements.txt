@@ -8,3 +8,5 @@ numpy>=1.26
 fastapi>=0.110
 uvicorn[standard]>=0.27
 python-multipart>=0.0.9
+# Agentic GraphRAG for whole-paper chat (pulls pandas, pyarrow, lancedb, litellm, tiktoken, spacy…)
+graphrag==3.1.0
