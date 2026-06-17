@@ -108,6 +108,7 @@ def highlight_page(
     try:
         raw = llm_client.chat(system, user)
         keywords = _parse_keywords(raw)
+        llm_client.llm_sleep()
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
         print(f"[highlights] error on page {page_idx}: {exc}", file=sys.stderr)

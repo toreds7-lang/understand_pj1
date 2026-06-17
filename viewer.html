@@ -210,12 +210,21 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 #scope-page-num { background: var(--panel-2); color: var(--text);
   border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px;
   font-size: 12px; width: 60px; }
+.sleep-label { font-size: 12px; color: var(--muted); display: flex;
+  align-items: center; gap: 4px; white-space: nowrap; }
+#llm-sleep-input { width: 46px; background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px; padding: 4px 5px; font-size: 12px; }
 .graphrag-pill { font-size: 11px; padding: 3px 7px; border-radius: 10px;
   border: 1px solid var(--border); white-space: nowrap; }
 .graphrag-pill.building { background: #3a3000; color: #f3d34a; border-color: #6b5a00; }
 .graphrag-pill.ready    { background: #0c3320; color: #57d98a; border-color: #1f6b44; }
 .graphrag-pill.failed   { background: #3a1414; color: #ff8080; border-color: #6b2424; }
 .graphrag-pill.idle     { background: var(--panel-2); color: var(--muted, #999); }
+#graphrag-progress { margin: 6px 12px 0; padding: 8px 10px; background: var(--panel-2);
+  border: 1px solid var(--border); border-radius: 6px; font-size: 11px; }
+#graphrag-progress-msg { color: #f3d34a; margin-bottom: 4px; }
+#graphrag-log-box { max-height: 120px; overflow-y: auto; font-family: monospace;
+  font-size: 10px; color: var(--muted, #999); white-space: pre-wrap; word-break: break-all; }
 #chat-log { flex: 1; overflow-y: auto; padding: 12px; }
 .msg { margin-bottom: 12px; padding: 8px 10px; border-radius: 6px;
   font-size: 13px; line-height: 1.5; }
@@ -497,9 +506,10 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <input type="checkbox" id="reprocess-ocr-only"> OCR only (vision LLM — markdown only, add summaries/RAG later)
     </label>
     <button id="summarize-pages-btn" class="open-pdf-btn" style="margin-top:8px" title="Generate per-page summaries from the existing OCR markdown (no re-OCR). Retries only pages that are missing or errored; re-press after a server hiccup.">Generate page summaries</button>
+    <span class="progress" id="page-summary-progress" style="display:block;margin-top:3px"></span>
     <button id="build-rag-btn" class="open-pdf-btn" title="Build the RAG index from the existing OCR markdown (no re-OCR). Enables chat retrieval.">Build RAG index</button>
     <button id="reocr-failed-btn" class="open-pdf-btn" title="Re-run the vision LLM only on pages that fell back to text extraction. Good pages are left untouched; safe to repeat after a server hiccup.">Re-OCR failed pages</button>
-    <button id="open-graph-btn" class="open-pdf-btn" style="margin-top:8px">Knowledge Graph</button>
+    <button id="open-graph-btn" class="open-pdf-btn" style="margin-top:8px;display:none">Knowledge Graph</button>
     <div id="reprocess-status"></div>
   </div>
   <div class="section">
@@ -561,8 +571,15 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <input type="number" id="scope-page-num" min="1" value="1" title="Page (1-indexed)">
       <button class="scope-btn" id="chat-clear" title="Clear chat history so the LLM no longer sees previous messages">Clear</button>
       <span id="graphrag-pill" class="graphrag-pill" title="Agentic GraphRAG index status for whole-paper chat" hidden></span>
-      <button class="scope-btn" id="graphrag-rebuild" title="Rebuild this paper's knowledge-graph index" hidden>Rebuild index</button>
+      <button class="scope-btn" id="graphrag-rebuild" title="Build or rebuild this paper's knowledge-graph index" hidden>Build index</button>
+      <label class="sleep-label" title="Seconds to wait after each batch LLM request (page summary, TOC, highlights, wiki)">
+        Sleep <input type="number" id="llm-sleep-input" min="0" step="0.5" value="3"> s
+      </label>
     </div>
+  </div>
+  <div id="graphrag-progress" hidden>
+    <div id="graphrag-progress-msg"></div>
+    <div id="graphrag-log-box"></div>
   </div>
   <div id="chat-log"></div>
   <div id="chat-input-row">
@@ -1078,6 +1095,21 @@ function refreshDoneDots() {
   if (prog) prog.textContent = tocTotal ? `${done}/${tocTotal} sections summarized` : "";
 }
 
+function updatePageSummaryProgress(pages) {
+  const prog = document.getElementById("page-summary-progress");
+  if (!prog || !pages) return;
+  const ERROR_PREFIX = "[summary error:";
+  const total = pages.filter(p => (p.markdown || "").trim()).length;
+  const good  = pages.filter(p => {
+    const s = (p.summary || "").trim();
+    return s && !s.startsWith(ERROR_PREFIX);
+  }).length;
+  const failed = pages.filter(p => (p.summary || "").startsWith(ERROR_PREFIX)).length;
+  prog.textContent = total
+    ? `${good}/${total} pages summarized` + (failed ? ` (${failed} failed)` : "")
+    : "";
+}
+
 /* ── TOC summary view (bottom pane, when summaryMode==='toc') ─────────── */
 function setSummaryMode(mode) {
   summaryMode = (mode === "toc") ? "toc" : "page";
@@ -1474,34 +1506,63 @@ const GRAPHRAG_LABELS = {
 };
 
 async function refreshGraphragStatus() {
-  const pill = document.getElementById("graphrag-pill");
+  const pill    = document.getElementById("graphrag-pill");
   const rebuild = document.getElementById("graphrag-rebuild");
+  const progress = document.getElementById("graphrag-progress");
+  const progressMsg = document.getElementById("graphrag-progress-msg");
+  const logBox  = document.getElementById("graphrag-log-box");
   try {
     const r = await fetch("/api/graphrag-status");
-    if (!r.ok) { pill.hidden = true; rebuild.hidden = true; return; }
-    const { state } = await r.json();
+    if (!r.ok) { pill.hidden = true; rebuild.hidden = true; progress.hidden = true; return; }
+    const { state, message } = await r.json();
     pill.hidden = false;
     pill.className = "graphrag-pill " + (state || "idle");
     pill.textContent = GRAPHRAG_LABELS[state] || GRAPHRAG_LABELS.idle;
     pill.title = state === "failed"
-      ? "GraphRAG index build failed — click Rebuild index to retry"
+      ? "GraphRAG index build failed — click to retry"
       : "Agentic GraphRAG index status for whole-paper chat";
-    // Offer a manual rebuild unless a build is already running.
+
+    // Button label: "Build index" when not yet built, "Rebuild index" when ready/failed.
+    rebuild.textContent = (state === "idle") ? "Build index" : "Rebuild index";
     rebuild.hidden = (state === "building");
-    // Poll while a build is in flight; otherwise rest.
+
+    // Progress box: visible only during build.
+    if (state === "building") {
+      progress.hidden = false;
+      progressMsg.textContent = message || "Building…";
+      // Fetch and show recent log lines.
+      try {
+        const lr = await fetch("/api/graphrag-log");
+        if (lr.ok) {
+          const { lines } = await lr.json();
+          const atBottom = logBox.scrollHeight - logBox.scrollTop <= logBox.clientHeight + 4;
+          logBox.textContent = lines.join("\n");
+          if (atBottom) logBox.scrollTop = logBox.scrollHeight;
+        }
+      } catch (_) {}
+    } else {
+      progress.hidden = true;
+    }
+
+    // Poll while building; rest otherwise.
     if (state === "building" && !graphragPollTimer) {
-      graphragPollTimer = setInterval(refreshGraphragStatus, 4000);
+      graphragPollTimer = setInterval(refreshGraphragStatus, 3000);
     } else if (state !== "building" && graphragPollTimer) {
       clearInterval(graphragPollTimer); graphragPollTimer = null;
     }
-  } catch (_) { pill.hidden = true; rebuild.hidden = true; }
+  } catch (_) { pill.hidden = true; rebuild.hidden = true; progress.hidden = true; }
 }
 
 document.getElementById("graphrag-rebuild").addEventListener("click", async () => {
+  const rebuild = document.getElementById("graphrag-rebuild");
+  rebuild.disabled = true;
   try {
     await fetch("/api/graphrag-build", { method: "POST" });
   } catch (_) {}
+  rebuild.disabled = false;
+  // Start polling immediately.
   refreshGraphragStatus();
+  if (!graphragPollTimer) graphragPollTimer = setInterval(refreshGraphragStatus, 3000);
 });
 
 refreshGraphragStatus();
@@ -1873,6 +1934,20 @@ document.getElementById("chat-input").addEventListener("keydown", e => {
 document.getElementById("chat-clear").addEventListener("click", () => {
   chatHistory = [];
   document.getElementById("chat-log").innerHTML = "";
+});
+
+/* ── LLM sleep control ─────────────────────────────────────────────────── */
+fetch("/api/llm-sleep").then(r => r.json()).then(d => {
+  document.getElementById("llm-sleep-input").value = d.seconds;
+}).catch(() => {});
+document.getElementById("llm-sleep-input").addEventListener("change", e => {
+  const seconds = parseFloat(e.target.value);
+  if (isNaN(seconds)) return;
+  fetch("/api/llm-sleep", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ seconds: Math.max(0, seconds) })
+  }).catch(() => {});
 });
 
 /* ── Layout: splitters + collapse ─────────────────────────────────────── */
@@ -2773,6 +2848,7 @@ async function load() {
   document.title = paperData.paper_id;
 
   renderMiddle(paperData.pages);
+  updatePageSummaryProgress(paperData.pages);
 
   // Restore highlight visibility preference (default: visible)
   let visible = true;

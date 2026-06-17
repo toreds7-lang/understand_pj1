@@ -30,6 +30,7 @@ from rag import RagIndex
 import graph as graph_module
 import wiki as wiki_module
 import graphrag_manager
+import llm_client
 
 if getattr(sys, "frozen", False):
     ROOT = Path(sys.executable).parent
@@ -156,12 +157,6 @@ def _load_context(paper_id: str) -> PaperContext:
     rag_index = RagIndex(data_dir)
     toc_roots = toc_summary.build_tree(paper.get("toc", []), len(paper.get("pages", [])))
     toc_cache = toc_summary.load_cache(data_dir)
-    # Kick off the one-time agentic-GraphRAG index build in the background if this paper
-    # doesn't have one yet. Whole-paper chat degrades to vector RAG until it's ready.
-    try:
-        graphrag_manager.build_async(paper_id, paper)
-    except Exception as e:  # noqa: BLE001 — never let index setup block paper loading
-        print(f"WARN: graphrag build_async failed for '{paper_id}': {e}", file=sys.stderr)
     return PaperContext(
         paper_id=paper_id, data_dir=data_dir, pdf_path=pdf_path,
         paper=paper, rag_index=rag_index, toc_roots=toc_roots, toc_cache=toc_cache,
@@ -320,17 +315,35 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
             media_type="text/plain; charset=utf-8",
         )
 
+    class SleepBody(BaseModel):
+        seconds: float
+
+    @app.get("/api/llm-sleep")
+    def api_get_llm_sleep() -> dict:
+        return {"seconds": llm_client._sleep_seconds}
+
+    @app.post("/api/llm-sleep")
+    def api_set_llm_sleep(body: SleepBody) -> dict:
+        llm_client.set_llm_sleep(body.seconds)
+        return {"seconds": llm_client._sleep_seconds}
+
     @app.get("/api/graphrag-status")
     def api_graphrag_status() -> dict:
         ctx = cur()
         return graphrag_manager.read_status(ctx.paper_id)
 
+    @app.get("/api/graphrag-log")
+    def api_graphrag_log() -> dict:
+        """Return recent captured build log lines for the current paper."""
+        ctx = cur()
+        return {"lines": graphrag_manager.get_logs(ctx.paper_id)}
+
     @app.post("/api/graphrag-build")
     def api_graphrag_build() -> dict:
-        """Manually (re)build the current paper's agentic-GraphRAG index. Matches the
-        user's preference for press-to-retry recovery over silent auto-retry."""
+        """Manually (re)build the current paper's agentic-GraphRAG index.
+        Always uses force=True so re-clicking after a successful build triggers a rebuild."""
         ctx = cur()
-        started = graphrag_manager.build_async(ctx.paper_id, ctx.paper)
+        started = graphrag_manager.build_async(ctx.paper_id, ctx.paper, force=True)
         return {"started": started, **graphrag_manager.read_status(ctx.paper_id)}
 
     class FigureExplainBody(BaseModel):

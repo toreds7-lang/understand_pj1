@@ -57,6 +57,7 @@ def summarize_pages(pages: list[dict[str, Any]], force: bool = False) -> None:
             continue
         try:
             p["summary"] = llm_client.chat(_SUMMARY_SYSTEM, f"Page content:\n\n{md}")
+            llm_client.llm_sleep()
             done += 1
         except Exception as exc:
             p["summary"] = f"{_SUMMARY_ERROR_PREFIX} {exc}]"

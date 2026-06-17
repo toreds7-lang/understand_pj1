@@ -34,6 +34,11 @@ _engines: dict[str, Any] = {}
 _locks: dict[str, threading.Lock] = {}
 _locks_guard = threading.Lock()
 
+# Per-paper ring-buffer for captured build stdout/stderr (last 200 lines).
+_LOG_MAXLEN = 200
+_build_logs: dict[str, list[str]] = {}
+_build_logs_lock = threading.Lock()
+
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -58,6 +63,20 @@ def _write_status(root: Path, state: str, message: str = "") -> None:
         json.dumps({"state": state, "message": message, "updated_at": time.time()}),
         encoding="utf-8",
     )
+
+
+def get_logs(paper_id: str) -> list[str]:
+    """Return recent build log lines for the paper (empty when idle/ready)."""
+    with _build_logs_lock:
+        return list(_build_logs.get(paper_id, []))
+
+
+def _append_log(paper_id: str, line: str) -> None:
+    with _build_logs_lock:
+        buf = _build_logs.setdefault(paper_id, [])
+        buf.append(line)
+        if len(buf) > _LOG_MAXLEN:
+            del buf[: len(buf) - _LOG_MAXLEN]
 
 
 def read_status(paper_id: str) -> dict[str, Any]:
@@ -245,27 +264,65 @@ def ensure_root(paper_id: str, paper: dict[str, Any]) -> Path:
 def build(paper_id: str, paper: dict[str, Any]) -> None:
     """Scaffold + build the index in-process (blocking). Records status.json.
 
-    Serialized per paper by a lock so a manual rebuild can't collide with the
-    auto-build kicked off on paper load.
+    Serialized per paper by a lock so a manual rebuild can't collide with a
+    concurrent build. Captures graphrag stdout/stderr into the per-paper log
+    buffer so the UI can poll for progress lines.
     """
+    import io
+    from contextlib import redirect_stdout, redirect_stderr
+
     lock = _lock_for(paper_id)
     if not lock.acquire(blocking=False):
         print(f"[graphrag] build already in progress for {paper_id}", file=sys.stderr)
         return
     root = root_for(paper_id)
+
+    # Reset log buffer for this build run.
+    with _build_logs_lock:
+        _build_logs[paper_id] = []
+
+    class _Tee(io.TextIOBase):
+        def __init__(self, real) -> None:
+            self._real = real
+            self._buf = ""
+
+        def write(self, s: str) -> int:
+            self._real.write(s)
+            self._buf += s
+            while "\n" in self._buf:
+                line, self._buf = self._buf.split("\n", 1)
+                if line.strip():
+                    _append_log(paper_id, line)
+            return len(s)
+
+        def flush(self) -> None:
+            self._real.flush()
+            if self._buf.strip():
+                _append_log(paper_id, self._buf)
+                self._buf = ""
+
     try:
         _write_status(root, "building", "Scaffolding GraphRAG root…")
+        _append_log(paper_id, "Scaffolding GraphRAG root…")
         ensure_root(paper_id, paper)
         _write_status(root, "building", "Building knowledge graph (entities, communities, reports)…")
+        _append_log(paper_id, "Building knowledge graph — extracting entities, clustering communities, generating reports…")
         print(f"[graphrag] building index for {paper_id} …", file=sys.stderr)
         # Imported lazily so the heavy graphrag import only happens when we actually build.
         from graphrag_qa import build_index
-        build_index(root)
+        tee_out = _Tee(sys.stdout)
+        tee_err = _Tee(sys.stderr)
+        with redirect_stdout(tee_out), redirect_stderr(tee_err):
+            build_index(root)
+        tee_out.flush(); tee_err.flush()
         _engines.pop(paper_id, None)  # force re-load of the fresh index on next query
         _write_status(root, "ready", "")
+        _append_log(paper_id, "Index ready.")
         print(f"[graphrag] index ready for {paper_id}", file=sys.stderr)
     except Exception as e:  # noqa: BLE001 — surface a clear, recoverable failure
-        _write_status(root, "failed", f"{type(e).__name__}: {e}")
+        msg = f"{type(e).__name__}: {e}"
+        _write_status(root, "failed", msg)
+        _append_log(paper_id, f"FAILED: {msg}")
         print(f"[graphrag] build FAILED for {paper_id}: {e}", file=sys.stderr)
     finally:
         lock.release()

@@ -243,6 +243,7 @@ def generate_page(
 
     try:
         response = llm_client.chat(system_prompt, user_prompt)
+        llm_client.llm_sleep()
         return response.strip()
     except Exception as e:
         return f"# {node['label']}\n\n_Error generating page: {e}_"

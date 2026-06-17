@@ -75,6 +75,7 @@ def _vision_page_markdown(page, system: str, user: str) -> tuple[str | None, str
     try:
         b64 = _render_page_png_b64(page)
         md = (llm_client.vision_chat(system, user, b64) or "").strip()
+        llm_client.llm_sleep()
     except Exception as exc:
         return None, f"{type(exc).__name__}: {exc}"
     if not md:

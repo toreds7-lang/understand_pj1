@@ -259,6 +259,7 @@ def summarize_node(
     error: str | None = None
     try:
         summary = llm_client.chat(system, user)
+        llm_client.llm_sleep()
     except Exception as exc:
         summary = f"{_SUMMARY_ERROR_PREFIX} {exc}]"
         error = f"{type(exc).__name__}: {exc}"

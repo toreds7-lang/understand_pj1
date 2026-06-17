@@ -3,6 +3,7 @@ from typing import Iterable, Any
 import functools
 import json
 import re
+import time
 
 import numpy as np
 from langchain.chat_models import init_chat_model
@@ -17,7 +18,21 @@ from config import (
     VISION_BASE_URL,
     EMBEDDING_MODEL,
     EMBEDDING_BASE_URL,
+    LLM_SLEEP_SECONDS,
 )
+
+_sleep_seconds: float = LLM_SLEEP_SECONDS
+
+
+def set_llm_sleep(seconds: float) -> None:
+    global _sleep_seconds
+    _sleep_seconds = max(0.0, seconds)
+
+
+def llm_sleep() -> None:
+    """Sleep between consecutive batch LLM calls to avoid overwhelming the server."""
+    if _sleep_seconds > 0:
+        time.sleep(_sleep_seconds)
 
 
 @functools.lru_cache(maxsize=8)

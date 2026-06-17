@@ -44,6 +44,7 @@ VISION_MODEL: str     = os.getenv("VISION_MODEL", "gpt-4o")
 VISION_BASE_URL: str  = os.getenv("VISION_BASE_URL", "")
 EMBEDDING_MODEL: str  = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 EMBEDDING_BASE_URL: str = os.getenv("EMBEDDING_BASE_URL", "")
+LLM_SLEEP_SECONDS: float = float(os.getenv("LLM_SLEEP_SECONDS", "3.0"))
 
 # How to turn PDF pages into markdown: "text" (pymupdf4llm) or "vision" (vision LLM).
 PDF_EXTRACT_MODE: str = os.getenv("PDF_EXTRACT_MODE", "text").strip().lower()
