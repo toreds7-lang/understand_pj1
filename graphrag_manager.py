@@ -132,6 +132,8 @@ embedding_models:
     retry:
       type: exponential_backoff
 
+concurrent_requests: {config.GRAPHRAG_CONCURRENT_REQUESTS}
+
 input:
   type: text
 
@@ -359,3 +361,89 @@ def get_engine(paper_id: str):
         eng = GraphRAGQA(root=root_for(paper_id))
         _engines[paper_id] = eng
     return eng
+
+
+# ---------------------------------------------------------------------------
+# Knowledge-graph visualization (communities + entity/relationship drill-down)
+# ---------------------------------------------------------------------------
+
+def list_communities(paper_id: str, level: int = 0) -> list[dict[str, Any]] | None:
+    """Lightweight community summaries at the given hierarchy level, or None if not built."""
+    eng = get_engine(paper_id)
+    if eng is None:
+        return None
+
+    import pandas as pd
+
+    communities = eng.communities[eng.communities["level"] == level]
+    reports = eng.community_reports.set_index("community")
+
+    out = []
+    for row in communities.itertuples():
+        report = reports.loc[row.community] if row.community in reports.index else None
+        rank = report["rank"] if report is not None else None
+        out.append({
+            "id": int(row.community),
+            "level": int(row.level),
+            "parent": int(row.parent),
+            "children": [int(c) for c in row.children],
+            "title": str(row.title),
+            "size": int(row.size),
+            "rank": None if rank is None or pd.isna(rank) else float(rank),
+            "summary": str(report["summary"]) if report is not None else "",
+        })
+    out.sort(key=lambda c: c["size"], reverse=True)
+    return out
+
+
+def get_community_detail(paper_id: str, community_id: int) -> dict[str, Any] | None:
+    """A community's report plus its member entities/relationships as a {nodes, edges} subgraph."""
+    eng = get_engine(paper_id)
+    if eng is None:
+        return None
+
+    import pandas as pd
+
+    rows = eng.communities[eng.communities["community"] == community_id]
+    if rows.empty:
+        return None
+    row = rows.iloc[0]
+
+    reports = eng.community_reports[eng.community_reports["community"] == community_id]
+    report = reports.iloc[0] if not reports.empty else None
+
+    entity_ids = set(row["entity_ids"].tolist())
+    relationship_ids = set(row["relationship_ids"].tolist())
+
+    entities = eng.entities[eng.entities["id"].isin(entity_ids)]
+    nodes = [{
+        "id": str(e.title),
+        "label": str(e.title),
+        "type": str(e.type).lower(),
+        "description": str(e.description),
+        "frequency": int(e.frequency),
+        "degree": int(e.degree),
+    } for e in entities.itertuples()]
+
+    relationships = eng.relationships[eng.relationships["id"].isin(relationship_ids)]
+    edges = [{
+        "source": str(r.source),
+        "target": str(r.target),
+        "relation": str(r.description),
+        "weight": float(r.weight),
+    } for r in relationships.itertuples()]
+
+    rank = report["rank"] if report is not None else None
+    return {
+        "community": {
+            "id": int(row["community"]),
+            "level": int(row["level"]),
+            "title": str(row["title"]),
+            "size": int(row["size"]),
+            "summary": str(report["summary"]) if report is not None else "",
+            "full_content": str(report["full_content"]) if report is not None else "",
+            "rank": None if rank is None or pd.isna(rank) else float(rank),
+        },
+        "nodes": nodes,
+        "edges": edges,
+    }

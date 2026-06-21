@@ -419,6 +419,16 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 .link-arrow { fill: context-stroke; }
 .link-label { fill: var(--muted); font-size: 9px; pointer-events: none; }
 #graph-controls { display: flex; flex-direction: column; gap: 6px; }
+#graph-type-switch.scope-toggle { margin-bottom: 6px; }
+#graphrag-breadcrumb { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+#graphrag-back-btn { background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 4px; padding: 3px 8px; font-size: 12px; cursor: pointer; }
+#graphrag-back-btn:hover { border-color: var(--accent); color: var(--accent); }
+#graphrag-breadcrumb-label { color: var(--muted); }
+.community-node circle { fill: var(--accent); stroke: var(--border); stroke-width: 1.5; cursor: pointer; }
+.community-node circle:hover { stroke: white; stroke-width: 2; }
+.community-node.selected circle { stroke: white; stroke-width: 2.5; }
+.community-node text { fill: var(--text); font-size: 11px; pointer-events: none; }
 
 /* ── Mermaid diagrams ──────────────────────────────────────────────────── */
 .mermaid-wrapper {
@@ -570,6 +580,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <button class="scope-btn" id="scope-page">This page</button>
       <input type="number" id="scope-page-num" min="1" value="1" title="Page (1-indexed)">
       <button class="scope-btn" id="chat-clear" title="Clear chat history so the LLM no longer sees previous messages">Clear</button>
+      <button class="scope-btn active" id="graph-toggle" title="Whole-paper search sources: click to exclude graph search and use vector+keyword only">+Graph</button>
       <span id="graphrag-pill" class="graphrag-pill" title="Agentic GraphRAG index status for whole-paper chat" hidden></span>
       <button class="scope-btn" id="graphrag-rebuild" title="Build or rebuild this paper's knowledge-graph index" hidden>Build index</button>
       <label class="sleep-label" title="Seconds to wait after each batch LLM request (page summary, TOC, highlights, wiki)">
@@ -611,6 +622,15 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
   <span class="collapsed-label" data-target="graph" title="Expand">Graph</span>
   <div id="graph-header">
     <h2>Knowledge Graph</h2>
+    <div id="graph-type-switch" class="scope-toggle">
+      <button class="scope-btn active" id="graph-type-wiki">Wiki Graph</button>
+      <button class="scope-btn" id="graph-type-graphrag" disabled
+              title="Build the GraphRAG index first (see Build index button in chat panel)">Paper Knowledge Graph</button>
+    </div>
+    <div id="graphrag-breadcrumb" style="display:none">
+      <button id="graphrag-back-btn" title="Back to community overview">&lsaquo; Communities</button>
+      <span id="graphrag-breadcrumb-label"></span>
+    </div>
     <div id="graph-controls">
       <button id="ingest-btn">Ingest current paper</button>
       <div id="ingest-log"></div>
@@ -1485,14 +1505,25 @@ function renderMiddle(pages) {
 /* ── Chat ─────────────────────────────────────────────────────────────── */
 let chatHistory = [];     // [{role, content}]
 let chatScope = "paper";
+let useGraph = true;      // whole-paper chat: vector+keyword+graph (true) vs vector+keyword only
 
 document.getElementById("scope-paper").addEventListener("click", () => setScope("paper"));
 document.getElementById("scope-page").addEventListener("click", () => setScope("page"));
+document.getElementById("graph-toggle").addEventListener("click", () => {
+  useGraph = !useGraph;
+  const btn = document.getElementById("graph-toggle");
+  btn.classList.toggle("active", useGraph);
+  btn.textContent = useGraph ? "+Graph" : "Vector+Keyword";
+  btn.title = useGraph
+    ? "Whole-paper search sources: vector+keyword+graph — click to exclude graph search"
+    : "Whole-paper search sources: vector+keyword only — click to include graph search";
+});
 
 function setScope(s) {
   chatScope = s;
   document.getElementById("scope-paper").classList.toggle("active", s === "paper");
   document.getElementById("scope-page").classList.toggle("active", s === "page");
+  document.getElementById("graph-toggle").hidden = (s !== "paper");
   if (s === "page") {
     document.getElementById("scope-page-num").value = String(currentPageIdx + 1);
   }
@@ -1525,6 +1556,15 @@ async function refreshGraphragStatus() {
     // Button label: "Build index" when not yet built, "Rebuild index" when ready/failed.
     rebuild.textContent = (state === "idle") ? "Build index" : "Rebuild index";
     rebuild.hidden = (state === "building");
+
+    // Gate the "Paper Knowledge Graph" switcher on the same readiness signal.
+    const graphragTabBtn = document.getElementById("graph-type-graphrag");
+    if (graphragTabBtn) {
+      graphragTabBtn.disabled = (state !== "ready");
+      graphragTabBtn.title = (state === "ready")
+        ? "View the GraphRAG community/entity knowledge graph"
+        : "Build the GraphRAG index first (see Build index button above)";
+    }
 
     // Progress box: visible only during build.
     if (state === "building") {
@@ -1560,6 +1600,9 @@ document.getElementById("graphrag-rebuild").addEventListener("click", async () =
     await fetch("/api/graphrag-build", { method: "POST" });
   } catch (_) {}
   rebuild.disabled = false;
+  // A rebuild invalidates any cached community/entity data from the previous index.
+  graphragCommunitiesCache = null;
+  graphragCommunityCache = {};
   // Start polling immediately.
   refreshGraphragStatus();
   if (!graphragPollTimer) graphragPollTimer = setInterval(refreshGraphragStatus, 3000);
@@ -1897,7 +1940,7 @@ async function sendChat() {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message, history: chatHistory.slice(0, -1),
-        scope: chatScope, page_index: pageIndex,
+        scope: chatScope, page_index: pageIndex, use_graph: useGraph,
       }),
     });
     if (!resp.ok || !resp.body) { bodyEl.textContent = `Error: ${resp.status}`; return; }
@@ -2901,6 +2944,9 @@ async function load() {
     graphBtn.addEventListener("click", openGraphPanel);
   }
   document.getElementById("ingest-btn")?.addEventListener("click", runIngest);
+  document.getElementById("graph-type-wiki")?.addEventListener("click", () => switchGraphType("wiki"));
+  document.getElementById("graph-type-graphrag")?.addEventListener("click", () => switchGraphType("graphrag"));
+  document.getElementById("graphrag-back-btn")?.addEventListener("click", backToOverview);
   document.getElementById("wiki-send")?.addEventListener("click", sendWikiChat);
   document.getElementById("wiki-input")?.addEventListener("keydown", e => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendWikiChat(); }
@@ -2916,6 +2962,18 @@ async function load() {
 let graphData = null;
 let graphSimulation = null;
 let wikiHistory = [];
+
+let activeGraphType = "wiki";        // "wiki" | "graphrag"
+let graphragView = "overview";       // "overview" | "community"
+let graphragCommunitiesCache = null; // last-fetched level-0 communities response
+let graphragCommunityCache = {};     // community_id -> detail response
+let graphragSimulation = null;       // separate sim handle so switching views always stops the right one
+
+let _d3Module = null;
+async function ensureD3() {
+  if (!_d3Module) _d3Module = await import("https://cdn.jsdelivr.net/npm/d3@7/+esm");
+  return _d3Module;
+}
 
 async function loadGraph() {
   try {
@@ -2934,7 +2992,7 @@ async function openGraphPanel() {
   if (!graphData) {
     graphData = await loadGraph();
     if (graphData && graphData.nodes && graphData.nodes.length) {
-      const d3 = await import("https://cdn.jsdelivr.net/npm/d3@7/+esm");
+      const d3 = await ensureD3();
       renderForceGraph(d3, graphData);
     } else {
       document.getElementById("graph-canvas-wrap").innerHTML =
@@ -2943,7 +3001,188 @@ async function openGraphPanel() {
   }
 }
 
-function renderForceGraph(d3, data) {
+/* ── GraphRAG knowledge-graph view (community overview + entity drill-down) ── */
+
+const GR_TYPE_COLORS = {
+  architecture: "#4ec9b0", system: "#4ec9b0", framework: "#4ec9b0",
+  concept: "#9cdcfe", method: "#dcdcaa", technique: "#dcdcaa",
+  model: "#569cd6", tool: "#ce9178", application: "#ce9178",
+  dataset: "#b5cea8", metric: "#d7ba7d", organization: "#c586c0", person: "#f48771",
+};
+
+function gr_typeColor(type) {
+  const t = String(type || "").toLowerCase();
+  if (GR_TYPE_COLORS[t]) return GR_TYPE_COLORS[t];
+  // Deterministic fallback for the open-vocabulary entity types GraphRAG can emit
+  // per paper (hook, protocol, geo, ...) that aren't in the fixed palette above.
+  let hash = 0;
+  for (let i = 0; i < t.length; i++) hash = (hash * 31 + t.charCodeAt(i)) | 0;
+  return `hsl(${Math.abs(hash) % 360}, 55%, 60%)`;
+}
+
+async function switchGraphType(type) {
+  const graphragTabBtn = document.getElementById("graph-type-graphrag");
+  if (type === "graphrag" && graphragTabBtn?.disabled) return;
+  if (type === activeGraphType) return;
+
+  graphSimulation?.stop();
+  graphragSimulation?.stop();
+  const d3 = await ensureD3();
+  d3.select("#graph-svg").selectAll("*").remove();
+
+  activeGraphType = type;
+  document.getElementById("graph-type-wiki").classList.toggle("active", type === "wiki");
+  document.getElementById("graph-type-graphrag").classList.toggle("active", type === "graphrag");
+  document.getElementById("graph-controls").style.display = (type === "wiki") ? "" : "none";
+
+  if (type === "wiki") {
+    document.getElementById("graphrag-breadcrumb").style.display = "none";
+    document.getElementById("wiki-page-content").innerHTML = "";
+    if (graphData && graphData.nodes && graphData.nodes.length) {
+      renderForceGraph(d3, graphData);
+    } else {
+      d3.select("#graph-svg").append("text").attr("x", 20).attr("y", 30)
+        .attr("fill", "var(--muted)")
+        .text('No graph data yet. Click "Ingest current paper" to build the knowledge graph.');
+    }
+  } else {
+    graphragView = "overview";
+    document.getElementById("graphrag-breadcrumb").style.display = "none";
+    await loadCommunityOverview();
+  }
+}
+
+async function loadCommunityOverview() {
+  document.getElementById("wiki-page-content").innerHTML =
+    `<div style="color:var(--muted)">Click a community to see its summary.</div>`;
+  if (!graphragCommunitiesCache) {
+    try {
+      const resp = await fetch("/api/graphrag-communities?level=0");
+      graphragCommunitiesCache = resp.ok ? await resp.json() : { communities: [] };
+    } catch (_) {
+      graphragCommunitiesCache = { communities: [] };
+    }
+  }
+  const communities = graphragCommunitiesCache.communities || [];
+  const d3 = await ensureD3();
+  if (!communities.length) {
+    d3.select("#graph-svg").append("text").attr("x", 20).attr("y", 30)
+      .attr("fill", "var(--muted)")
+      .text("No GraphRAG communities found for this paper.");
+    return;
+  }
+  renderCommunityOverview(d3, communities);
+}
+
+function renderCommunityOverview(d3, communities) {
+  const wrap = document.getElementById("graph-canvas-wrap");
+  const W = wrap.clientWidth || 500;
+  const H = wrap.clientHeight || 500;
+  const svg = d3.select("#graph-svg").attr("viewBox", [0, 0, W, H]);
+  const g = svg.append("g");
+  svg.call(d3.zoom().scaleExtent([0.1, 8]).on("zoom", ({transform}) => {
+    g.attr("transform", transform);
+  }));
+
+  const [minSize, maxSize] = d3.extent(communities, d => d.size);
+  const radiusScale = d3.scaleSqrt()
+    .domain(minSize === maxSize ? [0, maxSize || 1] : [minSize, maxSize])
+    .range([8, 40]);
+  const radius = d => radiusScale(d.size) || 8;
+
+  const node = g.append("g").selectAll("g")
+    .data(communities, d => d.id).join("g")
+    .attr("class", "community-node")
+    .attr("data-id", d => d.id)
+    .call(d3.drag()
+      .on("start", (event, d) => { if (!event.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on("drag", (event, d) => { d.fx = event.x; d.fy = event.y; })
+      .on("end", (event, d) => { if (!event.active) sim.alphaTarget(0); d.fx = null; d.fy = null; })
+    );
+
+  node.append("circle").attr("r", radius);
+  node.append("text")
+    .attr("dy", d => radius(d) + 11)
+    .attr("text-anchor", "middle")
+    .text(d => d.title);
+
+  node.on("click", (event, d) => {
+    document.querySelectorAll(".community-node").forEach(el => el.classList.remove("selected"));
+    event.currentTarget.classList.add("selected");
+    showCommunitySummary(d);
+    loadCommunityDetail(d.id);
+  });
+
+  const sim = d3.forceSimulation(communities)
+    .force("charge", d3.forceManyBody().strength(-120))
+    .force("center", d3.forceCenter(W / 2, H / 2))
+    .force("collision", d3.forceCollide().radius(d => radius(d) + 6))
+    .on("tick", () => { node.attr("transform", d => `translate(${d.x},${d.y})`); });
+
+  graphragSimulation = sim;
+}
+
+function showCommunitySummary(community) {
+  const sidebar = document.getElementById("wiki-page-content");
+  sidebar.innerHTML = `<h1>${escapeHtml(community.title)}</h1>` +
+    marked.parse(community.full_content || community.summary || "");
+  renderMathInElement(sidebar, katexOpts);
+}
+
+async function loadCommunityDetail(communityId) {
+  let detail = graphragCommunityCache[communityId];
+  if (!detail) {
+    try {
+      const resp = await fetch(`/api/graphrag-community/${encodeURIComponent(communityId)}`);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      detail = await resp.json();
+      graphragCommunityCache[communityId] = detail;
+    } catch (_) {
+      const d3 = await ensureD3();
+      d3.select("#graph-svg").selectAll("*").remove();
+      d3.select("#graph-svg").append("text").attr("x", 20).attr("y", 30)
+        .attr("fill", "#f48771").text("No detail available for this community.");
+      return;
+    }
+  }
+  showCommunitySummary(detail.community);
+
+  graphragView = "community";
+  document.getElementById("graphrag-breadcrumb").style.display = "";
+  document.getElementById("graphrag-breadcrumb-label").textContent = detail.community.title;
+
+  graphragSimulation?.stop();
+  const d3 = await ensureD3();
+  d3.select("#graph-svg").selectAll("*").remove();
+  renderEntitySubgraph(d3, detail.nodes, detail.edges);
+}
+
+function renderEntitySubgraph(d3, nodes, edges) {
+  renderForceGraph(d3, { nodes, edges }, {
+    radius: d => 6 + Math.min(d.degree || 0, 10) * 1.5,
+    nodeFill: d => gr_typeColor(d.type),
+    onNodeClick: (event, d) => showEntityDetail(d),
+    onSimulation: sim => { graphragSimulation = sim; },
+  });
+}
+
+function showEntityDetail(entityNode) {
+  const sidebar = document.getElementById("wiki-page-content");
+  sidebar.innerHTML = `<h1>${escapeHtml(entityNode.label)}</h1>
+    <div style="color:var(--muted);font-size:11px;margin-bottom:8px">${escapeHtml(entityNode.type)} · degree ${entityNode.degree}</div>
+    <p>${escapeHtml(entityNode.description)}</p>`;
+}
+
+async function backToOverview() {
+  graphragView = "overview";
+  document.getElementById("graphrag-breadcrumb").style.display = "none";
+  graphragSimulation?.stop();
+  const d3 = await ensureD3();
+  d3.select("#graph-svg").selectAll("*").remove();
+  renderCommunityOverview(d3, graphragCommunitiesCache?.communities || []);
+}
+
+function renderForceGraph(d3, data, opts = {}) {
   const wrap = document.getElementById("graph-canvas-wrap");
   const W = wrap.clientWidth || 500;
   const H = wrap.clientHeight || 500;
@@ -2972,17 +3211,23 @@ function renderForceGraph(d3, data) {
 
   const maxWeight = d3.max(data.edges, e => e.weight) || 1;
   const edgeWidth = d => Math.max(1, (d.weight / maxWeight) * 4);
+  const truncate = s => (s && s.length > 40) ? s.slice(0, 40) + "…" : s;
 
   const link = g.append("g").selectAll("line")
     .data(data.edges).join("line")
     .attr("class", "link")
     .attr("marker-end", "url(#graph-arrow)")
     .style("stroke-width", edgeWidth);
+  link.append("title").text(d => d.relation);
 
   const linkLabel = g.append("g").selectAll("text")
     .data(data.edges).join("text")
     .attr("class", "link-label")
-    .text(d => d.relation);
+    .text(d => truncate(d.relation));
+
+  const radius = opts.radius || (d => 5 + (d.papers?.length || 1) * 2);
+  const onNodeClick = opts.onNodeClick || ((event, d) => showWikiPage(d.id, d.label));
+  const onSimulation = opts.onSimulation || (sim => { graphSimulation = sim; });
 
   const node = g.append("g").selectAll("g")
     .data(data.nodes).join("g")
@@ -3000,11 +3245,10 @@ function renderForceGraph(d3, data) {
       })
     );
 
-  const radius = d => 5 + (d.papers?.length || 1) * 2;
-
   node.append("circle")
     .attr("r", radius)
-    .attr("class", d => `node-${d.type}`);
+    .attr("class", d => `node-${d.type}`)
+    .style("fill", opts.nodeFill ? (d => opts.nodeFill(d)) : null);
 
   node.append("text")
     .attr("dy", d => radius(d) + 11)
@@ -3015,7 +3259,7 @@ function renderForceGraph(d3, data) {
     link.classed("highlighted", e => e.source.id === d.id || e.target.id === d.id);
     document.querySelectorAll(".node").forEach(el => el.classList.remove("selected"));
     event.currentTarget.classList.add("selected");
-    showWikiPage(d.id, d.label);
+    onNodeClick(event, d);
   });
 
   const sim = d3.forceSimulation(data.nodes)
@@ -3044,7 +3288,7 @@ function renderForceGraph(d3, data) {
       node.attr("transform", d => `translate(${d.x},${d.y})`);
     });
 
-  graphSimulation = sim;
+  onSimulation(sim);
 }
 
 async function showWikiPage(conceptId, label) {
@@ -3109,7 +3353,7 @@ async function runIngest() {
             const wrap = document.getElementById("graph-canvas-wrap");
             svg.innerHTML = "";
             if (graphData?.nodes?.length) {
-              const d3 = await import("https://cdn.jsdelivr.net/npm/d3@7/+esm");
+              const d3 = await ensureD3();
               renderForceGraph(d3, graphData);
             }
             // Ensure graph panel is visible

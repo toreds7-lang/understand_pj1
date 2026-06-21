@@ -65,3 +65,8 @@ FANOUT_TOP_K: int  = int(os.getenv("FANOUT_TOP_K", "5"))       # snippets per qu
 # Models GraphRAG itself uses for indexing + search (default to the app's models).
 GRAPHRAG_CHAT_MODEL: str  = os.getenv("GRAPHRAG_CHAT_MODEL", LLM_MODEL)
 GRAPHRAG_EMBED_MODEL: str = os.getenv("GRAPHRAG_EMBED_MODEL", EMBEDDING_MODEL)
+
+# Max parallel LLM calls GraphRAG fires during indexing (library default is 25, tuned
+# for hosted APIs). Self-hosted servers without continuous batching choke on that many
+# concurrent requests, so default low and let it be raised for beefier local setups.
+GRAPHRAG_CONCURRENT_REQUESTS: int = int(os.getenv("GRAPHRAG_CONCURRENT_REQUESTS", "4"))

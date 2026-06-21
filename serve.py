@@ -251,6 +251,7 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
         history: list[dict] = []
         scope: str = "paper"
         page_index: int | None = None
+        use_graph: bool = True
 
     @app.post("/api/define")
     def api_define(body: DefineBody) -> StreamingResponse:
@@ -310,7 +311,7 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
         return StreamingResponse(
             ai.chat_stream(
                 ctx.rag_index, body.message, body.history, scope, body.page_index, page_md,
-                graphrag_engine=engine, build_status=build_status,
+                graphrag_engine=engine, build_status=build_status, use_graph=body.use_graph,
             ),
             media_type="text/plain; charset=utf-8",
         )
@@ -345,6 +346,24 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
         ctx = cur()
         started = graphrag_manager.build_async(ctx.paper_id, ctx.paper, force=True)
         return {"started": started, **graphrag_manager.read_status(ctx.paper_id)}
+
+    @app.get("/api/graphrag-communities")
+    def api_graphrag_communities(level: int = 0) -> Any:
+        from fastapi.responses import JSONResponse
+        ctx = cur()
+        communities = graphrag_manager.list_communities(ctx.paper_id, level=level)
+        if communities is None:
+            raise HTTPException(404, "GraphRAG index not built for this paper")
+        return JSONResponse({"level": level, "communities": communities}, headers=NO_STORE)
+
+    @app.get("/api/graphrag-community/{community_id}")
+    def api_graphrag_community(community_id: int) -> Any:
+        from fastapi.responses import JSONResponse
+        ctx = cur()
+        detail = graphrag_manager.get_community_detail(ctx.paper_id, community_id)
+        if detail is None:
+            raise HTTPException(404, f"community not found: {community_id}")
+        return JSONResponse(detail, headers=NO_STORE)
 
     class FigureExplainBody(BaseModel):
         figure_id: str | None = None

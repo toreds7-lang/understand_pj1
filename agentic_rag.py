@@ -327,6 +327,14 @@ def hybrid_evidence(engine: GraphRAGQA, queries: list[str]) -> list[dict]:
         return []
 
 
+def hybrid_fanout(items: list[dict[str, str]], engine: GraphRAGQA) -> list[dict]:
+    """Hybrid-only counterpart to search_fanout: pull vector+keyword raw chunks for each
+    planned sub-question instead of calling GraphRAG. Used when the agentic loop runs with
+    graph search excluded (use_graph=False)."""
+    queries = [it["q"] for it in items if it.get("q")]
+    return hybrid_evidence(engine, queries)
+
+
 # ---------------------------------------------------------------------------
 # Evidence bookkeeping
 # ---------------------------------------------------------------------------
@@ -477,11 +485,15 @@ def run_agentic_rag(
     question: str,
     engine: GraphRAGQA,
     trace_cb: TraceCb | None = None,
+    use_graph: bool = True,
 ) -> Iterator[str]:
     """Run the full agentic-RAG loop and stream the synthesized answer token-by-token.
 
     Stage progress is reported through `trace_cb(stage, payload)` (stages: "plan",
     "iteration", "synthesis_start"); pass None to run quietly.
+
+    use_graph=False keeps the same plan -> search -> sufficiency-gate -> synthesis loop but
+    replaces GraphRAG search with hybrid (vector+keyword) retrieval, for the "no graph" mode.
     """
     def emit(stage: str, payload: Any) -> None:
         if trace_cb is not None:
@@ -498,7 +510,8 @@ def run_agentic_rag(
     evidence: list[dict] = _merge_evidence(
         section_evidence(engine, queries), hybrid_evidence(engine, queries))
     for i in range(MAX_ITERS):
-        evidence = _merge_evidence(evidence, search_fanout(items, engine))
+        fresh = search_fanout(items, engine) if use_graph else hybrid_fanout(items, engine)
+        evidence = _merge_evidence(evidence, fresh)
         verdict = assess_sufficiency(question, evidence)
         emit("iteration", IterationTrace(
             index=i, items=items, n_evidence=len(evidence),
@@ -507,7 +520,7 @@ def run_agentic_rag(
         ))
         if verdict["sufficient"] or not verdict["followup_queries"]:
             break
-        items = _escalate(verdict["followup_queries"], items)
+        items = _escalate(verdict["followup_queries"], items) if use_graph else verdict["followup_queries"]
 
     if not evidence:  # every GraphRAG method came back empty/refusal — ground on raw text
         evidence = corpus_fallback(engine, question)
@@ -523,16 +536,20 @@ def _fmt_methods(items: list[dict[str, str]]) -> str:
     return ", ".join(it["method"] for it in items)
 
 
-def stream_with_trace(question: str, engine: GraphRAGQA) -> Iterator[str]:
+def stream_with_trace(question: str, engine: GraphRAGQA, use_graph: bool = True) -> Iterator[str]:
     """Like run_agentic_rag, but folds a compact markdown trace into the SAME text
-    stream as the answer, so the existing chat panel renders live progress."""
+    stream as the answer, so the existing chat panel renders live progress.
+
+    use_graph=False runs the identical plan -> search -> sufficiency-gate -> synthesis loop
+    with graph search excluded: every search step uses hybrid (vector+keyword) retrieval only.
+    """
     p = plan(question, engine)
     subs = p["subquestions"]
     yield "**🧭 Planner**\n"
     if p.get("reasoning"):
         yield f"> {p['reasoning']}\n"
     for it in subs:
-        yield f"- {it['q']}  _[{it['method']}]_\n"
+        yield f"- {it['q']}" + (f"  _[{it['method']}]_\n" if use_graph else "\n")
     yield "\n"
 
     items = subs
@@ -544,12 +561,14 @@ def stream_with_trace(question: str, engine: GraphRAGQA) -> Iterator[str]:
     hits = hybrid_evidence(engine, queries)
     if hits:
         how = hits[0].get("query", "keyword")
-        yield (f"**🔀 Hybrid retrieval** — added {len(hits)} raw passage(s) "
-               f"({how}) alongside graph search\n\n")
+        tail = "alongside graph search" if use_graph else "(graph search excluded)"
+        yield f"**🔀 Hybrid retrieval** — added {len(hits)} raw passage(s) ({how}) {tail}\n\n"
     evidence: list[dict] = _merge_evidence(sections, hits)
     for i in range(MAX_ITERS):
-        yield f"**🔎 Search + Sufficiency** _(iteration {i + 1})_ — methods: {_fmt_methods(items)}\n"
-        evidence = _merge_evidence(evidence, search_fanout(items, engine))
+        label = f"methods: {_fmt_methods(items)}" if use_graph else "vector+keyword retrieval"
+        yield f"**🔎 Search + Sufficiency** _(iteration {i + 1})_ — {label}\n"
+        fresh = search_fanout(items, engine) if use_graph else hybrid_fanout(items, engine)
+        evidence = _merge_evidence(evidence, fresh)
         verdict = assess_sufficiency(question, evidence)
         state = "sufficient ✅" if verdict["sufficient"] else "insufficient ↻"
         yield f"> {len(evidence)} evidence block(s) — {state}\n"
@@ -559,12 +578,12 @@ def stream_with_trace(question: str, engine: GraphRAGQA) -> Iterator[str]:
         yield "\n"
         if verdict["sufficient"] or not verdict["followup_queries"]:
             break
-        items = _escalate(verdict["followup_queries"], items)
+        items = _escalate(verdict["followup_queries"], items) if use_graph else verdict["followup_queries"]
 
-    if not evidence:  # every GraphRAG method came back empty/refusal — ground on raw text
+    if not evidence:  # every search method came back empty/refusal — ground on raw text
         evidence = corpus_fallback(engine, question)
         if evidence:
-            yield (f"**📄 Corpus fallback** — GraphRAG found nothing usable; grounding on "
+            yield (f"**📄 Corpus fallback** — search found nothing usable; grounding on "
                    f"{len(evidence)} raw passage(s) pulled directly from the document\n\n")
 
     yield f"**🧩 Synthesis** _(grounding on {len(evidence)} block(s))_\n\n---\n\n"

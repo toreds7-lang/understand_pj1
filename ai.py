@@ -110,6 +110,7 @@ def chat_stream(
     page_markdown: str | None = None,
     graphrag_engine: object | None = None,
     build_status: str | None = None,
+    use_graph: bool = True,
 ) -> Iterator[str]:
     """RAG chat.
 
@@ -117,6 +118,9 @@ def chat_stream(
     the page). scope='paper' (whole paper) runs the agentic GraphRAG pipeline when the
     paper's per-paper index is ready (``graphrag_engine`` provided); until then it
     degrades to the original vector top-k path so chat always answers.
+
+    use_graph=False keeps the agentic plan/search/sufficiency-gate/synthesis workflow but
+    excludes GraphRAG search, grounding every step on hybrid (vector+keyword) retrieval only.
     """
     if scope == "page" and page_index is not None:
         if page_markdown and len(page_markdown) <= 8000:
@@ -129,7 +133,7 @@ def chat_stream(
         # Whole-paper: agentic GraphRAG when the index is ready.
         if graphrag_engine is not None:
             import agentic_rag  # lazy: pulls in graphrag only when actually used
-            yield from agentic_rag.stream_with_trace(message, graphrag_engine)
+            yield from agentic_rag.stream_with_trace(message, graphrag_engine, use_graph=use_graph)
             return
         # Index not ready (building / failed) -> notice + vector fallback.
         yield _building_notice(build_status)
