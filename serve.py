@@ -31,6 +31,7 @@ import graph as graph_module
 import wiki as wiki_module
 import graphrag_manager
 import llm_client
+import chat_store
 
 if getattr(sys, "frozen", False):
     ROOT = Path(sys.executable).parent
@@ -315,6 +316,27 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
             ),
             media_type="text/plain; charset=utf-8",
         )
+
+    class ChatSaveBody(BaseModel):
+        query: str
+        answer: str
+        source: str = "chat"
+        scope: str | None = None
+        page_index: int | None = None
+
+    @app.post("/api/chat/save")
+    def api_chat_save(body: ChatSaveBody) -> dict:
+        ctx = cur()
+        if not body.query.strip() or not body.answer.strip():
+            raise HTTPException(400, "query/answer is empty")
+        return chat_store.append_entry(
+            ctx.paper_id, query=body.query, answer=body.answer,
+            source=body.source, scope=body.scope, page_index=body.page_index,
+        )
+
+    @app.get("/api/chat/saved")
+    def api_chat_saved() -> dict:
+        return {"entries": chat_store.list_entries(cur().paper_id)}
 
     class SleepBody(BaseModel):
         seconds: float

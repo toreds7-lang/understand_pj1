@@ -225,6 +225,16 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 #graphrag-progress-msg { color: #f3d34a; margin-bottom: 4px; }
 #graphrag-log-box { max-height: 120px; overflow-y: auto; font-family: monospace;
   font-size: 10px; color: var(--muted, #999); white-space: pre-wrap; word-break: break-all; }
+#chat-saved-panel { margin: 8px 12px 0; padding: 4px; background: var(--panel-2);
+  border: 1px solid var(--border); border-radius: 6px; max-height: 240px; overflow-y: auto; }
+#chat-saved-panel .saved-empty { padding: 10px; font-size: 12px; color: var(--muted, #999); }
+.saved-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+  border-bottom: 1px solid var(--border); }
+.saved-row:last-child { border-bottom: 0; }
+.saved-row .saved-meta { flex: 1; min-width: 0; }
+.saved-row .saved-query { font-size: 12px; color: var(--text); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+.saved-row .saved-sub { font-size: 10px; color: var(--muted, #999); }
 #chat-log { flex: 1; overflow-y: auto; padding: 12px; }
 .msg { margin-bottom: 12px; padding: 8px 10px; border-radius: 6px;
   font-size: 13px; line-height: 1.5; }
@@ -442,6 +452,55 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
   position: relative;
 }
 .mermaid-wrapper svg { max-width: 100%; height: auto; }
+.mermaid-toolbar {
+  position: absolute;
+  top: 4px; right: 4px;
+  display: flex; gap: 4px;
+  opacity: 0; transition: opacity 0.15s;
+  z-index: 1;
+}
+.mermaid-wrapper:hover .mermaid-toolbar { opacity: 1; }
+.mermaid-toolbar-btn {
+  background: var(--panel-2); color: var(--muted);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 2px 7px; font-size: 12px;
+  font-family: inherit; cursor: pointer;
+}
+.mermaid-toolbar-btn:hover { background: var(--panel); color: var(--text); }
+.mermaid-toolbar-btn.saved { color: var(--accent); border-color: var(--accent); }
+
+/* ── Mermaid lightbox ───────────────────────────────────────────────────── */
+#mermaid-lightbox {
+  display: none;
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,0.82);
+  flex-direction: column;
+}
+#mermaid-lightbox.open { display: flex; }
+#mermaid-lightbox-toolbar {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+#mermaid-lightbox-toolbar .spacer { flex: 1; }
+#mermaid-lightbox-zoom-label {
+  color: var(--muted); font-size: 12px; min-width: 46px; text-align: center;
+}
+#mermaid-lightbox-stage {
+  flex: 1 1 auto;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+}
+#mermaid-lightbox-stage.dragging { cursor: grabbing; }
+#mermaid-lightbox-content {
+  position: absolute;
+  top: 0; left: 0;
+  transform-origin: 0 0;
+}
+#mermaid-lightbox-content svg { display: block; }
 
 /* ── Code block copy buttons ────────────────────────────────────────────── */
 .msg .body pre,
@@ -580,6 +639,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <button class="scope-btn" id="scope-page">This page</button>
       <input type="number" id="scope-page-num" min="1" value="1" title="Page (1-indexed)">
       <button class="scope-btn" id="chat-clear" title="Clear chat history so the LLM no longer sees previous messages">Clear</button>
+      <button class="scope-btn" id="chat-saved-toggle" title="Browse saved AI responses for this paper">📂 Saved</button>
       <button class="scope-btn active" id="graph-toggle" title="Whole-paper search sources: click to exclude graph search and use vector+keyword only">+Graph</button>
       <span id="graphrag-pill" class="graphrag-pill" title="Agentic GraphRAG index status for whole-paper chat" hidden></span>
       <button class="scope-btn" id="graphrag-rebuild" title="Build or rebuild this paper's knowledge-graph index" hidden>Build index</button>
@@ -592,6 +652,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
     <div id="graphrag-progress-msg"></div>
     <div id="graphrag-log-box"></div>
   </div>
+  <div id="chat-saved-panel" hidden></div>
   <div id="chat-log"></div>
   <div id="chat-input-row">
     <textarea id="chat-input" placeholder="Ask about the paper…"></textarea>
@@ -666,6 +727,21 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
   <div class="pop-head" id="pop-head"></div>
   <div class="pop-target" id="pop-target"></div>
   <div class="pop-body" id="pop-body"></div>
+</div>
+
+<div id="mermaid-lightbox" role="dialog" aria-modal="true" aria-label="Diagram viewer">
+  <div id="mermaid-lightbox-toolbar">
+    <button class="mermaid-toolbar-btn" id="mermaid-lb-zoom-out" title="Zoom out">−</button>
+    <span id="mermaid-lightbox-zoom-label">100%</span>
+    <button class="mermaid-toolbar-btn" id="mermaid-lb-zoom-in" title="Zoom in">+</button>
+    <button class="mermaid-toolbar-btn" id="mermaid-lb-reset" title="Reset zoom">Reset</button>
+    <div class="spacer"></div>
+    <button class="mermaid-toolbar-btn" id="mermaid-lb-save" title="Save as PNG">⬇ Save PNG</button>
+    <button class="mermaid-toolbar-btn" id="mermaid-lb-close" title="Close (Esc)">✕</button>
+  </div>
+  <div id="mermaid-lightbox-stage">
+    <div id="mermaid-lightbox-content"></div>
+  </div>
 </div>
 
 <div id="shortcuts-overlay" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
@@ -920,7 +996,7 @@ async function runFigureExplain(fig) {
     addCopyButtons(bodyEl);
     renderMathInElement(bodyEl, katexOpts);
     renderMermaid(bodyEl);
-    addMsgActions(bodyEl, acc);
+    addMsgActions(bodyEl, acc, { query: `explain ${label}`, source: "figure_explain" });
   } catch (err) {
     bodyEl.textContent = "Network error: " + err.message;
   }
@@ -1796,7 +1872,7 @@ function addCopyButtons(root) {
   });
 }
 
-function addMsgActions(bodyEl, rawMarkdown) {
+function addMsgActions(bodyEl, rawMarkdown, saveMeta = null) {
   // Only add once
   if (bodyEl.parentElement.querySelector('.msg-action-bar')) return;
   const bar = document.createElement('div');
@@ -1826,6 +1902,27 @@ function addMsgActions(bodyEl, rawMarkdown) {
 
   bar.appendChild(mdBtn);
   bar.appendChild(txtBtn);
+
+  if (saveMeta) {
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'msg-action-btn';
+    saveBtn.textContent = '💾 Save';
+    saveBtn.addEventListener('click', async function () {
+      saveBtn.disabled = true;
+      try {
+        const resp = await fetch('/api/chat/save', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: saveMeta.query, answer: rawMarkdown, source: saveMeta.source,
+            scope: saveMeta.scope || null, page_index: saveMeta.pageIndex ?? null,
+          }),
+        });
+        if (resp.ok) { saveBtn.textContent = '✓ Saved'; }
+        else { saveBtn.textContent = 'Save failed'; saveBtn.disabled = false; }
+      } catch (err) { saveBtn.textContent = 'Save failed'; saveBtn.disabled = false; }
+    });
+    bar.appendChild(saveBtn);
+  }
 
   if (TTS.supported) {
     const ttsBtn = document.createElement('button');
@@ -1899,9 +1996,222 @@ function renderMermaid(root) {
         hideWrapper(); return;
       }
       el.innerHTML = result.svg;
+      const wrapper = el.closest('.mermaid-wrapper');
+      const svgEl = el.querySelector('svg');
+      if (wrapper && svgEl) addMermaidControls(wrapper, svgEl, code);
     }).catch(function() { hideWrapper(); });
   });
 }
+
+/* ── Mermaid diagram zoom / save controls ───────────────────────────────── */
+
+function addMermaidControls(wrapper, svgEl, code) {
+  if (wrapper.querySelector('.mermaid-toolbar')) return;
+  const bar = document.createElement('div');
+  bar.className = 'mermaid-toolbar';
+
+  const expandBtn = document.createElement('button');
+  expandBtn.className = 'mermaid-toolbar-btn';
+  expandBtn.title = 'Expand';
+  expandBtn.textContent = '⛶';
+  expandBtn.addEventListener('click', function() { openMermaidLightbox(svgEl, code); });
+
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'mermaid-toolbar-btn';
+  saveBtn.title = 'Save as PNG';
+  saveBtn.textContent = '⬇';
+  saveBtn.addEventListener('click', function() {
+    exportMermaidPng(code);
+    saveBtn.textContent = '✓';
+    saveBtn.classList.add('saved');
+    setTimeout(() => { saveBtn.textContent = '⬇'; saveBtn.classList.remove('saved'); }, 1500);
+  });
+
+  bar.appendChild(expandBtn);
+  bar.appendChild(saveBtn);
+  wrapper.appendChild(bar);
+}
+
+// Mermaid renders node/edge labels as HTML inside <foreignObject>, which
+// permanently taints any <canvas> they're drawn into (browsers refuse
+// canvas.toBlob/toDataURL on it, regardless of origin). To export a PNG we
+// re-render the same diagram source with htmlLabels disabled (pure SVG
+// <text>, no foreignObject) via a per-call %%{init}%% directive — this only
+// affects the throwaway export render, not the diagram shown in the chat.
+async function exportMermaidPng(code) {
+  if (!window.mermaid || !code) return;
+  let svgStr, w, h;
+  try {
+    const exportCode = '%%{init: {"flowchart": {"htmlLabels": false}, "htmlLabels": false}}%%\n' + code;
+    const id = 'mermaid-export-' + Math.random().toString(36).slice(2);
+    const parseOk = await mermaid.parse(exportCode, { suppressErrors: true });
+    if (!parseOk) return;
+    const result = await mermaid.render(id, exportCode);
+    const doc = new DOMParser().parseFromString(result.svg, 'image/svg+xml');
+    const svgEl = doc.documentElement;
+    const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+    w = (vb && vb.width) || 800;
+    h = (vb && vb.height) || 600;
+    svgEl.setAttribute('width', w);
+    svgEl.setAttribute('height', h);
+    svgStr = new XMLSerializer().serializeToString(svgEl);
+  } catch (e) {
+    return;
+  }
+
+  const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = function() {
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(w * scale);
+    canvas.height = Math.ceil(h * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(function(blob) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'diagram-' + Date.now() + '.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }, 'image/png');
+  };
+  img.onerror = function() { URL.revokeObjectURL(url); };
+  img.src = url;
+}
+
+const mermaidLb = {
+  zoom: 1, minZoom: 0.1, maxZoom: 8,
+  panX: 0, panY: 0,
+  dragging: false, dragStartX: 0, dragStartY: 0, panStartX: 0, panStartY: 0,
+  svgEl: null, code: null, naturalW: 0, naturalH: 0,
+};
+
+function openMermaidLightbox(svgEl, code) {
+  const lb = document.getElementById('mermaid-lightbox');
+  const content = document.getElementById('mermaid-lightbox-content');
+  const stage = document.getElementById('mermaid-lightbox-stage');
+  content.innerHTML = '';
+  const clone = svgEl.cloneNode(true);
+  const vb = svgEl.viewBox && svgEl.viewBox.baseVal;
+  mermaidLb.naturalW = (vb && vb.width) ? vb.width : (svgEl.clientWidth || 800);
+  mermaidLb.naturalH = (vb && vb.height) ? vb.height : (svgEl.clientHeight || 600);
+  clone.style.width = mermaidLb.naturalW + 'px';
+  clone.style.height = mermaidLb.naturalH + 'px';
+  clone.style.maxWidth = 'none';
+  content.appendChild(clone);
+  mermaidLb.svgEl = svgEl;
+  mermaidLb.code = code;
+
+  const stageRect = stage.getBoundingClientRect();
+  const fitZoom = Math.min(
+    (stageRect.width - 40) / mermaidLb.naturalW,
+    (stageRect.height - 40) / mermaidLb.naturalH,
+    1
+  );
+  mermaidLb.zoom = Math.max(mermaidLb.minZoom, fitZoom);
+  mermaidLb.panX = (stageRect.width - mermaidLb.naturalW * mermaidLb.zoom) / 2;
+  mermaidLb.panY = (stageRect.height - mermaidLb.naturalH * mermaidLb.zoom) / 2;
+  applyMermaidLbTransform();
+  lb.classList.add('open');
+}
+
+function closeMermaidLightbox() {
+  document.getElementById('mermaid-lightbox').classList.remove('open');
+  document.getElementById('mermaid-lightbox-content').innerHTML = '';
+  mermaidLb.svgEl = null;
+}
+
+function applyMermaidLbTransform() {
+  const content = document.getElementById('mermaid-lightbox-content');
+  content.style.transform = 'translate(' + mermaidLb.panX + 'px, ' + mermaidLb.panY + 'px) scale(' + mermaidLb.zoom + ')';
+  document.getElementById('mermaid-lightbox-zoom-label').textContent = Math.round(mermaidLb.zoom * 100) + '%';
+}
+
+function zoomMermaidLbAt(factor, clientX, clientY) {
+  const stage = document.getElementById('mermaid-lightbox-stage');
+  const rect = stage.getBoundingClientRect();
+  const offsetX = clientX - rect.left;
+  const offsetY = clientY - rect.top;
+  const prevZoom = mermaidLb.zoom;
+  const newZoom = Math.max(mermaidLb.minZoom, Math.min(mermaidLb.maxZoom, prevZoom * factor));
+  if (newZoom === prevZoom) return;
+  // Keep the point under the cursor fixed on screen.
+  mermaidLb.panX = offsetX - (offsetX - mermaidLb.panX) * (newZoom / prevZoom);
+  mermaidLb.panY = offsetY - (offsetY - mermaidLb.panY) * (newZoom / prevZoom);
+  mermaidLb.zoom = newZoom;
+  applyMermaidLbTransform();
+}
+
+function setupMermaidLightbox() {
+  const lb = document.getElementById('mermaid-lightbox');
+  const stage = document.getElementById('mermaid-lightbox-stage');
+
+  document.getElementById('mermaid-lb-close').addEventListener('click', closeMermaidLightbox);
+  document.getElementById('mermaid-lb-zoom-in').addEventListener('click', function() {
+    const rect = stage.getBoundingClientRect();
+    zoomMermaidLbAt(1.25, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  });
+  document.getElementById('mermaid-lb-zoom-out').addEventListener('click', function() {
+    const rect = stage.getBoundingClientRect();
+    zoomMermaidLbAt(0.8, rect.left + rect.width / 2, rect.top + rect.height / 2);
+  });
+  document.getElementById('mermaid-lb-reset').addEventListener('click', function() {
+    if (mermaidLb.svgEl) openMermaidLightbox(mermaidLb.svgEl, mermaidLb.code);
+  });
+  document.getElementById('mermaid-lb-save').addEventListener('click', function() {
+    if (mermaidLb.code) exportMermaidPng(mermaidLb.code);
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && lb.classList.contains('open')) closeMermaidLightbox();
+  });
+
+  stage.addEventListener('wheel', function(e) {
+    if (!lb.classList.contains('open')) return;
+    e.preventDefault();
+    const factor = Math.exp(-e.deltaY * 0.0015);
+    zoomMermaidLbAt(factor, e.clientX, e.clientY);
+  }, { passive: false });
+
+  // The stage doubles as the pan surface and the "backdrop" — a plain click
+  // (no movement) on empty stage space (not on the diagram itself) closes
+  // the lightbox, while a click-and-drag pans instead.
+  stage.addEventListener('mousedown', function(e) {
+    if (e.target.closest('#mermaid-lightbox-toolbar')) return;
+    mermaidLb.dragging = true;
+    mermaidLb.dragMoved = false;
+    mermaidLb.mousedownOnContent = !!e.target.closest('#mermaid-lightbox-content');
+    mermaidLb.dragStartX = e.clientX;
+    mermaidLb.dragStartY = e.clientY;
+    mermaidLb.panStartX = mermaidLb.panX;
+    mermaidLb.panStartY = mermaidLb.panY;
+    stage.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!mermaidLb.dragging) return;
+    if (Math.abs(e.clientX - mermaidLb.dragStartX) > 3 || Math.abs(e.clientY - mermaidLb.dragStartY) > 3) {
+      mermaidLb.dragMoved = true;
+    }
+    mermaidLb.panX = mermaidLb.panStartX + (e.clientX - mermaidLb.dragStartX);
+    mermaidLb.panY = mermaidLb.panStartY + (e.clientY - mermaidLb.dragStartY);
+    applyMermaidLbTransform();
+  });
+  window.addEventListener('mouseup', function() {
+    if (mermaidLb.dragging && !mermaidLb.dragMoved && !mermaidLb.mousedownOnContent) {
+      closeMermaidLightbox();
+    }
+    mermaidLb.dragging = false;
+    stage.classList.remove('dragging');
+  });
+}
+setupMermaidLightbox();
 
 function appendMsg(role, html, scopeChip = null) {
   const log = document.getElementById("chat-log");
@@ -1962,7 +2272,7 @@ async function sendChat() {
     addCopyButtons(bodyEl);
     renderMathInElement(bodyEl, katexOpts);
     renderMermaid(bodyEl);
-    addMsgActions(bodyEl, acc);
+    addMsgActions(bodyEl, acc, { query: message, source: "chat", scope: chatScope, pageIndex });
     chatHistory.push({ role: "assistant", content: acc });
   } catch (err) {
     bodyEl.textContent = "Network error: " + err.message;
@@ -1977,6 +2287,63 @@ document.getElementById("chat-input").addEventListener("keydown", e => {
 document.getElementById("chat-clear").addEventListener("click", () => {
   chatHistory = [];
   document.getElementById("chat-log").innerHTML = "";
+});
+
+/* ── Saved AI responses (browse + load) ──────────────────────────────────── */
+function loadSavedEntry(entry) {
+  appendMsg("user", marked.parse(entry.query));
+  chatHistory.push({ role: "user", content: entry.query });
+  const bodyEl = appendMsg("assistant", processMermaidBlocks(marked.parse(fixMdSpaces(entry.answer))));
+  bodyEl.querySelectorAll('pre code:not(.hljs)').forEach(el => window.hljs && window.hljs.highlightElement(el));
+  addCopyButtons(bodyEl);
+  renderMathInElement(bodyEl, katexOpts);
+  renderMermaid(bodyEl);
+  addMsgActions(bodyEl, entry.answer);
+  chatHistory.push({ role: "assistant", content: entry.answer });
+  document.getElementById("chat-saved-panel").hidden = true;
+}
+
+async function refreshSavedPanel() {
+  const panel = document.getElementById("chat-saved-panel");
+  panel.innerHTML = "<div class=\"saved-empty\">Loading…</div>";
+  try {
+    const resp = await fetch("/api/chat/saved");
+    const data = await resp.json();
+    const entries = data.entries || [];
+    if (!entries.length) {
+      panel.innerHTML = "<div class=\"saved-empty\">No saved responses for this paper yet.</div>";
+      return;
+    }
+    panel.innerHTML = "";
+    entries.forEach(entry => {
+      const row = document.createElement("div");
+      row.className = "saved-row";
+      const meta = document.createElement("div");
+      meta.className = "saved-meta";
+      const q = document.createElement("div");
+      q.className = "saved-query";
+      q.textContent = entry.query;
+      const sub = document.createElement("div");
+      sub.className = "saved-sub";
+      sub.textContent = `${entry.ts} · ${entry.source}`;
+      meta.appendChild(q);
+      meta.appendChild(sub);
+      const loadBtn = document.createElement("button");
+      loadBtn.className = "scope-btn";
+      loadBtn.textContent = "Load";
+      loadBtn.addEventListener("click", () => loadSavedEntry(entry));
+      row.appendChild(meta);
+      row.appendChild(loadBtn);
+      panel.appendChild(row);
+    });
+  } catch (err) {
+    panel.innerHTML = `<div class="saved-empty">Failed to load: ${err.message}</div>`;
+  }
+}
+document.getElementById("chat-saved-toggle").addEventListener("click", () => {
+  const panel = document.getElementById("chat-saved-panel");
+  panel.hidden = !panel.hidden;
+  if (!panel.hidden) refreshSavedPanel();
 });
 
 /* ── LLM sleep control ─────────────────────────────────────────────────── */
@@ -3419,7 +3786,7 @@ async function sendWikiChat() {
     addCopyButtons(bodyEl);
     renderMathInElement(bodyEl, katexOpts);
     renderMermaid(bodyEl);
-    addMsgActions(bodyEl, acc);
+    addMsgActions(bodyEl, acc, { query: question, source: "wiki_qa" });
     wikiHistory.push({ role: "assistant", content: acc });
   } catch (err) {
     bodyEl.textContent = "Network error: " + err.message;
