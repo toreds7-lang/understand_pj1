@@ -101,6 +101,16 @@ def _building_notice(build_status: str | None) -> str:
             "search meanwhile…\n\n")
 
 
+def _page_context_block(
+    index: RagIndex, message: str, page_index: int, page_markdown: str | None
+) -> str:
+    """Full markdown for a page if short enough, else its top-k relevant chunks."""
+    if page_markdown and len(page_markdown) <= 8000:
+        return f"[page {page_index + 1}]\n{page_markdown.strip()}"
+    hits = index.topk(message, k=3, page_filter=page_index)
+    return _format_context(hits) if hits else (page_markdown or "")
+
+
 def chat_stream(
     index: RagIndex,
     message: str,
@@ -111,24 +121,42 @@ def chat_stream(
     graphrag_engine: object | None = None,
     build_status: str | None = None,
     use_graph: bool = True,
+    prev_markdown: str | None = None,
+    next_markdown: str | None = None,
 ) -> Iterator[str]:
     """RAG chat.
 
     scope='page' restricts to a single page (full markdown if short, else top-k within
-    the page). scope='paper' (whole paper) runs the agentic GraphRAG pipeline when the
-    paper's per-paper index is ready (``graphrag_engine`` provided); until then it
-    degrades to the original vector top-k path so chat always answers.
+    the page). ``prev_markdown``/``next_markdown``, when given, add the adjacent page's
+    content so a section that spills across a page boundary can still be answered fully.
+    scope='paper' (whole paper) runs the agentic GraphRAG pipeline when the paper's
+    per-paper index is ready (``graphrag_engine`` provided); until then it degrades to
+    the original vector top-k path so chat always answers.
 
     use_graph=False keeps the agentic plan/search/sufficiency-gate/synthesis workflow but
     excludes GraphRAG search, grounding every step on hybrid (vector+keyword) retrieval only.
     """
     if scope == "page" and page_index is not None:
-        if page_markdown and len(page_markdown) <= 8000:
-            context = f"[page {page_index + 1}]\n{page_markdown.strip()}"
+        parts = []
+        if prev_markdown is not None:
+            parts.append(_page_context_block(index, message, page_index - 1, prev_markdown))
+        parts.append(_page_context_block(index, message, page_index, page_markdown))
+        if next_markdown is not None:
+            parts.append(_page_context_block(index, message, page_index + 1, next_markdown))
+        context = "\n\n".join(parts)
+
+        extra = []
+        if prev_markdown is not None:
+            extra.append(str(page_index))
+        if next_markdown is not None:
+            extra.append(str(page_index + 2))
+        if extra:
+            scope_note = (
+                f"Primarily answer using page {page_index + 1}; page(s) {', '.join(extra)} "
+                "are also included since the relevant section may continue there."
+            )
         else:
-            hits = index.topk(message, k=3, page_filter=page_index)
-            context = _format_context(hits) if hits else (page_markdown or "")
-        scope_note = f"You must answer using only page {page_index + 1}."
+            scope_note = f"You must answer using only page {page_index + 1}."
     else:
         # Whole-paper: agentic GraphRAG when the index is ready.
         if graphrag_engine is not None:

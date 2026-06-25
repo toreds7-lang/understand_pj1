@@ -253,6 +253,8 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
         scope: str = "paper"
         page_index: int | None = None
         use_graph: bool = True
+        include_prev: bool = False
+        include_next: bool = False
 
     @app.post("/api/define")
     def api_define(body: DefineBody) -> StreamingResponse:
@@ -297,12 +299,19 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
             raise HTTPException(400, "message is empty")
         scope = body.scope if body.scope in ("paper", "page") else "paper"
         page_md = None
+        prev_md = None
+        next_md = None
         engine = None
         build_status = None
         if scope == "page":
             if body.page_index is None or not (0 <= body.page_index < len(ctx.paper["pages"])):
                 raise HTTPException(400, "page_index out of range")
-            page_md = ctx.paper["pages"][body.page_index]["markdown"]
+            pages = ctx.paper["pages"]
+            page_md = pages[body.page_index]["markdown"]
+            if body.include_prev and body.page_index > 0:
+                prev_md = pages[body.page_index - 1]["markdown"]
+            if body.include_next and body.page_index + 1 < len(pages):
+                next_md = pages[body.page_index + 1]["markdown"]
         else:
             # Whole-paper scope: hand the agentic flow its GraphRAG engine if it's ready,
             # otherwise pass the build status so chat can show a notice + fall back.
@@ -313,6 +322,7 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
             ai.chat_stream(
                 ctx.rag_index, body.message, body.history, scope, body.page_index, page_md,
                 graphrag_engine=engine, build_status=build_status, use_graph=body.use_graph,
+                prev_markdown=prev_md, next_markdown=next_md,
             ),
             media_type="text/plain; charset=utf-8",
         )

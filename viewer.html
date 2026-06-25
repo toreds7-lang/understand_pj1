@@ -210,6 +210,8 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
 #scope-page-num { background: var(--panel-2); color: var(--text);
   border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px;
   font-size: 12px; width: 60px; }
+.scope-adj-label { font-size: 12px; color: var(--muted); display: flex;
+  align-items: center; gap: 3px; white-space: nowrap; cursor: pointer; }
 .sleep-label { font-size: 12px; color: var(--muted); display: flex;
   align-items: center; gap: 4px; white-space: nowrap; }
 #llm-sleep-input { width: 46px; background: var(--panel-2); color: var(--text);
@@ -638,6 +640,10 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <button class="scope-btn active" id="scope-paper">Whole paper</button>
       <button class="scope-btn" id="scope-page">This page</button>
       <input type="number" id="scope-page-num" min="1" value="1" title="Page (1-indexed)">
+      <label class="scope-adj-label" title="Also include the previous page (useful when a section starts on the prior page)">
+        <input type="checkbox" id="scope-page-prev"> +prev</label>
+      <label class="scope-adj-label" title="Also include the next page (useful when a section continues onto the next page)">
+        <input type="checkbox" id="scope-page-next"> +next</label>
       <button class="scope-btn" id="chat-clear" title="Clear chat history so the LLM no longer sees previous messages">Clear</button>
       <button class="scope-btn" id="chat-saved-toggle" title="Browse saved AI responses for this paper">📂 Saved</button>
       <button class="scope-btn active" id="graph-toggle" title="Whole-paper search sources: click to exclude graph search and use vector+keyword only">+Graph</button>
@@ -2233,10 +2239,15 @@ async function sendChat() {
 
   let pageIndex = null;
   let scopeChip = null;
+  let includePrev = false;
+  let includeNext = false;
   if (chatScope === "page") {
     const raw = parseInt(document.getElementById("scope-page-num").value, 10);
     pageIndex = Math.max(0, Math.min((paperData?.pages?.length || 1) - 1, (raw || 1) - 1));
-    scopeChip = `scoped to page ${pageIndex + 1}`;
+    includePrev = document.getElementById("scope-page-prev").checked;
+    includeNext = document.getElementById("scope-page-next").checked;
+    const adj = [includePrev && "+prev", includeNext && "+next"].filter(Boolean).join(", ");
+    scopeChip = `scoped to page ${pageIndex + 1}${adj ? ` (${adj})` : ""}`;
   }
 
   appendMsg("user", marked.parse(message), scopeChip);
@@ -2251,6 +2262,7 @@ async function sendChat() {
       body: JSON.stringify({
         message, history: chatHistory.slice(0, -1),
         scope: chatScope, page_index: pageIndex, use_graph: useGraph,
+        include_prev: includePrev, include_next: includeNext,
       }),
     });
     if (!resp.ok || !resp.body) { bodyEl.textContent = `Error: ${resp.status}`; return; }
