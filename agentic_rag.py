@@ -25,8 +25,13 @@ from typing import Any, Callable, Iterator
 
 import hybrid_retrieval as hybrid
 import llm_client
-from config import MAX_ITERS, MAX_SNIPPETS
+from config import MAX_ITERS, MAX_SNIPPETS, EVIDENCE_TOKEN_BUDGET, EVIDENCE_SUMMARIZE_AT
 from graphrag_qa import GraphRAGQA, METHODS
+
+try:
+    import tiktoken
+except Exception:  # noqa: BLE001 — token counting degrades to a char-based estimate
+    tiktoken = None
 
 # Prompts are kept external/editable next to the exe (like ai.py), not bundled into the
 # PyInstaller _MEIPASS temp dir — so resolve from the exe dir when frozen.
@@ -370,6 +375,71 @@ def _render_evidence(evidence: list[dict]) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Context management
+# ---------------------------------------------------------------------------
+# MAX_SNIPPETS caps evidence by block *count*; on a long paper the surviving blocks can
+# still render to a prompt far larger than the LLM's context window, since each block can
+# be up to several thousand chars. Mirrors the harness pattern of monitoring token usage
+# against a budget and forcing summarization at a threshold: once rendered evidence nears
+# EVIDENCE_TOKEN_BUDGET, compact it — keep the blocks the model says are load-bearing for
+# the question verbatim, and collapse the rest to short summaries, freeing tokens while
+# retaining cited evidence.
+
+_ENC = tiktoken.get_encoding("cl100k_base") if tiktoken else None
+
+
+def _count_tokens(text: str) -> int:
+    if _ENC is not None:
+        try:
+            return len(_ENC.encode(text))
+        except Exception:  # noqa: BLE001 — fall through to the char-based estimate
+            pass
+    return max(1, len(text) // 4)
+
+
+def _trim_to_budget(evidence: list[dict], budget: int) -> list[dict]:
+    """Guaranteed fallback: drop the lowest-scored blocks until the *rendered* evidence
+    (including per-block headers) fits `budget` tokens. Always keeps at least one block."""
+    kept = sorted(evidence, key=lambda e: e.get("score", 0.0), reverse=True)
+    while len(kept) > 1 and _count_tokens(_render_evidence(kept)) > budget:
+        kept.pop()
+    return kept
+
+
+def _compact_evidence(question: str, evidence: list[dict]) -> list[dict]:
+    """Force-summarize accumulated evidence once it's within EVIDENCE_SUMMARIZE_AT of the
+    token budget. Asks the LLM which block ids are essential to the question (kept
+    verbatim) versus safe to collapse to a short summary; falls back to a deterministic
+    score-ranked trim if that call fails or doesn't bring the prompt under budget."""
+    rendered_tokens = _count_tokens(_render_evidence(evidence))
+    if rendered_tokens < EVIDENCE_TOKEN_BUDGET * EVIDENCE_SUMMARIZE_AT:
+        return evidence
+    print(f"[context] evidence ~{rendered_tokens} tokens >= "
+          f"{int(EVIDENCE_TOKEN_BUDGET * EVIDENCE_SUMMARIZE_AT)} threshold — compacting",
+          file=sys.stderr)
+    compacted = evidence
+    try:
+        user = f"Question: {question}\n\nEvidence:\n{_render_evidence(evidence)}"
+        out = llm_client.chat_json(_prompt("compact_evidence"), user)
+        if not isinstance(out, dict):
+            raise ValueError(f"compaction returned non-dict JSON: {out!r}")
+        preserve = {int(i) for i in (out.get("preserve") or []) if str(i).strip().isdigit()}
+        summaries = {int(k): str(v) for k, v in (out.get("summaries") or {}).items()
+                     if str(k).strip().isdigit()}
+        compacted = [
+            e if i in preserve
+            else {**e, "text": summaries[i][:800]} if i in summaries
+            else {**e, "text": str(e.get("text", ""))[:400]}  # model omitted this id — shrink anyway
+            for i, e in enumerate(evidence, 1)
+        ]
+    except Exception as e:  # noqa: BLE001 — compaction is best-effort, never block the loop
+        print(f"[context] compaction call failed, trimming instead: {e}", file=sys.stderr)
+    if _count_tokens(_render_evidence(compacted)) > EVIDENCE_TOKEN_BUDGET:
+        compacted = _trim_to_budget(compacted, EVIDENCE_TOKEN_BUDGET)
+    return compacted
+
+
+# ---------------------------------------------------------------------------
 # Individual agents
 # ---------------------------------------------------------------------------
 
@@ -428,6 +498,7 @@ def search_fanout(items: list[dict[str, str]], engine: GraphRAGQA) -> list[dict]
 def assess_sufficiency(question: str, evidence: list[dict]) -> dict[str, Any]:
     """Sufficient-Context gate: judge whether evidence answers the question and, if
     not, name what is missing and propose follow-up {q, method} retrievals."""
+    evidence = _compact_evidence(question, evidence)
     user = f"Question: {question}\n\nRetrieved evidence:\n{_render_evidence(evidence)}"
     out = llm_client.chat_json(_prompt("sufficient_context"), user)
     if not isinstance(out, dict):
@@ -456,6 +527,7 @@ def _escalate(items: list[dict[str, str]], prior: list[dict[str, str]]) -> list[
 
 def synthesize(question: str, evidence: list[dict]) -> Iterator[str]:
     """Synthesis: stream the final grounded, method-cited answer."""
+    evidence = _compact_evidence(question, evidence)
     user = f"Question: {question}\n\nRetrieved evidence:\n{_render_evidence(evidence)}"
     messages = [
         {"role": "system", "content": _prompt("synthesis")},

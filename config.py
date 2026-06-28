@@ -62,6 +62,15 @@ MAX_ITERS: int     = int(os.getenv("MAX_ITERS", "3"))          # search↻suffic
 MAX_SNIPPETS: int  = int(os.getenv("MAX_SNIPPETS", "24"))      # hard cap on accumulated evidence
 FANOUT_TOP_K: int  = int(os.getenv("FANOUT_TOP_K", "5"))       # snippets per query (reserved)
 
+# Context management: MAX_SNIPPETS caps evidence by *count*, not size, so a long paper can
+# still render evidence far past what an LLM's context window holds. EVIDENCE_TOKEN_BUDGET
+# is the token budget for the rendered-evidence portion of a prompt; once it's reached,
+# the gate/synthesis steps force a compaction pass (see agentic_rag._compact_evidence).
+# Default is sized conservatively for small self-hosted models, not gpt-4o's 128K window —
+# raise it via env.txt when running against a large-context backend.
+EVIDENCE_TOKEN_BUDGET: int = int(os.getenv("EVIDENCE_TOKEN_BUDGET", "7000"))
+EVIDENCE_SUMMARIZE_AT: float = float(os.getenv("EVIDENCE_SUMMARIZE_AT", "0.9"))  # fraction of budget that triggers compaction
+
 # Models GraphRAG itself uses for indexing + search (default to the app's models).
 GRAPHRAG_CHAT_MODEL: str  = os.getenv("GRAPHRAG_CHAT_MODEL", LLM_MODEL)
 GRAPHRAG_EMBED_MODEL: str = os.getenv("GRAPHRAG_EMBED_MODEL", EMBEDDING_MODEL)
