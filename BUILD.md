@@ -3,8 +3,8 @@
 How to package the FastAPI paper viewer ([serve.py](serve.py)) into a single Windows
 executable that runs without Python or a venv.
 
-The build uses **PyInstaller** in one-file mode. `viewer.html`, `prompts/`, `env.txt`,
-and `data/` are **not** embedded — they stay editable beside the exe.
+The build uses **PyInstaller** in one-file mode. `viewer.html`, `lecture_template.html`,
+`prompts/`, `env.txt`, and `data/` are **not** embedded — they stay editable beside the exe.
 
 ## Prerequisites
 
@@ -39,6 +39,7 @@ and `data/` are **not** embedded — they stay editable beside the exe.
    ```powershell
    Copy-Item env.txt dist\
    Copy-Item viewer.html dist\
+   Copy-Item lecture_template.html dist\        # lecture-page template (editable)
    Copy-Item -Recurse prompts dist\
    Copy-Item -Recurse graphrag_template dist\   # GraphRAG settings/prompts template (editable)
    ```
@@ -56,6 +57,7 @@ and `data/` are **not** embedded — they stay editable beside the exe.
    ├── paper_reader.exe   the executable
    ├── env.txt            API key / model config (edit this)
    ├── viewer.html        the browser UI
+   ├── lecture_template.html  lecture-page HTML shell (edit for styling)
    ├── prompts/           prompt templates (edit these)
    ├── graphrag_template/ GraphRAG settings + index/query prompts (copied per paper on first build)
    └── data/              processed papers (paper.json, source.pdf, figures/, graphrag/)

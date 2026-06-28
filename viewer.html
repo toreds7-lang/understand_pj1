@@ -39,6 +39,22 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 .tab-btn.active { color: var(--accent); border-color: var(--accent); background: var(--bg); }
 .tab-btn.solo { box-shadow: inset 0 0 0 1px var(--accent); }
 
+/* Lecture panel */
+#lecture { flex-direction: column; min-width: 0; }
+#lecture.collapsed { flex-direction: row; }
+#lecture-header { display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  border-bottom: 1px solid var(--border); flex: 0 0 auto; }
+#lecture-header h2 { font-size: 14px; margin: 0; color: var(--text); }
+#lecture-header .lecture-header-spacer { flex: 1; }
+.lecture-status { font-size: 11px; color: var(--muted); }
+a.scope-btn { text-decoration: none; display: inline-flex; align-items: center; }
+#lecture-frame { flex: 1 1 auto; width: 100%; height: 100%; border: 0;
+  background: var(--bg); min-height: 0; }
+.lecture-empty { flex: 1 1 auto; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px; padding: 24px;
+  text-align: center; color: var(--muted); font-size: 13px; }
+.lecture-empty .lecture-empty-hint { font-size: 11.5px; max-width: 360px; }
+
 /* Solo / maximize: one panel fills the whole workspace. */
 #workspace.solo > .splitter            { display: none !important; }
 #workspace.solo > .panel:not(.solo-target) { display: none !important; }
@@ -558,6 +574,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
   <button class="tab-btn" data-panel="chat" title="Toggle Chat (Ctrl+4)">Chat</button>
   <button class="tab-btn" data-panel="right" title="Toggle PDF (Ctrl+5)">PDF</button>
   <button class="tab-btn" data-panel="graph" title="Toggle Knowledge Graph (Ctrl+6)">Graph</button>
+  <button class="tab-btn" data-panel="lecture" title="Toggle Lecture (Ctrl+7)">Lecture</button>
 </div>
 
 <div id="workspace">
@@ -623,6 +640,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       </div>
       <span class="progress" id="toc-progress"></span>
       <button class="summarize-all" id="summarize-all" title="Run hierarchical summarization for every TOC node (bottom-up). Cached.">Summarize all</button>
+      <button class="summarize-all" id="build-lecture" title="Generate a multi-depth lecture page for this paper from its summaries. Resumable: re-click to retry failed chapters.">Lecture</button>
     </div>
     <div class="summary-pane active" id="summary-pane-page"></div>
     <div class="summary-pane" id="summary-pane-toc"></div>
@@ -725,6 +743,26 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
   </div>
 </section>
 
+<div class="splitter" data-left="graph" data-right="lecture" id="lecture-splitter" style="display:none"></div>
+
+<section id="lecture" class="panel flex-fill" style="display:none;">
+  <button class="collapse-btn" data-target="lecture" title="Collapse">‹</button>
+  <span class="collapsed-label" data-target="lecture" title="Expand">Lecture</span>
+  <div id="lecture-header">
+    <h2>Lecture</h2>
+    <span id="lecture-status" class="lecture-status"></span>
+    <span class="lecture-header-spacer"></span>
+    <button class="scope-btn" id="lecture-rebuild" title="Generate / regenerate this paper's lecture. Resumable: re-click to retry failed chapters.">↻ Rebuild</button>
+    <a class="scope-btn" id="lecture-open-tab" href="/api/lecture" target="_blank" rel="noopener" title="Open the lecture full-screen in a new browser tab">⤢ Open in tab</a>
+  </div>
+  <div id="lecture-empty" class="lecture-empty">
+    <p>No lecture has been generated for this paper yet.</p>
+    <button class="scope-btn" id="lecture-generate" title="Generate a multi-depth lecture page from this paper's summaries.">Generate lecture</button>
+    <p class="lecture-empty-hint">Builds chapter-by-chapter from the paper text and section summaries. Re-run any time to retry failed chapters.</p>
+  </div>
+  <iframe id="lecture-frame" title="Lecture" hidden></iframe>
+</section>
+
 </div><!-- /#workspace -->
 
 <div id="popup" role="dialog" aria-live="polite">
@@ -766,6 +804,7 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <tr><td><kbd>Ctrl</kbd>+<kbd>1</kbd></td><td>toggle Paper section</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>2</kbd>..<kbd>5</kbd></td><td>toggle Outline / Markdown / Chat / PDF panes</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>6</kbd></td><td>toggle Knowledge Graph panel</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>7</kbd></td><td>toggle Lecture panel</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td><td>focus graph (collapse other panes)</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>reset all panels to default (panel sizes are otherwise remembered)</td></tr>
     </table>
@@ -969,6 +1008,60 @@ document.addEventListener("keydown", async e => {
     }
   }
 });
+
+/* ── lecture-iframe shortcuts ──────────────────────────────────────────────
+   The Lecture tab renders inside a same-origin <iframe>, so keypresses and
+   selections there belong to the iframe's document — the handlers above never
+   see them. We re-wire the selection shortcuts (D/E/B/M/S) into the iframe's
+   document, reading the selection from its own window and deriving sentence
+   context from the element the selection sits in. */
+function selectionContext(win) {
+  const sel = win.getSelection ? win.getSelection() : null;
+  const text = sel ? sel.toString().trim() : "";
+  if (!text) return null;
+  let node = sel.anchorNode;
+  while (node && node.nodeType !== 1) node = node.parentNode;
+  const container = node?.closest?.("p,li,td,th,h1,h2,h3,h4,figcaption,.variant,.callout,.next,section") || node;
+  const blockText = ((container?.innerText) || "").replace(/\s+/g, " ");
+  let before = "", after = "";
+  const idx = blockText.indexOf(text);
+  if (idx >= 0) {
+    before = splitSentences(blockText.slice(0, idx)).slice(-3).join(" ");
+    after  = splitSentences(blockText.slice(idx + text.length)).slice(0, 3).join(" ");
+  }
+  return { text, before, after };
+}
+
+async function runSelectionShortcut(key, ctx) {
+  const c = { before: ctx.before || "", after: ctx.after || "" };
+  if (key === "d") return runAction("define", "/api/define", { word: ctx.text, ...c });
+  if (key === "e") return runAction("explain", "/api/explain", { sentence: ctx.text, ...c });
+  if (key === "b") return runAction("grammar breakdown", "/api/grammar", { sentence: ctx.text, ...c });
+  if (key === "m") return runAction("simpler English", "/api/paraphrase", { sentence: ctx.text, ...c });
+}
+
+function attachLectureShortcuts(doc) {
+  if (!doc || doc.__shortcutsWired) return;
+  doc.__shortcutsWired = true;
+  const win = doc.defaultView || doc.parentWindow;
+  doc.addEventListener("keydown", async e => {
+    if (e.key === "F1") { e.preventDefault(); toggleShortcuts(); return; }
+    if (!e.ctrlKey || e.altKey || e.metaKey) return;
+    const k = e.key.toLowerCase();
+    if (!["d", "e", "b", "m", "s"].includes(k)) return;
+    const ctx = selectionContext(win);
+    const text = ctx?.text || "";
+    if (k === "s") {
+      e.preventDefault();
+      if (!text) { TTS.stop(); return; }
+      TTS.speakSelection(text);
+      return;
+    }
+    e.preventDefault();
+    if (!text) return;
+    await runSelectionShortcut(k, ctx);
+  });
+}
 
 async function runFigureExplain(fig) {
   const isRef = !fig.id && fig.ref;
@@ -1342,6 +1435,95 @@ async function consumeNdjson(body) {
 }
 
 document.getElementById("summarize-all").addEventListener("click", runSummarizeAll);
+
+function loadLectureFrame() {
+  const frame = document.getElementById("lecture-frame");
+  const empty = document.getElementById("lecture-empty");
+  if (!frame) return;
+  frame.hidden = false;
+  if (empty) empty.style.display = "none";
+  // Re-wire the selection shortcuts each time the lecture document (re)loads.
+  frame.onload = () => { try { attachLectureShortcuts(frame.contentDocument); } catch (_) {} };
+  frame.src = "/api/lecture?t=" + Date.now();
+}
+
+// Called when the Lecture panel is first revealed: show the last build if one
+// exists (no regeneration), otherwise show the empty-state.
+async function openLecturePanel() {
+  const frame = document.getElementById("lecture-frame");
+  const empty = document.getElementById("lecture-empty");
+  const status = document.getElementById("lecture-status");
+  try {
+    const s = await (await fetch("/api/lecture-status")).json();
+    if (status) status.textContent = s.built
+      ? `${s.done}/${s.total} chapters${s.failed ? ` · ${s.failed} failed` : ""}`
+      : (s.done ? `${s.done}/${s.total} chapters built` : "not generated yet");
+    if (s.built) {
+      if (!frame.getAttribute("src")) loadLectureFrame();   // load once
+      else {
+        frame.hidden = false; if (empty) empty.style.display = "none";
+        try { attachLectureShortcuts(frame.contentDocument); } catch (_) {}  // already loaded
+      }
+    } else {
+      frame.hidden = true; if (empty) empty.style.display = "";
+    }
+  } catch (_) { /* leave empty-state */ }
+}
+
+let lectureRunning = false;
+async function runBuildLecture() {
+  if (lectureRunning) return;
+  lectureRunning = true;
+  const btn = document.getElementById("build-lecture");
+  const rbtn = document.getElementById("lecture-rebuild");
+  const prog = document.getElementById("toc-progress");
+  const status = document.getElementById("lecture-status");
+  const setStatus = t => { if (prog) prog.textContent = t; if (status) status.textContent = t; };
+  if (btn) { btn.disabled = true; btn.textContent = "Building…"; }
+  if (rbtn) { rbtn.disabled = true; rbtn.textContent = "Building…"; }
+  let failed = 0, built = false;
+  try {
+    const resp = await fetch("/api/lecture-build", { method: "POST" });
+    if (!resp.ok || !resp.body) { alert(`Error: ${resp.status}`); return; }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf("\n")) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        let rec; try { rec = JSON.parse(line); } catch (_) { continue; }
+        if (rec.phase === "module") {
+          if (!rec.ok) failed++;
+          setStatus(`Lecture ${rec.index}/${rec.total}${failed ? ` · ${failed} failed` : ""}`);
+        } else if (rec.phase === "stages") { setStatus("Lecture · grouping…"); }
+        else if (rec.phase === "hero") { setStatus("Lecture · intro…"); }
+        else if (rec.phase === "done") {
+          built = rec.built; failed = rec.failed;
+          setStatus(`Lecture ready${failed ? ` · ${failed} failed (re-click to retry)` : ""}`);
+        }
+      }
+    }
+    if (built) {
+      if (typeof window.showLecturePanel === "function") window.showLecturePanel();
+      loadLectureFrame();   // reveal in-app + load fresh build
+    }
+  } catch (err) {
+    alert("Network error: " + err.message);
+  } finally {
+    lectureRunning = false;
+    if (btn) { btn.disabled = false; btn.textContent = "Lecture"; }
+    if (rbtn) { rbtn.disabled = false; rbtn.textContent = "↻ Rebuild"; }
+  }
+}
+document.getElementById("build-lecture").addEventListener("click", runBuildLecture);
+document.getElementById("lecture-rebuild")?.addEventListener("click", runBuildLecture);
+document.getElementById("lecture-generate")?.addEventListener("click", runBuildLecture);
 document.querySelectorAll("#summary-header .mode-btn").forEach(b => {
   b.addEventListener("click", () => setSummaryMode(b.dataset.mode));
 });
@@ -2500,6 +2682,7 @@ function setupLayout() {
       case "4": togglePanelById("chat"); break;
       case "5": togglePanelById("right"); break;
       case "6": toggleGraphPanel(); break;
+      case "7": toggleLecturePanel(); break;
       case "g": case "G": collapseAllExceptGraph(); break;
       // Reset is on Ctrl+0 (not Ctrl+R) so the browser's reload stays usable.
       case "0": resetPanelsToDefault(); break;
@@ -2521,6 +2704,29 @@ function setupLayout() {
     }
   }
 
+  function toggleLecturePanel() {
+    const panel = document.getElementById("lecture");
+    const splitter = document.getElementById("lecture-splitter");
+    if (!panel || !splitter) return;
+    if (panel.style.display === "none") {
+      panel.style.display = "";
+      splitter.style.display = "";
+      openLecturePanel();
+    } else {
+      togglePanelById("lecture");
+    }
+  }
+
+  // Reveal (without toggling off) — used by the build flow to show a fresh build.
+  window.showLecturePanel = function () {
+    const panel = document.getElementById("lecture");
+    const splitter = document.getElementById("lecture-splitter");
+    if (!panel || !splitter) return;
+    if (panel.style.display === "none") { panel.style.display = ""; splitter.style.display = ""; }
+    panel.classList.remove("collapsed");
+    refreshTabs();
+  };
+
   // Maximize one panel to fill the whole workspace; call again to restore.
   function soloPanel(id) {
     const ws = document.getElementById("workspace");
@@ -2538,6 +2744,7 @@ function setupLayout() {
 
     if (!already) {
       if (id === "graph" && panel.style.display === "none") toggleGraphPanel();
+      if (id === "lecture" && panel.style.display === "none") toggleLecturePanel();
       panel.dataset.soloPrevCollapsed = panel.classList.contains("collapsed") ? "1" : "0";
       panel.classList.remove("collapsed");
       panel.classList.add("solo-target");
@@ -2561,6 +2768,7 @@ function setupLayout() {
           return;
         }
         if (id === "graph") toggleGraphPanel();
+        else if (id === "lecture") toggleLecturePanel();
         else togglePanelById(id);
         refreshTabs();
       }, 220);
@@ -2621,6 +2829,7 @@ function setupLayout() {
       chat: { basis: "360px", collapsed: false },
       right: { basis: null, collapsed: false, flexFill: true },
       graph: { basis: null, collapsed: false, flexFill: true, display: "none" },
+      lecture: { basis: null, collapsed: false, flexFill: true, display: "none" },
     };
 
     Object.entries(defaultStates).forEach(([panelId, state]) => {
@@ -2652,6 +2861,12 @@ function setupLayout() {
         panel.style.display = state.display;
         const graphSplitter = document.getElementById("graph-splitter");
         if (graphSplitter) graphSplitter.style.display = state.display;
+      }
+      // Reset display for lecture
+      if (panelId === "lecture") {
+        panel.style.display = state.display;
+        const lecSplitter = document.getElementById("lecture-splitter");
+        if (lecSplitter) lecSplitter.style.display = state.display;
       }
     });
 

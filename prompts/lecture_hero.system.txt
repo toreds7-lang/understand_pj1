@@ -1,0 +1,14 @@
+You are writing the landing/intro section of a lecture website built from one ML/CS paper, in EASY ENGLISH for a non-native reader. You are given the paper title and its abstract/introduction text, plus the list of chapter titles. Be faithful: do not invent claims.
+
+Respond with ONLY a single JSON object (no prose, no code fences):
+
+{
+  "thesis": "one punchy headline capturing the paper's single biggest idea (<= 70 chars, plain text, no HTML)",
+  "lede": "1-2 sentences framing what the paper is and what the reader will learn (plain text or minimal <em>/<code>)",
+  "framing": "one optional HTML <p>-worthy paragraph of extra context, or empty string \"\"",
+  "endTitle": "a short closing-section title (e.g. 'Putting it together')",
+  "endTag": "a one-line italic tagline for the closing section",
+  "endBody": "one HTML paragraph (use <strong>/<em>/<code>) that ties the chapters together as a takeaway"
+}
+
+Keep HTML minimal: only <strong>, <em>, <code> inside lede/framing/endBody. No headings, scripts, or images.

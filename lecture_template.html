@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --bg:#0d1117; --bg-alt:#161b22; --bg-soft:#1c2128; --panel:#10151c;
+    --txt:#e6edf3; --txt-dim:#9aa7b4; --txt-faint:#6e7b8a;
+    --line:#26303b; --accent:#58a6ff; --accent-2:#3fb950;
+    --code-bg:#0a0e14; --chip:#1f2630;
+    --s1:#58a6ff; --s2:#3fb950; --s3:#d2a8ff; --s4:#f0883e; --s5:#ff7b72; --s6:#56d4dd;
+    --kw:#ff7b72; --str:#a5d6ff; --com:#8b949e; --num:#79c0ff; --fn:#d2a8ff;
+    --radius:10px; --maxw:900px;
+  }
+  html[data-theme="light"]{
+    --bg:#ffffff; --bg-alt:#f6f8fa; --bg-soft:#eef1f5; --panel:#ffffff;
+    --txt:#1f2328; --txt-dim:#57606a; --txt-faint:#8c959f;
+    --line:#d0d7de; --accent:#0969da; --accent-2:#1a7f37;
+    --code-bg:#f6f8fa; --chip:#eaeef2;
+    --kw:#cf222e; --str:#0a3069; --com:#6e7781; --num:#0550ae; --fn:#8250df;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+
+  .sidebar{position:fixed;top:0;left:0;width:288px;height:100vh;overflow-y:auto;
+    background:var(--panel);border-right:1px solid var(--line);padding:18px 14px 60px;z-index:40}
+  .main{margin-left:288px}
+  .topbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 86%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 28px;
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .content{max-width:var(--maxw);margin:0 auto;padding:34px 28px 120px}
+
+  .brand{font-weight:700;font-size:15px;letter-spacing:.2px;margin:2px 4px 4px;display:flex;align-items:center;gap:8px}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--s1),var(--s3));flex:none}
+  .brand-sub{font-size:11.5px;color:var(--txt-faint);margin:0 4px 14px;line-height:1.4}
+  .filter{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg-alt);color:var(--txt);font-size:13px;margin-bottom:12px;outline:none}
+  .filter:focus{border-color:var(--accent)}
+  .nav a{display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:7px;color:var(--txt-dim);
+    text-decoration:none;font-size:13px;line-height:1.3;transition:background .12s,color .12s}
+  .nav a .sdot{width:7px;height:7px;border-radius:2px;flex:none}
+  .nav a .sid{color:var(--txt-faint);font-variant-numeric:tabular-nums;font-size:11.5px;width:30px;flex:none}
+  .nav a:hover{background:var(--bg-soft);color:var(--txt)}
+  .nav a.active{background:var(--bg-soft);color:var(--txt);font-weight:600;box-shadow:inset 2px 0 0 var(--accent)}
+  .nav a.intro-link{margin-bottom:6px;color:var(--txt)}
+
+  .topbar h1{font-size:14px;margin:0;font-weight:600;color:var(--txt-dim);white-space:nowrap}
+  .depthtabs{display:flex;gap:4px;background:var(--bg-soft);padding:4px;border-radius:9px;border:1px solid var(--line)}
+  .depthtabs button{border:0;background:transparent;color:var(--txt-dim);padding:6px 13px;border-radius:6px;
+    font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s}
+  .depthtabs button:hover{color:var(--txt)}
+  .depthtabs button.active{background:var(--accent);color:#fff}
+  .depth-hint{font-size:11.5px;color:var(--txt-faint);flex:1;min-width:120px}
+  .iconbtn{margin-left:auto;border:1px solid var(--line);background:var(--bg-alt);color:var(--txt-dim);
+    width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:15px;line-height:1}
+  .iconbtn:hover{color:var(--txt);border-color:var(--accent)}
+  .menubtn{display:none}
+
+  .hero h2{font-size:30px;line-height:1.2;margin:0 0 10px;letter-spacing:-.5px}
+  .hero .lede{color:var(--txt-dim);font-size:17px;margin:0 0 22px}
+  .module{padding-top:34px;margin-top:30px;border-top:1px solid var(--line);scroll-margin-top:74px}
+  .module:first-of-type{border-top:0}
+  #intro{scroll-margin-top:74px}
+  .mod-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+  .mod-num{font-weight:800;font-size:13px;font-variant-numeric:tabular-nums;color:#fff;
+    background:var(--accent);padding:3px 9px;border-radius:7px;flex:none;letter-spacing:.5px}
+  .module h2{font-size:24px;margin:0;letter-spacing:-.3px}
+  .module h3{font-size:16px;margin:22px 0 8px;color:var(--txt)}
+  .tagline{color:var(--txt-dim);font-style:italic;margin:3px 0 0;font-size:14.5px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+  .badge{font-size:11.5px;padding:3px 10px;border-radius:20px;border:1px solid var(--line);
+    background:var(--bg-alt);color:var(--txt-dim);font-weight:600}
+  .badge.layer{border-style:dashed}
+  figure{margin:0 0 20px;background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--radius);padding:18px;text-align:center}
+  figure img{max-width:100%;height:auto;border-radius:6px}
+  figcaption{color:var(--txt-faint);font-size:12.5px;margin-top:10px}
+
+  p{margin:0 0 14px}
+  .module p,.variant p{font-size:15.5px}
+  .variant{display:none}
+  html[data-depth="expanded"] .variant[data-depth="expanded"],
+  html[data-depth="distillation"] .variant[data-depth="distillation"],
+  html[data-depth="summary"] .variant[data-depth="summary"]{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .variant ul{margin:0 0 14px;padding-left:22px}
+  .variant li{margin-bottom:7px;font-size:15px}
+  .variant strong{color:var(--txt)}
+  .pill{display:inline-block;font-size:12px;font-weight:700;color:var(--accent-2);
+    text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+
+  .callout{border-left:3px solid var(--accent);background:var(--bg-alt);padding:11px 15px;border-radius:0 8px 8px 0;
+    margin:0 0 16px;font-size:14px;color:var(--txt-dim)}
+  .callout.warn{border-left-color:var(--s4)}
+  .callout b{color:var(--txt)}
+
+  .codeblock{margin:18px 0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--code-bg)}
+  .code-cap{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--txt-faint);
+    padding:8px 14px;border-bottom:1px solid var(--line);background:var(--bg-alt);font-weight:700}
+  pre{margin:0;padding:15px 16px;overflow-x:auto;font-size:13px;line-height:1.55}
+  code{font-family:"SFMono-Regular",ui-monospace,Consolas,"Liberation Mono",monospace}
+  pre code{color:var(--txt)}
+  .tok-kw{color:var(--kw)}.tok-str{color:var(--str)}.tok-com{color:var(--com);font-style:italic}
+  .tok-num{color:var(--num)}.tok-fn{color:var(--fn)}
+  p code,li code,td code{background:var(--chip);padding:1.5px 6px;border-radius:5px;font-size:13px;color:var(--txt)}
+
+  table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--bg-alt);font-weight:600;font-size:13px}
+
+  .terms{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0 12px}
+  .terms span{font-family:ui-monospace,monospace;font-size:12px;background:var(--chip);
+    color:var(--txt-dim);padding:3px 9px;border-radius:6px;border:1px solid var(--line)}
+  .next{font-size:14px;background:var(--bg-alt);border:1px solid var(--line);border-radius:8px;
+    padding:11px 15px;color:var(--txt-dim)}
+  .next a{color:var(--accent);text-decoration:none;font-weight:600}
+  .next a:hover{text-decoration:underline}
+
+  .mermaid-wrapper{margin:18px 0;background:var(--bg-alt);border:1px solid var(--line);
+    border-radius:var(--radius);padding:16px;text-align:center;overflow-x:auto}
+  .mermaid-wrapper svg{max-width:100%;height:auto}
+
+  .bg1{background:var(--s1)}.bg2{background:var(--s2)}.bg3{background:var(--s3)}
+  .bg4{background:var(--s4)}.bg5{background:var(--s5)}.bg6{background:var(--s6)}
+
+  .roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:20px 0 8px}
+  .stagecard{border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;background:var(--bg-alt)}
+  .stagecard h4{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:8px}
+  .stagecard h4 .sdot{width:9px;height:9px;border-radius:3px}
+  .stagecard ul{margin:0;padding-left:0;list-style:none}
+  .stagecard li{font-size:12.5px;color:var(--txt-dim);margin-bottom:3px}
+  .scrim{display:none}
+
+  @media(max-width:920px){
+    .sidebar{transform:translateX(-100%);transition:transform .22s;width:280px}
+    .sidebar.open{transform:none}
+    .main{margin-left:0}
+    .menubtn{display:inline-flex;align-items:center;justify-content:center;margin-left:0}
+    .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35}
+    .content{padding:24px 18px 100px}
+    .hero h2{font-size:24px}
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><span class="dot"></span><span id="brandName">Lecture</span></div>
+  <div class="brand-sub" id="brandSub"></div>
+  <input class="filter" id="filter" type="text" placeholder="Filter chapters…" autocomplete="off">
+  <nav class="nav" id="nav">
+    <a href="#intro" class="intro-link" data-target="intro"><span class="sid">▸</span><span>Introduction</span></a>
+  </nav>
+</aside>
+<div class="scrim" id="scrim"></div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="iconbtn menubtn" id="menubtn" title="Menu" style="margin-left:0">☰</button>
+    <h1>Lecture</h1>
+    <div class="depthtabs" id="depthtabs" role="tablist" aria-label="Lecture depth">
+      <button data-depth="expanded" class="active">Expanded lecture</button>
+      <button data-depth="distillation">Distillation</button>
+      <button data-depth="summary">Summary</button>
+    </div>
+    <span class="depth-hint" id="depthHint">Full teaching prose with intuition &amp; trade-offs.</span>
+    <button class="iconbtn" id="themebtn" title="Toggle theme">◑</button>
+  </div>
+
+  <div class="content" id="content">
+    <section id="intro" class="hero"></section>
+    <div id="modules"></div>
+    <section class="module" id="end">
+      <div class="mod-head"><span class="mod-num">end</span><div><h2 id="endTitle">The end</h2><p class="tagline" id="endTag"></p></div></div>
+      <p id="endBody"></p>
+    </section>
+  </div>
+</div>
+
+<script>
+/* ===== injected by lecture.py ===== */
+const META = /*__META__*/ {"title":"Lecture","brand":"Lecture","brandSub":"","thesis":"","lede":"","framing":"","endTitle":"The end","endTag":"","endBody":""};
+const STAGE_NAMES = /*__STAGE_NAMES__*/ {};
+const MODULES = /*__MODULES__*/ [];
+
+/* ===== hero ===== */
+document.title = META.title || "Lecture";
+document.getElementById('brandName').textContent = META.brand || "Lecture";
+document.getElementById('brandSub').textContent = META.brandSub || "";
+document.getElementById('endTitle').textContent = META.endTitle || "The end";
+document.getElementById('endTag').textContent = META.endTag || "";
+document.getElementById('endBody').innerHTML = META.endBody || "";
+
+const stageIds = Object.keys(STAGE_NAMES).map(Number).sort((a,b)=>a-b);
+const roadmap = stageIds.length ? `
+  <h3>The roadmap</h3>
+  <div class="roadmap">${stageIds.map(s=>`
+    <div class="stagecard"><h4><span class="sdot bg${s}"></span>${s} · ${STAGE_NAMES[s]}</h4>
+      <ul>${MODULES.filter(m=>m.stage===s).map(m=>`<li>${m.n} ${m.title}</li>`).join('')}</ul></div>`).join('')}
+  </div>` : '';
+
+document.getElementById('intro').innerHTML = `
+  <h2>${META.thesis||META.title||''}</h2>
+  ${META.lede?`<p class="lede">${META.lede}</p>`:''}
+  ${META.framing?`<p>${META.framing}</p>`:''}
+  ${roadmap}
+  <div class="callout" style="margin-top:18px"><b>How to use this page:</b> pick a depth at the top —
+  <b>Expanded lecture</b> (teaching prose), <b>Distillation</b> (problem → answer → how), or
+  <b>Summary</b> (bullets). Your choice applies to every chapter and is remembered. Figures and a
+  key-structure block appear when available.</div>`;
+
+/* ===== render modules ===== */
+const stageDot=s=>`<span class="sdot bg${s}"></span>`;
+const modulesEl=document.getElementById('modules');
+const navEl=document.getElementById('nav');
+
+modulesEl.innerHTML=MODULES.map(m=>`
+<section class="module" id="${m.n}" data-search="${m.n} ${escAttr(m.title)} ${escAttr(m.layer||'')}">
+  <div class="mod-head">
+    <span class="mod-num" style="background:var(--s${m.stage||1})">${m.n}</span>
+    <div><h2>${m.title}</h2>${m.tagline?`<p class="tagline">${m.tagline}</p>`:''}</div>
+  </div>
+  <div class="badges">
+    ${m.stage&&STAGE_NAMES[m.stage]?`<span class="badge">Stage ${m.stage} · ${STAGE_NAMES[m.stage]}</span>`:''}
+    ${m.layer?`<span class="badge layer">${m.layer}</span>`:''}
+  </div>
+  ${(m.figs||[]).map(f=>`<figure><img src="${f.src}" alt="${escAttr((f.cap||'').replace(/<[^>]+>/g,''))}" loading="lazy"
+     onerror="this.parentNode.innerHTML='<div style=&quot;color:var(--txt-faint);font-size:13px&quot;>[figure unavailable]</div>'">
+     ${f.cap?`<figcaption>${f.cap}</figcaption>`:''}</figure>`).join('')}
+  ${m.mermaid?`<div class="mermaid-wrapper"><pre class="mermaid">${esc(m.mermaid)}</pre></div>`:''}
+  ${m.expanded?`<div class="variant" data-depth="expanded">${m.expanded}</div>`:''}
+  ${m.distillation?`<div class="variant" data-depth="distillation">${m.distillation}</div>`:''}
+  ${m.summary?`<div class="variant" data-depth="summary">${m.summary}</div>`:''}
+  ${m.code&&m.code.body?`<div class="codeblock"><div class="code-cap">${m.code.cap||'Key structure'}</div><pre><code>${m.code.body}</code></pre></div>`:''}
+  ${(m.terms&&m.terms.length)?`<div class="terms">${m.terms.map(t=>`<span>${t}</span>`).join('')}</div>`:''}
+  ${m.next?`<p class="next">→ Next: <a href="#${m.next.id}">${m.next.label}</a>${m.next.blurb?` — ${m.next.blurb}`:''}</p>`:''}
+</section>`).join('');
+
+navEl.insertAdjacentHTML('beforeend', MODULES.map(m=>`
+  <a href="#${m.n}" data-target="${m.n}" data-search="${m.n} ${escAttr(m.title)} ${escAttr(m.layer||'')}">
+    ${stageDot(m.stage||1)}<span class="sid">${m.n}</span><span>${m.title}</span></a>`).join(''));
+
+/* ===== depth switch ===== */
+const HINTS={expanded:"Full teaching prose with intuition & trade-offs.",
+  distillation:"Tight problem → answer → how-it-works.",
+  summary:"Core concepts as quick bullets."};
+const depthtabs=document.getElementById('depthtabs');
+const depthHint=document.getElementById('depthHint');
+function setDepth(d){
+  document.documentElement.setAttribute('data-depth',d);
+  [...depthtabs.children].forEach(b=>b.classList.toggle('active',b.dataset.depth===d));
+  depthHint.textContent=HINTS[d];
+  try{localStorage.setItem('lec-depth',d)}catch(e){}
+}
+depthtabs.addEventListener('click',e=>{if(e.target.dataset.depth)setDepth(e.target.dataset.depth)});
+setDepth((()=>{try{return localStorage.getItem('lec-depth')}catch(e){}})()||'expanded');
+
+/* ===== theme ===== */
+const themebtn=document.getElementById('themebtn');
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('lec-theme',t)}catch(e){}renderMermaid(t);}
+themebtn.addEventListener('click',()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'));
+
+/* ===== scroll-spy ===== */
+const navLinks=[...navEl.querySelectorAll('a')];
+const linkFor=id=>navLinks.find(a=>a.dataset.target===id);
+const spy=new IntersectionObserver(entries=>{
+  entries.forEach(en=>{ if(en.isIntersecting){
+    navLinks.forEach(a=>a.classList.remove('active'));
+    const l=linkFor(en.target.id); if(l)l.classList.add('active');
+  }});
+},{rootMargin:'-40% 0px -55% 0px',threshold:0});
+['intro',...MODULES.map(m=>m.n),'end'].forEach(id=>{const el=document.getElementById(id);if(el)spy.observe(el)});
+
+/* ===== filter ===== */
+const filter=document.getElementById('filter');
+filter.addEventListener('input',()=>{
+  const q=filter.value.trim().toLowerCase();
+  navLinks.forEach(a=>{ if(!a.dataset.search)return;
+    a.style.display=a.dataset.search.toLowerCase().includes(q)?'':'none'; });
+});
+
+/* ===== mobile sidebar ===== */
+const sidebar=document.getElementById('sidebar'),scrim=document.getElementById('scrim'),menubtn=document.getElementById('menubtn');
+function closeSidebar(){sidebar.classList.remove('open');scrim.classList.remove('show')}
+menubtn.addEventListener('click',()=>{sidebar.classList.toggle('open');scrim.classList.toggle('show')});
+scrim.addEventListener('click',closeSidebar);
+navEl.addEventListener('click',e=>{if(e.target.closest('a')&&window.innerWidth<=920)closeSidebar()});
+
+/* ===== lightweight code highlight ===== */
+const KW=new Set("def class return if elif else for while in is not and or import from with as lambda None True False global try except raise continue break pass yield".split(" "));
+function highlightLeaf(node){
+  const text=node.nodeValue;
+  const re=/(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(\d+)\b|\b([A-Za-z_]\w*)\b/g;
+  let out='',last=0,m;
+  while((m=re.exec(text))){
+    out+=esc(text.slice(last,m.index));
+    if(m[1])out+=`<span class="tok-com">${esc(m[1])}</span>`;
+    else if(m[2])out+=`<span class="tok-str">${esc(m[2])}</span>`;
+    else if(m[3])out+=`<span class="tok-num">${esc(m[3])}</span>`;
+    else if(m[4])out+= KW.has(m[4])?`<span class="tok-kw">${m[4]}</span>`:esc(m[4]);
+    last=re.lastIndex;
+  }
+  out+=esc(text.slice(last));
+  const span=document.createElement('span'); span.innerHTML=out;
+  node.parentNode.replaceChild(span,node);
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function escAttr(s){return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+document.querySelectorAll('.codeblock pre code').forEach(code=>{
+  [...code.childNodes].forEach(n=>{ if(n.nodeType===3 && n.nodeValue.trim()) highlightLeaf(n); });
+});
+
+/* ===== mermaid ===== */
+let _mermaidRendered=false;
+function renderMermaid(theme){
+  if(typeof mermaid==='undefined')return;
+  const blocks=[...document.querySelectorAll('pre.mermaid')];
+  if(!blocks.length)return;
+  // restore source on re-render
+  if(_mermaidRendered){blocks.forEach(b=>{ if(b.dataset.src){b.textContent=b.dataset.src;b.removeAttribute('data-processed');} });}
+  else{blocks.forEach(b=>{b.dataset.src=b.textContent;});}
+  try{
+    mermaid.initialize({startOnLoad:false,theme:(theme||document.documentElement.getAttribute('data-theme'))==='light'?'default':'dark'});
+    mermaid.run({nodes:blocks});
+    _mermaidRendered=true;
+  }catch(e){console.error('mermaid',e);}
+}
+setTheme((()=>{try{return localStorage.getItem('lec-theme')}catch(e){}})()||'dark');
+</script>
+</body>
+</html>

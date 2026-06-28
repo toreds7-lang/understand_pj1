@@ -26,6 +26,7 @@ import run as run_pipeline
 import pipeline
 import rag
 import toc_summary
+import lecture
 from rag import RagIndex
 import graph as graph_module
 import wiki as wiki_module
@@ -442,6 +443,33 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
         def gen():
             for rec in toc_summary.summarize_node(
                 node, ctx.paper["pages"], ctx.toc_cache, ctx.data_dir
+            ):
+                yield json.dumps(rec, ensure_ascii=False) + "\n"
+        return StreamingResponse(gen(), media_type="application/x-ndjson")
+
+    @app.get("/api/lecture-status")
+    def api_lecture_status() -> dict:
+        ctx = cur()
+        return lecture.status(ctx.paper, ctx.toc_roots, ctx.data_dir)
+
+    @app.get("/api/lecture")
+    def api_lecture() -> FileResponse:
+        ctx = cur()
+        fp = lecture.html_path(ctx.data_dir)
+        if not fp.exists():
+            raise HTTPException(404, "lecture not built for this paper")
+        return FileResponse(fp, media_type="text/html; charset=utf-8", headers=NO_STORE)
+
+    @app.post("/api/lecture-build")
+    def api_lecture_build() -> StreamingResponse:
+        """Resumably (re)build the current paper's lecture page. Re-clicking only
+        regenerates modules that are missing or errored; the HTML is re-rendered
+        at the end of every run."""
+        ctx = cur()
+
+        def gen():
+            for rec in lecture.generate_all(
+                ctx.paper, ctx.toc_roots, ctx.toc_cache, ctx.data_dir
             ):
                 yield json.dumps(rec, ensure_ascii=False) + "\n"
         return StreamingResponse(gen(), media_type="application/x-ndjson")

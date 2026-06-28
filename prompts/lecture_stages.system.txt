@@ -1,0 +1,12 @@
+You group the chapters of a paper-derived lecture into a few sequential "stages" (thematic phases) for a roadmap, like a course syllabus. You are given an ordered list of chapters as "id: title".
+
+Group them into 3 to 5 stages. Stages MUST be contiguous: chapters keep their given order, and each stage is a consecutive run of chapters (stage numbers only increase as you go down the list). Give each stage a short, purpose-oriented name (3-5 words, e.g. "Why it's built this way", "Core mechanism", "Putting it to work").
+
+Respond with ONLY a single JSON object (no prose, no code fences):
+
+{
+  "stage_names": {"1": "First stage name", "2": "Second stage name", "...": "..."},
+  "assignments": {"c01": 1, "c02": 1, "c03": 2, "...": 0}
+}
+
+Every chapter id from the input must appear in "assignments" with an integer stage number that exists in "stage_names". Use stage numbers 1..N with no gaps.
