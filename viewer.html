@@ -1011,7 +1011,10 @@ async function runFigureExplain(fig) {
 function openPopup(label, target) {
   const pop = document.getElementById("popup");
   document.getElementById("pop-head").textContent = label;
-  document.getElementById("pop-target").textContent = target;
+  const targetEl = document.getElementById("pop-target");
+  targetEl.textContent = target || "";
+  // Hide the target line when empty (e.g. define repeats the word in its body).
+  targetEl.style.display = target ? "" : "none";
   document.getElementById("pop-body").innerHTML = "<i>thinking…</i>";
   const popTts = document.getElementById("pop-tts");
   TTS.stop();
@@ -1052,7 +1055,9 @@ document.getElementById("shortcuts-overlay").addEventListener("click", e => {
 });
 
 async function runAction(label, url, body) {
-  openPopup(label, body.word || body.sentence);
+  // Define already shows the word (with part of speech) in its body, so skip
+  // the separate target line to avoid showing the word twice.
+  openPopup(label, label === "define" ? "" : (body.word || body.sentence));
   const popBody = document.getElementById("pop-body");
   popBody.textContent = "";
   let acc = "";
