@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dive into Claude Code — Architecture Lectures (Liu et al. 2026)</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg-alt:#161b22; --bg-soft:#1c2128; --panel:#10151c;
+    --txt:#e6edf3; --txt-dim:#9aa7b4; --txt-faint:#6e7b8a;
+    --line:#26303b; --accent:#58a6ff; --accent-2:#3fb950;
+    --code-bg:#0a0e14; --chip:#1f2630;
+    --s1:#58a6ff; --s2:#3fb950; --s3:#d2a8ff; --s4:#f0883e; --s5:#ff7b72; --s6:#56d4dd;
+    --kw:#ff7b72; --str:#a5d6ff; --com:#8b949e; --num:#79c0ff; --fn:#d2a8ff;
+    --radius:10px; --maxw:900px;
+  }
+  html[data-theme="light"]{
+    --bg:#ffffff; --bg-alt:#f6f8fa; --bg-soft:#eef1f5; --panel:#ffffff;
+    --txt:#1f2328; --txt-dim:#57606a; --txt-faint:#8c959f;
+    --line:#d0d7de; --accent:#0969da; --accent-2:#1a7f37;
+    --code-bg:#f6f8fa; --chip:#eaeef2;
+    --kw:#cf222e; --str:#0a3069; --com:#6e7781; --num:#0550ae; --fn:#8250df;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--txt);line-height:1.65;font-size:16px;-webkit-font-smoothing:antialiased}
+
+  /* ---------- layout ---------- */
+  .sidebar{position:fixed;top:0;left:0;width:288px;height:100vh;overflow-y:auto;
+    background:var(--panel);border-right:1px solid var(--line);padding:18px 14px 60px;z-index:40}
+  .main{margin-left:288px}
+  .topbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 86%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 28px;
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .content{max-width:var(--maxw);margin:0 auto;padding:34px 28px 120px}
+
+  /* ---------- sidebar ---------- */
+  .brand{font-weight:700;font-size:15px;letter-spacing:.2px;margin:2px 4px 4px;display:flex;align-items:center;gap:8px}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--s1),var(--s3));flex:none}
+  .brand-sub{font-size:11.5px;color:var(--txt-faint);margin:0 4px 14px;line-height:1.4}
+  .filter{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg-alt);color:var(--txt);font-size:13px;margin-bottom:12px;outline:none}
+  .filter:focus{border-color:var(--accent)}
+  .nav a{display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:7px;color:var(--txt-dim);
+    text-decoration:none;font-size:13px;line-height:1.3;transition:background .12s,color .12s}
+  .nav a .sdot{width:7px;height:7px;border-radius:2px;flex:none}
+  .nav a .sid{color:var(--txt-faint);font-variant-numeric:tabular-nums;font-size:11.5px;width:26px;flex:none}
+  .nav a:hover{background:var(--bg-soft);color:var(--txt)}
+  .nav a.active{background:var(--bg-soft);color:var(--txt);font-weight:600;box-shadow:inset 2px 0 0 var(--accent)}
+  .nav a.intro-link{margin-bottom:6px;color:var(--txt)}
+  .nav .grouplbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--txt-faint);
+    margin:14px 9px 5px;font-weight:700}
+
+  /* ---------- topbar ---------- */
+  .topbar h1{font-size:14px;margin:0;font-weight:600;color:var(--txt-dim);white-space:nowrap}
+  .depthtabs{display:flex;gap:4px;background:var(--bg-soft);padding:4px;border-radius:9px;border:1px solid var(--line)}
+  .depthtabs button{border:0;background:transparent;color:var(--txt-dim);padding:6px 13px;border-radius:6px;
+    font-size:12.5px;font-weight:600;cursor:pointer;transition:all .12s}
+  .depthtabs button:hover{color:var(--txt)}
+  .depthtabs button.active{background:var(--accent);color:#fff}
+  html[data-theme="light"] .depthtabs button.active{color:#fff}
+  .depth-hint{font-size:11.5px;color:var(--txt-faint);flex:1;min-width:120px}
+  .iconbtn{margin-left:auto;border:1px solid var(--line);background:var(--bg-alt);color:var(--txt-dim);
+    width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:15px;line-height:1}
+  .iconbtn:hover{color:var(--txt);border-color:var(--accent)}
+  .menubtn{display:none}
+
+  /* ---------- content ---------- */
+  .hero h2{font-size:30px;line-height:1.2;margin:0 0 10px;letter-spacing:-.5px}
+  .hero .lede{color:var(--txt-dim);font-size:17px;margin:0 0 22px}
+  .module{padding-top:34px;margin-top:30px;border-top:1px solid var(--line);scroll-margin-top:74px}
+  .module:first-of-type{border-top:0}
+  #intro{scroll-margin-top:74px}
+  .mod-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+  .mod-num{font-weight:800;font-size:13px;font-variant-numeric:tabular-nums;color:#fff;
+    background:var(--accent);padding:3px 9px;border-radius:7px;flex:none;letter-spacing:.5px}
+  .module h2{font-size:24px;margin:0;letter-spacing:-.3px}
+  .module h3{font-size:16px;margin:22px 0 8px;color:var(--txt)}
+  .tagline{color:var(--txt-dim);font-style:italic;margin:3px 0 0;font-size:14.5px}
+  .badges{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+  .badge{font-size:11.5px;padding:3px 10px;border-radius:20px;border:1px solid var(--line);
+    background:var(--bg-alt);color:var(--txt-dim);font-weight:600}
+  .badge.layer{border-style:dashed}
+  figure{margin:0 0 20px;background:var(--bg-alt);border:1px solid var(--line);border-radius:var(--radius);padding:18px;text-align:center}
+  figure img{max-width:100%;height:auto;border-radius:6px}
+  figcaption{color:var(--txt-faint);font-size:12.5px;margin-top:10px}
+
+  p{margin:0 0 14px}
+  .module p,.variant p{font-size:15.5px}
+  .variant{display:none}
+  html[data-depth="expanded"] .variant[data-depth="expanded"],
+  html[data-depth="distillation"] .variant[data-depth="distillation"],
+  html[data-depth="summary"] .variant[data-depth="summary"]{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .variant ul{margin:0 0 14px;padding-left:22px}
+  .variant li{margin-bottom:7px;font-size:15px}
+  .variant strong{color:var(--txt)}
+  .pill{display:inline-block;font-size:12px;font-weight:700;color:var(--accent-2);
+    text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+
+  .callout{border-left:3px solid var(--accent);background:var(--bg-alt);padding:11px 15px;border-radius:0 8px 8px 0;
+    margin:0 0 16px;font-size:14px;color:var(--txt-dim)}
+  .callout.warn{border-left-color:var(--s4)}
+  .callout b{color:var(--txt)}
+
+  /* code */
+  .codeblock{margin:18px 0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--code-bg)}
+  .code-cap{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--txt-faint);
+    padding:8px 14px;border-bottom:1px solid var(--line);background:var(--bg-alt);font-weight:700}
+  pre{margin:0;padding:15px 16px;overflow-x:auto;font-size:13px;line-height:1.55}
+  code{font-family:"SFMono-Regular",ui-monospace,Consolas,"Liberation Mono",monospace}
+  pre code{color:var(--txt)}
+  .tok-kw{color:var(--kw)}.tok-str{color:var(--str)}.tok-com{color:var(--com);font-style:italic}
+  .tok-num{color:var(--num)}.tok-fn{color:var(--fn)}
+  p code,li code,td code{background:var(--chip);padding:1.5px 6px;border-radius:5px;font-size:13px;color:var(--txt)}
+
+  table{border-collapse:collapse;width:100%;margin:0 0 18px;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 11px;text-align:left;vertical-align:top}
+  th{background:var(--bg-alt);font-weight:600;font-size:13px}
+
+  .terms{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0 12px}
+  .terms span{font-family:ui-monospace,monospace;font-size:12px;background:var(--chip);
+    color:var(--txt-dim);padding:3px 9px;border-radius:6px;border:1px solid var(--line)}
+  .next{font-size:14px;background:var(--bg-alt);border:1px solid var(--line);border-radius:8px;
+    padding:11px 15px;color:var(--txt-dim)}
+  .next a{color:var(--accent);text-decoration:none;font-weight:600}
+  .next a:hover{text-decoration:underline}
+
+  .stage1{color:var(--s1)} .stage2{color:var(--s2)} .stage3{color:var(--s3)}
+  .stage4{color:var(--s4)} .stage5{color:var(--s5)} .stage6{color:var(--s6)}
+  .bg1{background:var(--s1)}.bg2{background:var(--s2)}.bg3{background:var(--s3)}
+  .bg4{background:var(--s4)}.bg5{background:var(--s5)}.bg6{background:var(--s6)}
+
+  .roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:20px 0 8px}
+  .stagecard{border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;background:var(--bg-alt)}
+  .stagecard h4{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:8px}
+  .stagecard h4 .sdot{width:9px;height:9px;border-radius:3px}
+  .stagecard ul{margin:0;padding-left:0;list-style:none}
+  .stagecard li{font-size:12.5px;color:var(--txt-dim);margin-bottom:3px}
+  .loop-box{background:var(--code-bg);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;margin:16px 0;font-family:ui-monospace,monospace;font-size:13.5px;line-height:1.7}
+  .scrim{display:none}
+
+  @media(max-width:920px){
+    .sidebar{transform:translateX(-100%);transition:transform .22s;width:280px}
+    .sidebar.open{transform:none}
+    .main{margin-left:0}
+    .menubtn{display:inline-flex;align-items:center;justify-content:center;margin-left:0}
+    .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35}
+    .content{padding:24px 18px 100px}
+    .hero h2{font-size:24px}
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><span class="dot"></span>Dive into Claude Code</div>
+  <div class="brand-sub">An architecture walk-through of Liu et&nbsp;al. 2026 — 12 chapters, one loop.</div>
+  <input class="filter" id="filter" type="text" placeholder="Filter chapters…" autocomplete="off">
+  <nav class="nav" id="nav">
+    <a href="#intro" class="intro-link" data-target="intro"><span class="sid">▸</span><span>Introduction</span></a>
+  </nav>
+</aside>
+<div class="scrim" id="scrim"></div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="iconbtn menubtn" id="menubtn" title="Menu" style="margin-left:0">☰</button>
+    <h1>Lectures</h1>
+    <div class="depthtabs" id="depthtabs" role="tablist" aria-label="Lecture depth">
+      <button data-depth="expanded" class="active">Expanded lecture</button>
+      <button data-depth="distillation">Distillation</button>
+      <button data-depth="summary">Summary</button>
+    </div>
+    <span class="depth-hint" id="depthHint">Full teaching prose with intuition &amp; trade-offs.</span>
+    <button class="iconbtn" id="themebtn" title="Toggle theme">◑</button>
+  </div>
+
+  <div class="content" id="content">
+
+    <!-- ===================== INTRO ===================== -->
+    <section id="intro" class="hero">
+      <h2>1.6% brain, 98.4% harness.</h2>
+      <p class="lede">A chapter-by-chapter tour of <em>“Dive into Claude Code: The Design Space of Today's and Future AI Agent Systems”</em> (Liu, Zhao, Shang &amp; Shen, MBZUAI VILA Lab, 2026) — a source-level analysis of Claude Code's publicly available TypeScript, traced from five human values to specific implementation choices.</p>
+
+      <p>The paper's central finding: the core of Claude Code is a <strong>simple while-loop</strong> that calls the model, runs tools, and repeats. Almost none of the code is "agent brain" — a community estimate puts <strong>~1.6% of the codebase as AI decision logic and ~98.4% as operational infrastructure</strong>. The architecture's real substance is the systems built <em>around</em> that loop: a seven-mode permission system with an ML classifier, a five-layer context-compaction pipeline, four extensibility mechanisms, isolated subagent delegation, and append-only session storage.</p>
+
+      <div class="loop-box">
+<span style="color:var(--txt-faint)"># The kernel the whole paper hangs off — queryLoop() in query.ts:</span><br>
+<span class="tok-kw">while</span> <span class="tok-kw">not</span> stopped:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;context  = assemble(system, tools, history, hooks)&nbsp;&nbsp;<span class="tok-com"># shape what the model sees</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;response = model(context, tools)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-com"># the model only decides</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-kw">if</span> response.text_only(): <span class="tok-kw">break</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-com"># no tool_use -> turn done</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-kw">for</span> call <span class="tok-kw">in</span> response.tool_uses():<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-kw">if</span> permitted(call):&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-com"># deny-first gate + hooks + classifier</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;history.append(execute(call))&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-com"># the harness acts &amp; reports</span>
+      </div>
+
+      <p>Throughout, the authors thread one running example — <em>“Fix the failing test in <code>auth.test.ts</code>”</em> — through every subsystem (Sections 3–9), and then calibrate the design by contrasting it with <strong>OpenClaw</strong>, an independent open-source multi-channel gateway that answers the same questions from a very different deployment context.</p>
+
+      <h3>The roadmap — five stages</h3>
+      <p class="depth-hint" style="font-size:13.5px">The 12 chapters below follow the paper's order. These five stages group them by purpose; the colored dot on each sidebar item shows its stage.</p>
+      <div class="roadmap">
+        <div class="stagecard"><h4><span class="sdot bg1"></span>1 · Why it's built this way</h4><ul>
+          <li>c01 Introduction — the design space</li><li>c02 Values &amp; Design Principles — 5 values, 13 principles</li></ul></div>
+        <div class="stagecard"><h4><span class="sdot bg2"></span>2 · The system &amp; its loop</h4><ul>
+          <li>c03 Architecture Overview — 7 components, 5 layers</li><li>c04 The Agentic Query Loop — one turn end-to-end</li></ul></div>
+        <div class="stagecard"><h4><span class="sdot bg3"></span>3 · Control &amp; extension</h4><ul>
+          <li>c05 Tool Authorization — deny-first gate</li><li>c06 Extensibility — MCP, plugins, skills, hooks</li></ul></div>
+        <div class="stagecard"><h4><span class="sdot bg4"></span>4 · Memory, agents &amp; sessions</h4><ul>
+          <li>c07 Context &amp; Memory — assembly + compaction</li><li>c08 Subagent Delegation — isolated workers</li>
+          <li>c09 Session Persistence — append-only recovery</li></ul></div>
+        <div class="stagecard"><h4><span class="sdot bg5"></span>5 · Perspective &amp; open questions</h4><ul>
+          <li>c10 Comparison vs OpenClaw — same questions, other answers</li><li>c11 Discussion — tensions &amp; trade-offs</li>
+          <li>c12 Future Directions — six open problems</li></ul></div>
+      </div>
+      <div class="callout" style="margin-top:18px"><b>How to use this page:</b> pick a depth at the top — <b>Expanded lecture</b> (teaching prose), <b>Distillation</b> (problem → answer → how), or <b>Summary</b> (bullets). Your choice applies to every chapter and is remembered. Figures, source-file pointers, and a structure block appear in every chapter regardless of depth. Source paths (e.g. <code>query.ts</code>, <code>permissions.ts</code>) are the paper's own citations into the Claude Code TypeScript.</div>
+    </section>
+
+    <!-- MODULES INJECTED HERE -->
+    <div id="modules"></div>
+
+    <section class="module" id="end">
+      <div class="mod-head"><span class="mod-num">end</span><div><h2>One loop, a whole operating system around it</h2><p class="tagline">The kernel is tiny; the harness is the architecture.</p></div></div>
+      <p>Read together, the twelve chapters describe a coherent design point: <strong>maximal model autonomy inside a rich deterministic harness.</strong> Safety, context, and extensibility are each built as <em>graduated stacks</em> of independent mechanisms; state is <em>append-only</em> for auditability; and the model is trusted to decide while the harness enforces. The open question the paper leaves us with: as frontier models converge, the quality of that harness — not the model — becomes the differentiator, and whether such a harness can also preserve <em>long-term</em> human capability is still unanswered.</p>
+      <p class="next">→ Paper &amp; source: <a href="https://github.com/VILA-Lab/Dive-into-Claude-Code" target="_blank" rel="noopener">github.com/VILA-Lab/Dive-into-Claude-Code</a> · analysis of Claude Code v2.1.88.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+/* ============ MODULE DATA ============
+   Each module: n, title, tagline, stage(1-5), stageName, layer(paper §),
+   figs[] (relative img + caption), expanded/distillation/summary HTML,
+   code {cap, body(escaped)}, terms[], next {id,label,blurb} ============ */
+const STAGE_NAMES={1:"Why it's built this way",2:"The system & its loop",3:"Control & extension",4:"Memory, agents & sessions",5:"Perspective & open questions"};
+
+const MODULES=[
+{
+ n:"c01",title:"Introduction",stage:1,layer:"§1",
+ tagline:"“From autocomplete to autonomous action — a new design space.”",
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>AI-assisted coding evolved from autocomplete (GitHub Copilot) through IDE assistants (Cursor) to <strong>fully agentic systems</strong> that plan multi-step changes, run shell commands, read and write files, and iterate on their own output. Claude Code is Anthropic's agentic coding tool, and the shift "from suggestion to autonomous action" creates architectural requirements that completion tools simply never had.</p>
+ <p>Those requirements define a <strong>design space</strong>: a set of recurring questions — about safety, context management, extensibility, delegation, persistence — that <em>every</em> coding agent must answer. The paper's method is unusual: rather than infer design from product docs, the authors read the publicly available Claude Code TypeScript source (v2.1.88) and trace decisions directly from the code, supplemented by Anthropic documentation and community analysis.</p>
+ <p>The study is organized in three parts: (1) a <strong>design-space analysis</strong> of Claude Code through a 7-component structure and 5-layer architecture; (2) an <strong>architectural contrast with OpenClaw</strong>, an independent open-source gateway, across six dimensions; and (3) <strong>six open directions</strong> for future agent systems. A single running example — "Fix the failing test in <code>auth.test.ts</code>" — is threaded through Sections 3–9 to keep the architecture concrete.</p>
+ <div class="callout"><b>Why it matters:</b> Anthropic's internal survey of 132 engineers found ~27% of Claude-Code-assisted tasks were work that <em>would not have been attempted</em> without the tool — evidence the architecture enables qualitatively new workflows, not just faster ones.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> Agentic coding tools introduce architectural requirements (safety, context, delegation, persistence) that completion tools never faced, yet Anthropic publishes user docs, not architecture.</p>
+ <p><strong>Solution.</strong> Reverse-engineer the design from the actual TypeScript source, framing it as one production system's answers to a shared "design space" of recurring questions.</p>
+ <p><strong>How it works.</strong> Three parts — (1) source-level design-space analysis of Claude Code; (2) a six-dimension contrast with OpenClaw; (3) six open directions — all grounded in one running example, "fix <code>auth.test.ts</code>."</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>Coding tools moved from <strong>autocomplete → IDE assistant → agentic system</strong>; autonomy creates new architectural needs.</li>
+ <li>Method: <strong>source-level analysis</strong> of Claude Code's public TS (v2.1.88), not product docs.</li>
+ <li>Three parts: design-space analysis · OpenClaw contrast · six open directions.</li>
+ <li>One running example — "fix the failing test in <code>auth.test.ts</code>" — threads Sections 3–9.</li>
+ <li>~27% of assisted tasks were work that wouldn't otherwise be attempted (Anthropic survey).</li></ul>`,
+ code:{cap:"the paper at a glance",body:`Paper:   Dive into Claude Code  (Liu, Zhao, Shang, Shen — 2026)
+Subject: Claude Code v2.1.88, public TypeScript source
+Lens:    5 human values -> 13 design principles -> implementation
+
+Three parts
+  1. Design-space analysis   ........ Sections 3-9
+  2. Contrast with OpenClaw  ........ Section 10
+  3. Six open directions     ........ Section 12
+
+Running example: "Fix the failing test in auth.test.ts"`},
+ terms:["design space","source-level analysis","agentic loop","running example","OpenClaw"],
+ next:{id:"c02",label:"c02 Values & Principles",blurb:"what human values actually motivate the architecture."}
+},
+{
+ n:"c02",title:"Design Philosophies & Principles",stage:1,layer:"§2",
+ tagline:"“Built by humans, for humans — five values, thirteen principles.”",
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>Production coding agents embed what their creators believe matters. The paper identifies <strong>five human values</strong> that motivate Claude Code, rooted in Anthropic's safe-agents framework and its central tension: agents must work autonomously, yet humans must retain control over <em>how</em> goals are pursued.</p>
+ <ul>
+ <li><strong>Human Decision Authority</strong> — humans hold ultimate authority via a principal hierarchy (Anthropic → operators → users); they can observe, approve, interrupt, and audit. When Anthropic found users approve 93% of prompts, the response was not more warnings but <em>defined boundaries</em> (sandboxing, classifiers) the agent works freely within.</li>
+ <li><strong>Safety, Security &amp; Privacy</strong> — the system's obligation to protect even when human vigilance lapses. The auto-mode threat model targets four risks: overeager behavior, honest mistakes, prompt injection, model misalignment.</li>
+ <li><strong>Reliable Execution</strong> — do what the human <em>meant</em>, stay coherent over time, verify before declaring success (gather context → act → verify).</li>
+ <li><strong>Capability Amplification</strong> — materially increase output per unit effort; invest in <em>deterministic infrastructure</em> over decision scaffolding, on the bet that capable models benefit more from a rich operational environment than from frameworks that constrain them.</li>
+ <li><strong>Contextual Adaptability</strong> — fit the user's project/conventions and improve over time; auto-approve rates climb from ~20% (&lt;50 sessions) to &gt;40% (750 sessions): trust trajectories, not fixed states.</li>
+ </ul>
+ <p>These values are operationalized through <strong>thirteen design principles</strong> (Table 1) — deny-first with human escalation, graduated trust spectrum, defense in depth, externalized programmable policy, context-as-scarce-resource, append-only durable state, minimal scaffolding / maximal harness, values-over-rules, composable extensibility, reversibility-weighted risk, transparent file-based memory, isolated subagent boundaries, graceful recovery — each answering a recurring design question and mapped to the sections that implement it.</p>
+ <div class="callout warn"><b>Contrast:</b> Claude Code's principle set is distinctive against three families — rule-based orchestration (LangGraph state graphs), container isolation (SWE-Agent, OpenHands), and version-control-as-safety (Aider). It combines <em>minimal decision scaffolding with layered policy enforcement.</em></div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> Architectural choices need a "why." What human values actually drive Claude Code's design, and how do they reach the code?</p>
+ <p><strong>Solution.</strong> Five values (authority, safety, reliability, capability, adaptability) → thirteen design principles → specific implementation choices, summarized in Table 1.</p>
+ <p><strong>How it works.</strong> Each principle answers a recurring question (e.g. "allow, block, or escalate unrecognized actions?" → deny-first with human escalation) and is traced to the sections that implement it. A sixth concern — long-term human capability — is treated as an <em>evaluative lens</em>, not a co-equal value.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li><strong>Five values:</strong> human decision authority · safety/security/privacy · reliable execution · capability amplification · contextual adaptability.</li>
+ <li><strong>Thirteen principles</strong> operationalize them; Table 1 maps principle → values → design question → sections.</li>
+ <li>Signature combo: <strong>minimal scaffolding + layered policy enforcement</strong>, values-over-rules with deterministic guardrails.</li>
+ <li>93% prompt-approval rate → design boundaries instead of more warnings.</li>
+ <li>A sixth concern, <strong>long-term capability preservation</strong>, is an evaluative lens (Section 2.4), not a design driver.</li></ul>`,
+ code:{cap:"five values -> example principles (Table 1)",body:`Human Decision Authority   -> deny-first w/ human escalation, graduated trust
+Safety, Security, Privacy  -> defense in depth, reversibility-weighted risk
+Reliable Execution         -> append-only state, graceful recovery
+Capability Amplification   -> minimal scaffolding / maximal harness
+Contextual Adaptability    -> transparent file memory, composable extensibility
+
+Evaluative lens (not a value): long-term human capability  [Section 2.4]`},
+ terms:["five values","thirteen principles","deny-first","values over rules","graduated trust","evaluative lens"],
+ next:{id:"c03",label:"c03 Architecture Overview",blurb:"how those principles become 7 components and 5 layers."}
+},
+{
+ n:"c03",title:"Architecture Overview",stage:2,layer:"§3",
+ tagline:"“Seven components, five layers — and one shared loop.”",
+ figs:[
+  {src:"data/claude_code/figures/figure_004_0.png",cap:"Figure 1 — High-level system structure: seven functional components (user, interfaces, agent loop, permission system, tools, state &amp; persistence, execution environment). All entry surfaces converge on the same agent loop."},
+  {src:"data/claude_code/figures/figure_007_0.png",cap:"Figure 3 — Expanded layered architecture: surface, core, safety/action, state, and backend layers, each mapped to specific source directories."}
+ ],
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>The architecture answers four recurring design questions, and the answers are the spine of the whole paper:</p>
+ <ul>
+ <li><strong>Where does reasoning live?</strong> The model reasons; the harness executes. The model emits <code>tool_use</code> blocks; the harness parses, checks permissions, dispatches, and collects results (<code>query.ts</code>). The model never directly touches the filesystem, shell, or network. This separation is a security property: a compromised model still cannot bypass sandboxing or deny-first rules. Community analysis estimates only ~1.6% of the codebase is decision logic.</li>
+ <li><strong>How many execution engines?</strong> One. A single <code>queryLoop()</code> runs whether you're in interactive CLI, headless <code>claude -p</code>, the Agent SDK, or an IDE — only rendering differs.</li>
+ <li><strong>What's the default safety posture?</strong> Deny-first with human escalation: deny &gt; ask &gt; allow, unrecognized actions escalate. Multiple independent layers apply in parallel (rules, hooks, classifier, sandbox).</li>
+ <li><strong>What's the binding constraint?</strong> The <em>context window</em> (200K, or 1M on the 4.6 series). Five context-reduction strategies run before every model call.</li>
+ </ul>
+ <p>Concretely, the <strong>seven components</strong> (Figure 1) map to source files: <em>user</em>, <em>interfaces</em> (CLI/headless/SDK/IDE — all feed one loop), <em>agent loop</em> (<code>queryLoop()</code> in <code>query.ts</code>), <em>permission system</em> (<code>permissions.ts</code> + ML classifier + hooks), <em>tools</em> (up to 54 built-ins via <code>assembleToolPool()</code>, merged with MCP), <em>state &amp; persistence</em> (append-only JSONL transcripts), and <em>execution environment</em> (shell, files, web, MCP). The <strong>five-layer view</strong> (Figure 3) refines this into surface, core (loop + compaction), safety/action (permissions, hooks, tools, sandbox, subagents), state (context assembly, persistence, CLAUDE.md, sidechains), and backend.</p>
+ <div class="callout"><b>Clarification:</b> <code>QueryEngine</code> is a conversation <em>wrapper</em> for non-interactive surfaces, not the engine. The shared code path is the function <code>query()</code> (wrapping <code>queryLoop()</code>) — the interactive CLI calls it directly, bypassing <code>QueryEngine</code> entirely.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> A production coding agent must decide where reasoning lives, how many engines to run, what safety default to adopt, and what resource is the bottleneck.</p>
+ <p><strong>Solution.</strong> Reasoning in the model / enforcement in the harness; one shared <code>queryLoop()</code>; deny-first defense-in-depth; context window as the binding constraint. Realized as 7 components / 5 layers, each mapped to source files.</p>
+ <p><strong>How it works.</strong> Left-to-right spine: user → interface → loop → permission gate → tools → execution environment, with state/persistence alongside. ~1.6% decision logic, ~98.4% operational infrastructure.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>Four design questions: <strong>where reasoning lives, how many engines, safety posture, binding constraint.</strong></li>
+ <li>Answers: model-reasons/harness-executes · one <code>queryLoop()</code> · deny-first defense-in-depth · context window as bottleneck.</li>
+ <li><strong>7 components</strong> (Fig 1) and <strong>5 layers</strong> (Fig 3), each mapped to source files.</li>
+ <li>Security from separation: a compromised model can't override harness enforcement.</li>
+ <li><code>QueryEngine</code> ≠ the loop; the shared path is <code>query()</code> → <code>queryLoop()</code>.</li></ul>`,
+ code:{cap:"the left-to-right spine",body:`User -> Interface (CLI / headless / SDK / IDE)
+     -> Agent Loop  queryLoop()            [query.ts]
+        -> Permission System                [permissions.ts + classifier + hooks]
+        -> Tools  assembleToolPool()        [tools.ts, +MCP]
+        -> Execution Environment            [shell / files / web / MCP]
+     <- tool_result back into the loop
+State & Persistence run alongside           [append-only JSONL]
+
+~1.6% decision logic   |   ~98.4% operational harness`},
+ terms:["queryLoop()","query.ts","seven components","five layers","tool_use","binding constraint","QueryEngine"],
+ next:{id:"c04",label:"c04 The Agentic Query Loop",blurb:"trace one turn of that loop end-to-end."}
+},
+{
+ n:"c04",title:"Turn Execution: The Agentic Query Loop",stage:2,layer:"§4",
+ tagline:"“A reactive while-loop — one action sequence per turn, no backtracking.”",
+ figs:[
+  {src:"data/claude_code/figures/figure_006_0.png",cap:"Figure 2 — Runtime turn flow: prompt enters context assembly, the model is called, tool requests pass the permission gate, results feed back, and compaction manages context pressure."}
+ ],
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>When the user submits "fix the failing test in <code>auth.test.ts</code>," the input enters a <strong>reactive loop</strong> following the ReAct pattern: the model reasons and requests tools, the harness executes, results feed the next iteration. Each turn runs a fixed sequence (<code>query.ts</code>): settings resolution → mutable-state init → context assembly (from the last compact boundary forward) → <strong>five pre-model context shapers</strong> → model call (streamed) → tool-use dispatch → permission gate → tool execution &amp; result collection → stop check. The loop is an <code>AsyncGenerator</code> that yields stream events to the UI while keeping one synchronous control flow inside.</p>
+ <p>A clean detail: a single <code>State</code> object holds all mutable state; the loop's seven "continue sites" each overwrite it in one <em>whole-object assignment</em> rather than mutating fields, which keeps reasoning about state transitions tractable.</p>
+ <p><strong>Tool dispatch</strong> picks between two paths: the primary <code>StreamingToolExecutor</code> begins running tools as they stream in (lower latency), with <code>runTools()</code> as a fallback over partitions from <code>partitionToolCalls()</code>. Both classify tools as concurrent-safe or exclusive: read-only ops run in parallel, state-mutating ops serialize. Results are <em>buffered and emitted in request order</em> even when run in parallel — because the model expects results in the same order it asked. A sibling abort controller kills in-flight subprocesses the moment any Bash tool errors.</p>
+ <p><strong>Recovery</strong> is first-class: max-output-token escalation (up to 3 attempts/turn), reactive compaction near capacity, prompt-too-long handling (collapse + reactive compact before giving up), streaming fallback, and a fallback model. <strong>Stop conditions:</strong> no tool use (primary), max turns, context overflow, a PostToolUse hook setting <code>hook_stopped_continuation</code>, or an explicit abort.</p>
+ <div class="callout warn"><b>Trade-off:</b> the reactive design trades search completeness for simplicity and latency — each turn commits to one action sequence with no backtracking, unlike graph-routing or tree-search orchestration.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> How should a coding agent structure iteration, dispatch multiple tool calls safely, and survive errors without halting?</p>
+ <p><strong>Solution.</strong> A reactive ReAct while-loop with a fixed 9-step pipeline, concurrent-read/serial-write tool execution, and layered recovery — all as an async generator streaming to the UI.</p>
+ <p><strong>How it works.</strong> Five context shapers run before each model call; <code>StreamingToolExecutor</code> runs tools as they arrive but emits results in request order; recovery escalates tokens, compacts, or swaps models; five conditions can stop the turn.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>Reactive <strong>ReAct</strong> loop; fixed 9-step pipeline per turn; <code>AsyncGenerator</code> streams events.</li>
+ <li>One <code>State</code> object, overwritten whole at each of seven continue sites.</li>
+ <li><strong>StreamingToolExecutor</strong> (primary) vs <code>runTools()</code> (fallback); concurrent reads, serial writes, results in request order.</li>
+ <li>Recovery: token escalation (≤3/turn), reactive compaction, prompt-too-long handling, streaming + model fallback.</li>
+ <li>Stops on: no tool use · max turns · context overflow · hook veto · abort.</li></ul>`,
+ code:{cap:"one turn of queryLoop()  [query.ts]",body:`1  resolve settings (system prompt, perms cb, model cfg)
+2  init single mutable State (messages, tool ctx, counters)
+3  assemble context from last compact boundary forward
+4  run 5 pre-model shapers: budget -> snip -> microcompact
+                          -> context-collapse -> auto-compact
+5  call model  (streamed via callModel())
+6  if no tool_use -> STOP (turn complete)
+7  dispatch tool_use -> permission gate (Section 5)
+8  execute (StreamingToolExecutor | runTools) -> tool_result
+9  append results -> continue`},
+ terms:["ReAct","StreamingToolExecutor","partitionToolCalls()","context shapers","recovery","stop conditions"],
+ next:{id:"c05",label:"c05 Tool Authorization",blurb:"the gate that decides whether each tool may run at all."}
+},
+{
+ n:"c05",title:"Tool Authorization & Control Boundaries",stage:3,layer:"§5",
+ tagline:"“Deny-first: a narrow allow can never override a broad deny.”",
+ figs:[
+  {src:"data/claude_code/figures/figure_012_0.png",cap:"Figure 4 — Permission gate overview: declarative deny-first rules, global trust modes, and programmable hooks, with an optional ML classifier; the looser modes win only when no rule matches."}
+ ],
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>Every tool invocation passes through the permission system, and the default is to <strong>deny or ask, never allow silently.</strong> The motivation is behavioral: users approve ~93% of prompts, so interactive confirmation is unreliable as a <em>sole</em> safety mechanism — the system must stay safe independent of human vigilance.</p>
+ <p><strong>Seven permission modes</strong> form a graduated autonomy spectrum: <code>plan</code> (approve plans first), <code>default</code> (most ops need approval), <code>acceptEdits</code> (auto-approve in-dir edits + some fs commands), <code>auto</code> (ML classifier, feature-gated), <code>dontAsk</code> (no prompts but deny rules hold), <code>bypassPermissions</code> (skip most prompts, safety-critical checks remain), and internal-only <code>bubble</code> (subagent escalation). Rules evaluate <strong>deny-first</strong>: <code>toolMatchesRule()</code> checks deny rules before allow, so a broad "deny all shell" can't be overridden by a narrow "allow npm test." Matching works tool-level (by name) and content-level (e.g. <code>Bash(prefix:npm)</code>).</p>
+ <p>The full <strong>authorization pipeline</strong>: pre-filtering strips blanket-denied tools from the model's view at assembly time (it never sees them); a PreToolUse hook can deny/ask or rewrite input (but a hook "allow" doesn't bypass later denies); the deny-first rule engine evaluates; then a permission handler branches into <em>coordinator</em>, <em>swarm worker</em>, <em>speculative classifier</em> (races a pre-started result against a timeout for instant Bash approval), or <em>interactive</em> dialog. Crucially, a denial is a <strong>routing signal, not a hard stop</strong>: the model gets the reason, revises, and tries a safer alternative next iteration.</p>
+ <p><strong>Two more layers:</strong> the auto-mode classifier (<code>yoloClassifier.ts</code>) evaluates a proposed call against the transcript and a permissions template, returning allow/deny/ask; and <strong>shell sandboxing</strong> (<code>shouldUseSandbox.ts</code>) provides filesystem/network isolation on a <em>different axis</em> — authorization vs isolation — so a call can be approved-but-sandboxed or denied-before-sandbox.</p>
+ <div class="callout warn"><b>Where defense-in-depth cracks:</b> researchers found commands with &gt;50 subcommands fall back to a single generic approval prompt because per-subcommand parsing froze the UI — a case where independent layers share a performance failure mode (revisited in c11).</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> Users rubber-stamp ~93% of prompts, so per-action confirmation can't be the only safety net; yet the agent must stay flexible.</p>
+ <p><strong>Solution.</strong> Deny-first rule evaluation across seven graduated modes, layered with pre-filtering, hooks, an ML classifier, and orthogonal shell sandboxing — any one layer can block.</p>
+ <p><strong>How it works.</strong> deny &gt; ask &gt; allow; blanket-denied tools removed pre-model; handler branches (coordinator / swarm / speculative classifier / interactive); denials route the model to a safer retry rather than halting.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>Default posture: <strong>deny or ask, never silently allow</strong> (93% approval makes prompts unreliable alone).</li>
+ <li><strong>Seven modes</strong>: plan · default · acceptEdits · auto · dontAsk · bypassPermissions · (internal) bubble.</li>
+ <li><strong>Deny-first</strong>: a broad deny beats a narrow allow, even if the allow is more specific.</li>
+ <li>Pipeline: pre-filter → PreToolUse hook → rule engine → handler (4 branches) → optional sandbox.</li>
+ <li>Denial = <strong>routing signal</strong>; sandboxing is isolation on a separate axis from authorization.</li></ul>`,
+ code:{cap:"deny-first evaluation  [permissions.ts]",body:`def permitted(call):
+    if matches_any(call, DENY_rules):  return DENY    # deny wins, always
+    if matches_any(call, ASK_rules):   return ASK
+    if matches_any(call, ALLOW_rules): return ALLOW
+    return mode_default(active_mode)                   # else: mode decides
+
+# layers, any of which can block:
+#  1 tool pre-filtering   (blanket-denied tools never shown)
+#  2 deny-first rules     (above)
+#  3 permission mode      (baseline for unmatched calls)
+#  4 auto-mode classifier (yoloClassifier.ts)
+#  5 shell sandbox        (shouldUseSandbox.ts -- isolation axis)`},
+ terms:["deny-first","permission modes","yoloClassifier.ts","PreToolUse hook","speculative classifier","shouldUseSandbox.ts"],
+ next:{id:"c06",label:"c06 Extensibility",blurb:"what determines which tools exist in the first place."}
+},
+{
+ n:"c06",title:"Extensibility: MCP, Plugins, Skills, Hooks",stage:3,layer:"§6",
+ tagline:"“Four mechanisms, ordered by context cost.”",
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>Once the permission system mediates <em>whether</em> a tool runs, the next question is <em>which tools exist</em>. Claude Code uses <strong>four extension mechanisms</strong> rather than one unified API, each plugging into a different injection point of the loop:</p>
+ <ul>
+ <li><strong>MCP servers</strong> — the primary external tool-integration path, configured across scopes (project/user/local/enterprise) over many transports (stdio, SSE, HTTP, WebSocket, SDK, IDE variants). Each server contributes <code>MCPTool</code> definitions into the same flat tool pool. <em>High context cost</em> (tool schemas). Insertion point: <code>model()</code>.</li>
+ <li><strong>Plugins</strong> — both a packaging format and a distribution channel. A manifest accepts ten component types (commands, agents, skills, hooks, MCP servers, LSP, output styles, channels, settings, user config); the loader routes each to its registry. <em>Medium cost.</em> Touches all three insertion points.</li>
+ <li><strong>Skills</strong> — a <code>SKILL.md</code> with YAML frontmatter (15+ fields: allowed tools, model overrides, fork execution, hooks…). The <code>SkillTool</code> meta-tool injects the skill's instructions on demand; only frontmatter descriptions sit in the prompt. <em>Low cost.</em> Insertion point: <code>assemble()</code>.</li>
+ <li><strong>Hooks</strong> — 27 event types spanning tool authorization, session lifecycle, user interaction, subagent coordination, context management, and workspace events; 15 carry rich output schemas. Command types: shell, prompt, HTTP, agent (plus internal callbacks). <em>Zero context cost by default.</em> Insertion point: <code>execute()</code>.</li>
+ </ul>
+ <p>All tools converge through <code>assembleToolPool()</code> — "the single source of truth" — via a five-step pipeline: base enumeration (up to 54 tools: 19 always-on, 35 conditional) → mode filtering → deny-rule pre-filtering → MCP merge → dedup (built-ins win). With <code>ToolSearch</code>, deferred tools can be hidden until queried.</p>
+ <div class="callout"><b>Why four?</b> Different extensibility imposes different <em>context costs</em>. One API can't span zero-context lifecycle hooks to schema-heavy tool servers without forcing trade-offs on authors. The graduated ordering (zero → low → medium → high) lets cheap extensions scale widely while expensive ones are reserved for genuinely new tool surfaces — at the cost of a steeper "which mechanism?" learning curve.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> How to structure the extension surface — one unified mechanism, or several — without blowing the context budget?</p>
+ <p><strong>Solution.</strong> Four mechanisms ordered by context cost: hooks (zero) → skills (low) → plugins (medium) → MCP (high), each at a distinct loop injection point.</p>
+ <p><strong>How it works.</strong> <code>assembleToolPool()</code> merges built-in + MCP tools through a 5-step pipeline (enumerate → mode-filter → deny pre-filter → merge → dedup); skills/commands surface via <code>SkillTool</code>; hooks merge into the hook registry; plugins package any combination for distribution.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>Four mechanisms: <strong>MCP, plugins, skills, hooks</strong> — chosen for differing context costs, not redundancy.</li>
+ <li>Context cost ordering: <strong>hooks (0) → skills (low) → plugins (medium) → MCP (high)</strong>.</li>
+ <li>Insertion points: <code>assemble()</code> (skills), <code>model()</code> (MCP), <code>execute()</code> (hooks); plugins span all three.</li>
+ <li><code>assembleToolPool()</code> = single source of truth; up to 54 tools (19 always, 35 conditional).</li>
+ <li>27 hook event types (15 with rich schemas); <code>ToolSearch</code> defers tool schemas until needed.</li></ul>`,
+ code:{cap:"what each mechanism uniquely provides (Table 2)",body:`Mechanism | Unique capability            | Context cost | Insertion
+----------+------------------------------+--------------+-----------
+Hooks     | lifecycle interception       | zero (deflt) | execute()
+Skills    | domain instructions + invoke | low (descr.) | assemble()
+Plugins   | multi-component packaging     | medium       | all three
+MCP       | external service integration | high (schema)| model()
+
+assembleToolPool(): enumerate(54) -> mode-filter -> deny pre-filter
+                    -> merge MCP -> dedup (built-ins win)`},
+ terms:["MCP","plugins","skills","hooks","assembleToolPool()","SkillTool","context cost","ToolSearch"],
+ next:{id:"c07",label:"c07 Context & Memory",blurb:"how the growing state is packed into a bounded window."}
+},
+{
+ n:"c07",title:"Context Construction & Memory",stage:4,layer:"§7",
+ tagline:"“Context is the scarce resource — compress it in five graduated layers.”",
+ figs:[
+  {src:"data/claude_code/figures/figure_018_0.png",cap:"Figure 6 — Context construction and memory hierarchy: system prompt, environment, the CLAUDE.md hierarchy, auto memory, path-scoped rules, tool metadata, history, tool results, and compact summaries converge on the context window."}
+ ],
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>Before each model call, the loop assembles a context window from nine sources (Figure 6): system prompt → environment info (git status, memoized) → the CLAUDE.md hierarchy (memoized) → path-scoped rules (lazy) → auto memory (prefetched async) → tool metadata (skill descriptions, MCP names, deferred schemas) → conversation history → tool results → compact summaries. Some inject <em>late</em> — relevant-memory prefetch, MCP instruction deltas, agent listings, background-task notifications — so the window grows during a turn, not just at assembly.</p>
+ <p><strong>Memory is file-based and transparent by design.</strong> CLAUDE.md files are plain Markdown a user can read, edit, version-control, and delete — trading expressiveness for auditability. Notably, there are <em>no embeddings or vector index</em>; memory retrieval is an <strong>LLM-based scan of file headers</strong> selecting up to five relevant files on demand, at file (not entry) granularity. The hierarchy has four levels: managed (OS policy) → user (<code>~/.claude/CLAUDE.md</code>) → project (checked in) → local (gitignored). Files load in reverse priority order (closer = loaded later = more attention), and nested-directory rules load <em>lazily</em> as the agent reads files there — so the instruction set evolves mid-conversation.</p>
+ <p>A subtle but important split: CLAUDE.md is delivered as a <strong>user message, not system prompt</strong>. So compliance is <em>probabilistic</em> (guidance), while permission rules are <em>deterministic</em> (enforcement) — a deliberate separation of guidance from enforcement.</p>
+ <p><strong>The five-layer compaction pipeline</strong> implements "context as bottleneck" via graduated compression, each layer more aggressive: (1) <em>budget reduction</em> (always on) caps per-tool-result size; (2) <em>snip</em> trims old history; (3) <em>microcompact</em> does cache-aware fine-grained compression; (4) <em>context collapse</em> is a <em>read-time projection</em> that never mutates stored history; (5) <em>auto-compact</em> generates a full model summary as a last resort. The principle is lazy degradation: cheapest compression first, escalate only if needed.</p>
+ <div class="callout warn"><b>The cost:</b> five interacting, partly flag-gated layers create behavior users can't fully predict — context collapse in particular produces <em>no</em> user-visible output. Simpler single-pass truncation loses more information but is easier to reason about.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> The bounded context window is the binding constraint, and user instructions must persist transparently.</p>
+ <p><strong>Solution.</strong> Assemble context from nine sources (some late-injected); store memory as plain editable CLAUDE.md files retrieved by LLM header-scan; manage pressure with a five-layer graduated compaction pipeline.</p>
+ <p><strong>How it works.</strong> Four-level CLAUDE.md hierarchy loaded reverse-priority and partly lazy; CLAUDE.md as user message (probabilistic guidance) vs deny-first rules (deterministic enforcement); compaction escalates budget → snip → microcompact → collapse → auto-compact, append-only.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>Context window assembled from <strong>nine sources</strong>; several inject late, so it grows mid-turn.</li>
+ <li>Memory = transparent <strong>file-based CLAUDE.md</strong>; no embeddings — an LLM header-scan picks ≤5 files.</li>
+ <li>Four-level hierarchy (managed → user → project → local); reverse-priority + lazy nested loading.</li>
+ <li>CLAUDE.md is a <strong>user message</strong> → probabilistic guidance; permission rules → deterministic enforcement.</li>
+ <li><strong>Five-layer compaction</strong>: budget → snip → microcompact → context-collapse → auto-compact (lazy degradation, append-only).</li></ul>`,
+ code:{cap:"five-layer compaction (graduated)  [query.ts / compact.ts]",body:`1 budget reduction   ALWAYS   cap per-tool-result size
+2 snip               HISTORY_SNIP        trim old history
+3 microcompact       CACHED_MICROCOMPACT cache-aware compression
+4 context collapse   CONTEXT_COLLAPSE    read-time projection (no mutation)
+5 auto-compact       default-on          full model-generated summary
+
+principle: apply the cheapest compression first; escalate only if
+context still exceeds the pressure threshold. transcript stays append-only.`},
+ terms:["context window","CLAUDE.md hierarchy","auto memory","compaction pipeline","context collapse","lazy loading","guidance vs enforcement"],
+ next:{id:"c08",label:"c08 Subagent Delegation",blurb:"when one context window isn't enough — spawn isolated workers."}
+},
+{
+ n:"c08",title:"Subagent Delegation & Orchestration",stage:4,layer:"§8",
+ tagline:"“Spawn an isolated worker; get back only a summary.”",
+ figs:[
+  {src:"data/claude_code/figures/figure_020_0.png",cap:"Figure 7 — Subagent isolation and delegation: the Agent tool dispatches to built-in (Explore, Plan, general-purpose) or custom subagents, each in an isolated context with rebuilt permissions and its own tool set."}
+ ],
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>When fixing <code>auth.test.ts</code> first requires exploring the auth module, the parent can <strong>delegate</strong> via the <code>Agent</code> tool (<code>AgentTool.tsx</code>; <code>Task</code> is a legacy alias). The model invokes it with a prompt, an optional subagent type, and config for isolation mode, permission overrides, and working directory. Critically, <code>AgentTool</code> re-enters the <em>same</em> <code>queryLoop()</code> with a fresh, isolated context window and returns only a summary — it sits beside <code>SkillTool</code> in the pool, but where <code>SkillTool</code> injects instructions into the <em>current</em> window, <code>AgentTool</code> spawns a <em>new</em> one.</p>
+ <p>Up to six built-in types: <strong>Explore</strong> (read/search, write/edit denied), <strong>Plan</strong>, <strong>general-purpose</strong>, <strong>Claude Code Guide</strong>, <strong>Verification</strong>, <strong>Statusline-setup</strong>. Beyond built-ins, custom agents are <code>.claude/agents/*.md</code> files whose body is the system prompt and whose YAML frontmatter sets tools, model, effort, permissionMode, hooks, memory scope, isolation, and more — a fully configured isolated sub-system.</p>
+ <p><strong>Isolation modes:</strong> <em>worktree</em> (temporary git worktree — its own repo copy, filesystem separation with zero external deps), <em>remote</em> (internal-only, always background), and <em>in-process</em> (default — shares filesystem, isolated conversation). Permission overrides follow careful rules: a subagent's <code>permissionMode</code> applies unless the parent is already in <code>bypassPermissions</code>/<code>acceptEdits</code>/<code>auto</code> (explicit user decisions win). For multi-instance agent teams, coordination uses <strong>file locking</strong> — not a message broker — for zero-dependency deployment and full debuggability.</p>
+ <p><strong>Sidechain transcripts:</strong> each subagent writes its own <code>.jsonl</code> + <code>.meta.json</code>; only the final response text + metadata return to the parent. The full history never enters the parent window — honoring "context as bottleneck."</p>
+ <div class="callout warn"><b>Cost reality:</b> even isolated parallelism is expensive — agent teams consume ~7× the tokens of a standard plan-mode session, which is exactly why summary-only return matters. The trade-off of isolation: most subagent prompts must be self-contained, since the default path doesn't inherit parent history.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> Some work (broad exploration, validation) would flood the parent's context if done inline.</p>
+ <p><strong>Solution.</strong> The <code>Agent</code> tool spawns isolated subagents that re-enter <code>queryLoop()</code> with their own context and tool set, returning summary-only.</p>
+ <p><strong>How it works.</strong> Built-in + custom (<code>.claude/agents/*.md</code>) types; isolation via worktree / remote / in-process; permission overrides defer to explicit parent modes; teams coordinate by file lock; sidechain <code>.jsonl</code> transcripts keep subagent history out of the parent window.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li><code>AgentTool</code> spawns an <strong>isolated context</strong> (vs <code>SkillTool</code>, which injects into the current one).</li>
+ <li>Up to six built-in types (Explore, Plan, general-purpose, …) + custom agents via <code>.claude/agents/*.md</code>.</li>
+ <li>Isolation: <strong>worktree</strong> (git copy, zero deps) · remote (internal) · in-process (default).</li>
+ <li><strong>Summary-only return</strong>; full history stays in sidechain <code>.jsonl</code> + <code>.meta.json</code> files.</li>
+ <li>Teams coordinate by <strong>file lock</strong>; agent teams cost ~7× tokens of a plan-mode session.</li></ul>`,
+ code:{cap:"Agent tool dispatch  [AgentTool.tsx / runAgent.ts]",body:`Agent(prompt, subagent_type?, isolation?, permissionMode?, cwd?)
+  -> rebuild isolated context + tool set
+  -> isolation: worktree | remote(internal) | in-process(default)
+  -> re-enter queryLoop()        # same loop, fresh window
+  -> write sidechain  <id>.jsonl + <id>.meta.json
+  <- return SUMMARY text + metadata only   # not the full history
+
+permission override applies UNLESS parent in
+  bypassPermissions | acceptEdits | auto   (explicit user wins)`},
+ terms:["AgentTool","subagent types","worktree isolation","sidechain transcripts","summary-only return","file locking"],
+ next:{id:"c09",label:"c09 Session Persistence",blurb:"what is durably recorded — and what is deliberately not restored."}
+},
+{
+ n:"c09",title:"Session Persistence & Recovery",stage:4,layer:"§9",
+ tagline:"“Append-only on disk — but trust never resumes.”",
+ figs:[
+  {src:"data/claude_code/figures/figure_023_0.png",cap:"Figure 8 — Session persistence and compaction: live session state (window, compaction) vs durable storage (transcripts, history.jsonl, subagent sidechains, checkpoints). Resume and fork restore messages but not session-scoped permissions."}
+ ],
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>Persistence is a choice among append-only logs, databases, snapshots, or stateless designs. Claude Code picks <strong>mostly append-only JSONL</strong>, written as events occur (with explicit cleanup rewrites the only exception). <code>getTranscriptPath()</code> computes a project-scoped path <code>join(projectDir, sessionId.jsonl)</code>, and the session identity pairs <code>sessionId</code> with <code>sessionProjectDir</code> so hooks always look in the directory that was active when messages were written.</p>
+ <p><strong>Three independent channels:</strong> (1) session transcripts (user/assistant/attachment/system messages plus compaction and metadata events, one file per session); (2) global prompt history in <code>history.jsonl</code>, read in reverse for ↑ and ctrl+r; (3) subagent sidechains. The append-only format favors auditability and simplicity over query power — every event is human-readable, version-controllable, reconstructable without special tooling; database alternatives would enable richer queries at the cost of transparency and deployment dependencies.</p>
+ <p><strong>Resume &amp; fork:</strong> <code>--resume</code> replays the transcript to rebuild the conversation; fork creates a new session from an existing one. But — deliberately — <strong>session-scoped permissions are not restored.</strong> Sessions are treated as isolated trust domains; re-granting is chosen over implicit persistence so stale trust never carries into a changed context. Requests the rebuilt context doesn't recognize simply fall back to deny-first prompting.</p>
+ <p>Compaction is designed to coexist with persistence: <code>annotateBoundaryWithPreservedSegment()</code> records <code>headUuid</code>, <code>anchorUuid</code>, <code>tailUuid</code> in the boundary event, letting the loader patch the message chain at read time while preserved messages keep their original <code>parentUuid</code>s on disk. So compaction never modifies or deletes prior lines. The "checkpoints" are narrowly file-history snapshots for <code>--rewind-files</code>, not a generic checkpoint store.</p>
+ <div class="callout"><b>Design invariant:</b> trust is always established in the <em>current</em> session. The architecture accepts re-grant friction as the price of guaranteeing that resume/fork can't inherit stale permissions.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> A session's work must survive resume/fork and stay auditable, without smuggling stale trust into a new context.</p>
+ <p><strong>Solution.</strong> Mostly append-only JSONL transcripts across three channels; resume/fork replay messages but <em>not</em> permissions.</p>
+ <p><strong>How it works.</strong> Project-scoped <code>sessionId.jsonl</code>; compaction appends boundary markers with head/anchor/tail UUIDs for read-time chain patching; unrecognized requests after resume fall back to deny-first prompting.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>Persistence = <strong>mostly append-only JSONL</strong>, written as events occur; auditability over query power.</li>
+ <li>Three channels: session transcripts · global <code>history.jsonl</code> · subagent sidechains.</li>
+ <li><code>--resume</code> replays the transcript; fork branches a new session.</li>
+ <li><strong>Permissions are NOT restored</strong> on resume/fork — sessions are isolated trust domains.</li>
+ <li>Compaction appends boundary markers (head/anchor/tail UUIDs) for read-time chain patching; never deletes prior lines.</li></ul>`,
+ code:{cap:"persistence channels & the resume rule",body:`# three independent channels
+session transcript   <sessionId>.jsonl     project-scoped, append-only
+global history       history.jsonl          prompts only, read in reverse
+subagent sidechain   <id>.jsonl/.meta.json  per subagent
+
+# resume / fork
+--resume   replay transcript -> rebuild conversation
+fork       new session from existing
+PERMISSIONS: not restored  ->  unrecognized request falls back to deny-first
+
+# compaction is persistence-safe
+boundary event records headUuid, anchorUuid, tailUuid (read-time patch)`},
+ terms:["append-only JSONL","sessionStorage.ts","--resume","fork","not restoring permissions","compact_boundary"],
+ next:{id:"c10",label:"c10 Comparison vs OpenClaw",blurb:"the same design questions, answered from a different context."}
+},
+{
+ n:"c10",title:"Comparative Analysis: Claude Code vs OpenClaw",stage:5,layer:"§10",
+ tagline:"“Stable questions, divergent answers.”",
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>To calibrate the findings, the paper contrasts Claude Code with <strong>OpenClaw</strong>, an independent open-source <em>multi-channel personal-assistant gateway</em>: a local-first WebSocket daemon connecting ~two dozen messaging surfaces (WhatsApp, Telegram, Slack, Discord, Signal…) to an embedded agent runtime. Where Claude Code is an ephemeral CLI process bound to one repo, OpenClaw is a persistent control plane. They occupy different regions of the same design space — and that's the point: the recurring questions are stable, the answers shift with deployment context.</p>
+ <p>Across <strong>six dimensions</strong> (Table 3):</p>
+ <ul>
+ <li><strong>System scope</strong> — ephemeral per-session CLI vs persistent gateway daemon (loopback, default port 18789). This is the most fundamental divergence; it frames every other answer. (Compositional twist: OpenClaw can <em>host</em> Claude Code as an external harness via ACP — they're stackable.)</li>
+ <li><strong>Trust model</strong> — Claude Code assumes an <em>untrusted model on a trusted machine</em> → deny-first per-action evaluation + classifier + 7 modes. OpenClaw assumes a <em>single trusted operator</em> → perimeter identity/access control (DM pairing, allowlists, gateway auth), opt-in sandboxing. The trust boundary sits between model and environment (CC) vs at the gateway perimeter (OC).</li>
+ <li><strong>Agent runtime</strong> — <code>queryLoop()</code> <em>is</em> the center (CC) vs an embedded Pi-agent runner inside gateway RPC dispatch with per-session queues (OC). Both follow ReAct.</li>
+ <li><strong>Extension architecture</strong> — 4 cost-graduated mechanisms extending <em>one agent's</em> surface (CC) vs a manifest-first plugin system with 12 capability types extending the <em>shared gateway</em> surface (OC).</li>
+ <li><strong>Memory &amp; context</strong> — CLAUDE.md + 5-layer compaction + LLM header-scan (CC) vs workspace bootstrap files + structured long-term promotion ("dreaming," daily notes, optional hybrid vector+keyword search) (OC). Both commit to transparent file-based memory.</li>
+ <li><strong>Multi-agent &amp; routing</strong> — task-delegating subagents returning summaries (CC) vs two separate concerns: multi-agent channel routing <em>and</em> depth-bounded sub-agent delegation (OC). OpenClaw explicitly rejects agent hierarchies as a default.</li>
+ </ul>
+ <div class="callout"><b>What the contrast reveals:</b> (1) the design questions generalize beyond coding agents; (2) the systems make <em>opposite bets</em> — per-action safety vs perimeter access; loop-as-center vs gateway-as-center; single window vs shared surface — and these inversions follow from trust model and topology; (3) the relationship is <em>compositional</em>, suggesting the agent design space is layered, not a flat taxonomy.</p></div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> Is Claude Code's design "right," or just one point? A single system can't tell you.</p>
+ <p><strong>Solution.</strong> Contrast it with OpenClaw — an architecturally independent gateway answering the same questions from a different deployment context — across six dimensions (Table 3).</p>
+ <p><strong>How it works.</strong> The questions (where reasoning lives, safety posture, context, extensibility, delegation) are stable; the answers diverge: per-action vs perimeter trust, loop-as-center vs gateway-as-center, single-window vs shared-surface extensions. And OpenClaw can host Claude Code via ACP — composable, not exclusive.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>OpenClaw = persistent multi-channel <strong>gateway</strong>; Claude Code = ephemeral <strong>CLI coding harness</strong>.</li>
+ <li>Six dimensions: scope · trust · runtime · extensions · memory · multi-agent (Table 3).</li>
+ <li>Opposite bets: <strong>per-action safety vs perimeter access</strong>; loop-as-center vs gateway-as-center; one window vs shared surface.</li>
+ <li>Trust boundary: model↔environment (CC) vs gateway perimeter (OC).</li>
+ <li>Compositional: OpenClaw can host Claude Code via <strong>ACP</strong> → the design space is layered, not flat.</li></ul>`,
+ code:{cap:"Claude Code vs OpenClaw (Table 3, condensed)",body:`Dimension      | Claude Code               | OpenClaw
+---------------+---------------------------+----------------------------
+System scope   | ephemeral per-session CLI | persistent WS gateway daemon
+Trust model    | deny-first per action,    | perimeter identity/access,
+               | classifier, 7 modes       | opt-in sandbox
+Agent runtime  | queryLoop() = the center  | Pi-agent inside gateway RPC
+Extensions     | 4 cost-graduated mechs    | manifest plugins, 12 types
+Memory         | CLAUDE.md + 5-layer       | bootstrap files + dreaming,
+               | compaction, header-scan   | optional hybrid search
+Multi-agent    | summary-only subagents    | channel routing + sub-agents`},
+ terms:["OpenClaw","gateway control plane","perimeter trust","ACP","six dimensions","deployment context"],
+ next:{id:"c11",label:"c11 Discussion",blurb:"reading the answers together — philosophy, tensions, trade-offs."}
+},
+{
+ n:"c11",title:"Discussion",stage:5,layer:"§11",
+ tagline:"“Tensions are not failures — they're the cost of pursuing five values at once.”",
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>Read together, the subsystems confirm the predicted <strong>design philosophy</strong>: invest in <em>operational infrastructure</em>, not decision scaffolding. The architecture is overwhelmingly deterministic (permission gates, tool routing, context management, recovery), with the LLM invoked as a stateless completion endpoint — the ~1.6% / 98.4% ratio made concrete. As frontier models converge on coding ability, the <em>harness</em> becomes the principal differentiator. This raises the OS analogy: the core loop as kernel, everything else as the operating system.</p>
+ <p><strong>Value tensions</strong> (Table 4) are structural, not bugs: <em>Authority × Safety</em> (93% approval undermines vigilance → classifier + sandbox must compensate); <em>Safety × Capability</em> (the &gt;50-subcommand fallback skips per-subcommand checks under parsing load); <em>Adaptability × Safety</em> (CVEs exploiting pre-trust initialization of hooks/MCP); <em>Capability × Adaptability</em> (proactivity raises task completion but drops preference at high frequency); <em>Capability × Reliability</em> (bounded context prevents full-codebase awareness).</p>
+ <p><strong>Architectural trade-offs:</strong> (1) <em>Safety vs autonomy</em> — modes form a monotonically decreasing safety gradient navigated mostly by <em>habituation</em>, not deliberate selection; sandboxing cut prompts ~84%, reframing safety as a human-factors problem. (2) <em>Permission under adversarial conditions</em> — two CVEs share a root cause: extension code (hooks, MCP, settings) runs <em>before</em> the trust dialog, a pre-trust window outside deny-first evaluation; the pipeline captures spatial but not <em>temporal</em> ordering. (3) <em>Context efficiency vs transparency</em> — compression is largely invisible (context collapse emits nothing). (4) <em>Simplicity vs extensibility</em> — four mechanisms create combinatorial, hard-to-predict interactions.</p>
+ <p>Through the <strong>evaluative lens</strong> of long-term capability, the paper assembles sobering external evidence: an RCT found AI made experienced devs 19% slower despite a perceived 20% speedup; Cursor adoption across 807 repos raised complexity ~40.7%; an EEG study found weakened neural connectivity persisting after AI removal — combined with a 25% drop in entry-level tech hiring. (These target the <em>class</em> of bounded-context tool-use agents, not Claude Code specifically.)</p>
+ <div class="callout"><b>Three recurring choices</b> (§11.7) cut across every subsystem: <em>graduated layering</em> over monolithic mechanisms; <em>append-only</em> designs favoring auditability over query power; and <em>model judgment within a deterministic harness</em>. The standing risk: good <em>local</em> decisions can produce poor <em>global</em> outcomes when bounded context blocks global awareness.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> What do the subsystem choices mean when read together — and where does the design get tested?</p>
+ <p><strong>Solution.</strong> Name the philosophy (infrastructure over scaffolding), the value tensions (Table 4), the four concrete trade-offs, and the empirical predictions the architecture generates.</p>
+ <p><strong>How it works.</strong> Tensions are structural consequences of pursuing five values; trade-offs surface as safety-vs-autonomy gradients, a pre-trust temporal window (CVEs), invisible compression, and combinatorial extension interactions. Three recurring commitments: graduated layering, append-only, model-judgment-in-a-harness.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li>Philosophy confirmed: <strong>operational infrastructure over decision scaffolding</strong> (~1.6% / 98.4%); harness as differentiator → OS analogy.</li>
+ <li>Value tensions (Table 4) are <strong>structural</strong>, not failures (Authority×Safety, Safety×Capability, …).</li>
+ <li>Trade-offs: safety↔autonomy by <strong>habituation</strong>; pre-trust <strong>temporal</strong> window (CVEs); invisible compression; combinatorial extensions.</li>
+ <li>Evaluative-lens evidence: 19% slower (RCT), +40.7% complexity, persistent EEG effects, −25% entry hiring.</li>
+ <li>Three recurring choices: <strong>graduated layering · append-only · model judgment in a harness.</strong></li></ul>`,
+ code:{cap:"value tensions (Table 4, condensed)",body:`Authority   x Safety       approval fatigue vs protection   (93% approval)
+Safety      x Capability    perf vs defense depth  (>50-subcmd fallback)
+Adaptability x Safety       extensibility vs attack surface (pre-trust CVEs)
+Capability  x Adaptability  proactivity vs disruption  (+12-18%, pref drops)
+Capability  x Reliability   velocity vs coherence  (bounded context)
+
+recurring choices: graduated layering | append-only | model-in-a-harness`},
+ terms:["1.6% decision logic","value tensions","pre-trust window","CVE","habituation","graduated layering","local vs global"],
+ next:{id:"c12",label:"c12 Future Directions",blurb:"six open problems the analysis sharpens into questions."}
+},
+{
+ n:"c12",title:"Future Directions",stage:5,layer:"§12",
+ tagline:"“Six open questions, posed as whether / how / which.”",
+ expanded:`<span class="pill">Expanded lecture</span>
+ <p>Stepping beyond the architecture, the paper records <strong>six open directions</strong>, each spanning the five-value framework and the evaluative lens, and each posed as an open question rather than a prescription:</p>
+ <ul>
+ <li><strong>1. Silent failure &amp; the observability–evaluation gap.</strong> The dominant failure mode of deployed agents is silent mistakes, not crashes (~78% of AI failures "invisible"; ~89% observability adoption vs ~52% offline evaluation). Open: should generator–evaluator scaffolding live <em>inside</em> the harness (e.g. new hook events) or outside it?</li>
+ <li><strong>2. Persistence: memory &amp; longitudinal relationships.</strong> Between static CLAUDE.md (§7) and single-session transcripts (§9) lies a missing <em>accumulating</em> layer — an experiential tier of curated playbooks — and the human-relationship analogue (trust trajectories over months).</li>
+ <li><strong>3. Harness boundary evolution — where / when / what / with whom.</strong> "The space of interesting harness combinations doesn't shrink as models improve; it moves." <em>Where</em> (managed/virtualized components), <em>when</em> (proactive/tick-based like the feature-gated KAIROS), <em>what</em> (vision-language-action beyond text), <em>with whom</em> (role-differentiated multi-agent).</li>
+ <li><strong>4. Horizon scaling — from session to scientific program.</strong> Do turn/session/subagent primitives still support dependability when work spans <em>weeks</em>? Autonomous-research pipelines and METR's 50%-time-horizon metric frame this.</li>
+ <li><strong>5. Governance &amp; oversight at scale.</strong> The EU AI Act (fully applicable Aug 2026), GPAI Code of Practice, and copyright rulings add external constraints; deny-first is internally auditable via transcripts but not yet <em>externally</em> auditable.</li>
+ <li><strong>6. The evaluative lens revisited — long-term human capability.</strong> Could the sustainability gap become a <em>first-class design problem</em> rather than a downstream metric? Today the harness exposes no per-session signal for comprehension or convention drift; and whether the harness is even the right locus (vs IDE, org, human loop) is unsettled.</li>
+ </ul>
+ <div class="callout"><b>The closing frame:</b> the architecture documented here is a <em>snapshot of a co-evolving system</em>, not a fixed optimum. Anthropic's own Managed Agents work already virtualizes session/harness/sandbox into independently replaceable interfaces — an explicit echo of how operating systems virtualized hardware.</div>`,
+ distillation:`<span class="pill">Distillation</span>
+ <p><strong>Problem.</strong> What does this source-level analysis <em>not</em> resolve, and where should future agent design focus?</p>
+ <p><strong>Solution.</strong> Six open directions spanning the five values + evaluative lens, each stated as whether/how/which, grounded in external empirical, architectural, and policy literature.</p>
+ <p><strong>How it works.</strong> Observability gap · accumulating memory · harness-boundary evolution (where/when/what/with-whom) · horizon scaling · governance · long-term human capability — read as the agenda implied by the architecture, treated as a co-evolving snapshot.</p>`,
+ summary:`<span class="pill">Summary</span><ul>
+ <li><strong>Six open directions</strong>, each posed as an open question, spanning all five values + the evaluative lens.</li>
+ <li>Observability–evaluation gap (silent failures); accumulating memory layer; harness-boundary evolution (where/when/what/with-whom).</li>
+ <li>Horizon scaling (session → weeks); governance (EU AI Act, GPAI); long-term human capability as a possible first-class concern.</li>
+ <li>Recurring framing: harness-layer questions, not model-capability ones.</li>
+ <li>The architecture is a <strong>snapshot of a co-evolving system</strong> (cf. Managed Agents virtualization).</li></ul>`,
+ code:{cap:"six open directions (Section 12)",body:`12.1  silent failure / observability-evaluation gap        [Safety]
+12.2  cross-session persistence: memory + relationships    [Reliability]
+12.3  harness boundary: where / when / what / with whom    [Capability]
+12.4  horizon scaling: session -> weeks-long programs      [Reliability]
+12.5  governance & oversight (EU AI Act, GPAI)             [Authority]
+12.6  long-term human capability as a design problem       [Eval. lens]`},
+ terms:["observability gap","accumulating memory","KAIROS","horizon scaling","EU AI Act","co-evolving harness"],
+ next:{id:"end",label:"Wrap-up",blurb:"one loop, a whole operating system around it."}
+}
+];
+
+/* ============ RENDER ============ */
+const stageDot=s=>`<span class="sdot bg${s}"></span>`;
+const modulesEl=document.getElementById('modules');
+const navEl=document.getElementById('nav');
+
+modulesEl.innerHTML=MODULES.map(m=>`
+<section class="module" id="${m.n}" data-search="${m.n} ${m.title} ${m.layer}">
+  <div class="mod-head">
+    <span class="mod-num bg${m.stage}" style="background:var(--s${m.stage})">${m.n}</span>
+    <div><h2>${m.title}</h2><p class="tagline">${m.tagline}</p></div>
+  </div>
+  <div class="badges">
+    <span class="badge stage${m.stage}">Stage ${m.stage} · ${STAGE_NAMES[m.stage]}</span>
+    <span class="badge layer">Paper section ${m.layer}</span>
+  </div>
+  ${(m.figs||[]).map(f=>`<figure><img src="${f.src}" alt="${f.cap.replace(/<[^>]+>/g,'').replace(/"/g,'&quot;')}" loading="lazy"
+     onerror="this.parentNode.innerHTML='<div style=&quot;color:var(--txt-faint);font-size:13px&quot;>[figure not found: ${f.src}]</div>'">
+     <figcaption>${f.cap}</figcaption></figure>`).join('')}
+  <div class="variant" data-depth="expanded">${m.expanded}</div>
+  <div class="variant" data-depth="distillation">${m.distillation}</div>
+  <div class="variant" data-depth="summary">${m.summary}</div>
+  <div class="codeblock"><div class="code-cap">${m.code.cap}</div><pre><code>${m.code.body}</code></pre></div>
+  <div class="terms">${m.terms.map(t=>`<span>${t}</span>`).join('')}</div>
+  <p class="next">→ Next: <a href="#${m.next.id}">${m.next.label}</a> — ${m.next.blurb}</p>
+</section>`).join('');
+
+navEl.insertAdjacentHTML('beforeend', MODULES.map(m=>`
+  <a href="#${m.n}" data-target="${m.n}" data-search="${m.n} ${m.title} ${m.layer}">
+    ${stageDot(m.stage)}<span class="sid">${m.n}</span><span>${m.title}</span></a>`).join(''));
+
+/* ============ DEPTH SWITCH ============ */
+const HINTS={expanded:"Full teaching prose with intuition & trade-offs.",
+  distillation:"Tight problem → answer → how-it-works.",
+  summary:"Core concepts as quick bullets."};
+const depthtabs=document.getElementById('depthtabs');
+const depthHint=document.getElementById('depthHint');
+function setDepth(d){
+  document.documentElement.setAttribute('data-depth',d);
+  [...depthtabs.children].forEach(b=>b.classList.toggle('active',b.dataset.depth===d));
+  depthHint.textContent=HINTS[d];
+  try{localStorage.setItem('ccl-depth',d)}catch(e){}
+}
+depthtabs.addEventListener('click',e=>{if(e.target.dataset.depth)setDepth(e.target.dataset.depth)});
+setDepth((()=>{try{return localStorage.getItem('ccl-depth')}catch(e){}})()||'expanded');
+
+/* ============ THEME ============ */
+const themebtn=document.getElementById('themebtn');
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);try{localStorage.setItem('ccl-theme',t)}catch(e){}}
+themebtn.addEventListener('click',()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'));
+setTheme((()=>{try{return localStorage.getItem('ccl-theme')}catch(e){}})()||'dark');
+
+/* ============ SCROLL-SPY ============ */
+const navLinks=[...navEl.querySelectorAll('a')];
+const linkFor=id=>navLinks.find(a=>a.dataset.target===id);
+const spy=new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting){
+      navLinks.forEach(a=>a.classList.remove('active'));
+      const l=linkFor(en.target.id); if(l)l.classList.add('active');
+    }
+  });
+},{rootMargin:'-40% 0px -55% 0px',threshold:0});
+['intro',...MODULES.map(m=>m.n),'end'].forEach(id=>{const el=document.getElementById(id);if(el)spy.observe(el)});
+
+/* ============ FILTER ============ */
+const filter=document.getElementById('filter');
+filter.addEventListener('input',()=>{
+  const q=filter.value.trim().toLowerCase();
+  navLinks.forEach(a=>{
+    if(!a.dataset.search)return; // keep intro link
+    a.style.display=a.dataset.search.toLowerCase().includes(q)?'':'none';
+  });
+});
+
+/* ============ MOBILE SIDEBAR ============ */
+const sidebar=document.getElementById('sidebar'),scrim=document.getElementById('scrim'),menubtn=document.getElementById('menubtn');
+function closeSidebar(){sidebar.classList.remove('open');scrim.classList.remove('show')}
+menubtn.addEventListener('click',()=>{sidebar.classList.toggle('open');scrim.classList.toggle('show')});
+scrim.addEventListener('click',closeSidebar);
+navEl.addEventListener('click',e=>{if(e.target.closest('a')&&window.innerWidth<=920)closeSidebar()});
+
+/* ============ HIGHLIGHT (lightweight Python-ish) ============ */
+const KW=new Set("def class return if elif else for while in is not and or import from with as lambda None True False global try except raise continue break pass yield".split(" "));
+function highlightLeaf(node){
+  const text=node.nodeValue;
+  const re=/(#[^\n]*)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(\d+)\b|\b([A-Za-z_]\w*)\b/g;
+  let out='',last=0,m;
+  while((m=re.exec(text))){
+    out+=esc(text.slice(last,m.index));
+    if(m[1])out+=`<span class="tok-com">${esc(m[1])}</span>`;
+    else if(m[2])out+=`<span class="tok-str">${esc(m[2])}</span>`;
+    else if(m[3])out+=`<span class="tok-num">${esc(m[3])}</span>`;
+    else if(m[4])out+= KW.has(m[4])?`<span class="tok-kw">${m[4]}</span>`:esc(m[4]);
+    last=re.lastIndex;
+  }
+  out+=esc(text.slice(last));
+  const span=document.createElement('span'); span.innerHTML=out;
+  node.parentNode.replaceChild(span,node);
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+document.querySelectorAll('pre code').forEach(code=>{
+  [...code.childNodes].forEach(n=>{ if(n.nodeType===3 && n.nodeValue.trim()) highlightLeaf(n); });
+});
+</script>
+</body>
+</html>
