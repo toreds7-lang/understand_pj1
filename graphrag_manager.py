@@ -23,6 +23,21 @@ from typing import Any
 
 import config
 
+# Max parallel LLM calls the build fires (settings.yaml concurrent_requests). Runtime-mutable
+# so the UI can tune it; a changed value applies on the next Build/Rebuild. Kept low by default
+# because a self-hosted LLM server chokes on high concurrency (library default is 25).
+_concurrency: int = config.GRAPHRAG_CONCURRENT_REQUESTS
+
+
+def set_concurrency(n: int) -> None:
+    global _concurrency
+    _concurrency = max(1, min(25, int(n)))
+
+
+def get_concurrency() -> int:
+    return _concurrency
+
+
 # Parquets that must all exist for an index to count as "built".
 _REQUIRED = ("entities", "communities", "community_reports", "text_units", "relationships")
 
@@ -132,7 +147,7 @@ embedding_models:
     retry:
       type: exponential_backoff
 
-concurrent_requests: {config.GRAPHRAG_CONCURRENT_REQUESTS}
+concurrent_requests: {get_concurrency()}
 
 input:
   type: text

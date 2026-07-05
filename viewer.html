@@ -667,6 +667,9 @@ mark.kw { background: #facc15; color: #1a1a1a; padding: 0 3px;
       <button class="scope-btn active" id="graph-toggle" title="Whole-paper search sources: click to exclude graph search and use vector+keyword only">+Graph</button>
       <span id="graphrag-pill" class="graphrag-pill" title="Agentic GraphRAG index status for whole-paper chat" hidden></span>
       <button class="scope-btn" id="graphrag-rebuild" title="Build or rebuild this paper's knowledge-graph index" hidden>Build index</button>
+      <label class="sleep-label" title="Max parallel LLM calls during graph build. Applies on the next Build/Rebuild. Higher = faster but may overload a self-hosted LLM server.">
+        Parallel <input type="number" id="graphrag-concurrency-input" min="1" max="25" step="1" value="4">
+      </label>
       <label class="sleep-label" title="Seconds to wait after each batch LLM request (page summary, TOC, highlights, wiki)">
         Sleep <input type="number" id="llm-sleep-input" min="0" step="0.5" value="3"> s
       </label>
@@ -2556,6 +2559,20 @@ document.getElementById("llm-sleep-input").addEventListener("change", e => {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ seconds: Math.max(0, seconds) })
+  }).catch(() => {});
+});
+
+/* ── GraphRAG build concurrency control ────────────────────────────────── */
+fetch("/api/graphrag-concurrency").then(r => r.json()).then(d => {
+  document.getElementById("graphrag-concurrency-input").value = d.value;
+}).catch(() => {});
+document.getElementById("graphrag-concurrency-input").addEventListener("change", e => {
+  const value = parseInt(e.target.value, 10);
+  if (isNaN(value)) return;
+  fetch("/api/graphrag-concurrency", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ value: Math.max(1, Math.min(25, value)) })
   }).catch(() => {});
 });
 

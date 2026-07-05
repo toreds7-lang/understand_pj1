@@ -361,6 +361,18 @@ def build_app(initial_paper_id: str | None) -> FastAPI:
         llm_client.set_llm_sleep(body.seconds)
         return {"seconds": llm_client._sleep_seconds}
 
+    class ConcurrencyBody(BaseModel):
+        value: int
+
+    @app.get("/api/graphrag-concurrency")
+    def api_get_graphrag_concurrency() -> dict:
+        return {"value": graphrag_manager.get_concurrency()}
+
+    @app.post("/api/graphrag-concurrency")
+    def api_set_graphrag_concurrency(body: ConcurrencyBody) -> dict:
+        graphrag_manager.set_concurrency(body.value)
+        return {"value": graphrag_manager.get_concurrency()}
+
     @app.get("/api/graphrag-status")
     def api_graphrag_status() -> dict:
         ctx = cur()
